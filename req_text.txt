@@ -1,0 +1,653 @@
+
+Platform Streaming Video
+Dokumen Kebutuhan Sistem &amp; Roadmap Pengembangan
+Next.js (Frontend)  ·  NestJS (Backend)  ·  Bunny.net  ·  Midtrans
+Mulai: 30 Maret 2026  —  Target: 29 Mei 2026
+
+
+
+Daftar Isi
+1. Ringkasan Proyek
+2. Kebutuhan Fungsional
+3. Kebutuhan Non-Fungsional
+4. Matriks Akses per Role
+5. Struktur Teknologi &amp; Repo
+6. Roadmap Pengembangan 2 Bulan
+7. Rencana Testing
+
+1. Ringkasan Proyek
+
+Platform Streaming Video adalah sistem berbasis subscription yang memungkinkan pengguna menonton konten film secara online.
+Sistem dibangun dengan arsitektur monorepo menggunakan Next.js untuk frontend dan NestJS untuk backend.
+Video streaming diamankan melalui Bunny.net CDN dengan Signed URL, dan pembayaran diproses via Midtrans.
+
+Atribut
+Detail
+Nama Proyek
+Platform Streaming Video Berbasis Subscription
+Stack Backend
+NestJS + Prisma + MySQL
+Stack Frontend
+Next.js 14 (App Router) + Tailwind CSS + shadcn/ui
+CDN &amp; Storage
+Bunny.net (video streaming + file storage)
+Payment
+Midtrans (bulanan &amp; tahunan)
+Email
+Resend (verifikasi, notifikasi, reminder)
+Repo
+Monorepo — satu repo, dua app (frontend &amp; backend)
+Mulai Coding
+Senin, 30 Maret 2026
+Target Selesai
+Jumat, 29 Mei 2026 (8 minggu)
+
+Tiga Pilar Utama Sistem
+
+Streaming Aman
+Video dilindungi Signed URL, akses berbasis role, CDN global via Bunny.net
+Subscription &amp; Payment
+Paket bulanan/tahunan, integrasi Midtrans, auto-expire, riwayat pembayaran
+Manajemen Konten
+Upload film, jadwal tayang, sistem iklan, rerun, notifikasi email
+
+2. Kebutuhan Fungsional
+
+A. Autentikasi &amp; User Management
+
+Fitur
+Deskripsi
+Registrasi
+Daftar akun menggunakan email &amp; password, atau Google OAuth (OAuth 2.0).
+Login &amp; Logout
+Login dengan kredensial atau Google. Logout menghapus token di frontend.
+Verifikasi Email
+Token unik dikirim via Resend. Satu kali pakai, berlaku 24 jam.
+Role-based Access
+5 role: Guest, User, Subscriber, Admin, Super Admin. Dikontrol via JWT + guard.
+Manajemen User
+Admin dapat melihat, memfilter, dan mengubah status user (aktif/nonaktif).
+Refresh Token
+Endpoint untuk memperbarui JWT tanpa paksa login ulang.
+
+B. Manajemen Konten Film
+
+Fitur
+Deskripsi
+Upload Film
+Admin upload file MP4 langsung ke Bunny (direct upload — tidak lewat server).
+Upload Poster &amp; Trailer
+Poster (jpg/png) dan trailer URL disimpan bersama metadata film.
+Metadata Film
+Judul, genre, sinopsis, durasi, tahun rilis, sutradara.
+Jadwal Tayang
+Admin set scheduled_at. Film otomatis published saat waktu tiba (via cron).
+Coming Soon
+H-7 sebelum tayang, poster tampil di beranda dengan label coming soon.
+Sistem Rerun
+Admin dapat menjadwalkan penayangan ulang film lama.
+Edit &amp; Hapus Film
+Edit metadata tanpa menyentuh Bunny. Hapus menggunakan soft delete (is_deleted).
+
+C. Streaming Video
+
+Fitur
+Deskripsi
+Integrasi Bunny.net
+Video disimpan dan distream dari Bunny CDN. Backend hanya generate tiket akses.
+Signed URL
+Token SHA256 dari tokenSecret + path + expiry. Subscriber: 2 jam. User gratis: 25 menit.
+Video Player
+Player mendukung streaming adaptif, simpan posisi, dan tidak bisa di-inspect URL.
+Akses Berbasis Role
+Backend selalu query role dari DB (bukan JWT) sebelum generate signed URL.
+Refresh URL Otomatis
+Frontend request URL baru saat sisa 15 menit — seamless untuk film panjang.
+Cek Jadwal Tayang
+Film hanya bisa diakses jika is_published = true DAN scheduled_at sudah terlewati.
+
+D. Subscription &amp; Payment
+
+Fitur
+Deskripsi
+Pilihan Paket
+Dua paket: bulanan dan tahunan. Harga dikonfigurasi di backend.
+Integrasi Midtrans
+Backend buat order ke Midtrans API, user dibayar di halaman Midtrans.
+Aktivasi via Webhook
+HANYA dari webhook Midtrans yang terverifikasi (SHA512 signature). Bukan dari redirect.
+Idempotency Check
+Cek apakah order sudah diproses sebelum aktivasi — antisipasi webhook duplikat.
+DB Transaction
+Update payments + subscriptions + users.role dalam satu atomic transaction.
+Auto Expire
+Cron job harian cabut akses subscriber yang sudah melewati expired_at.
+Perpanjang Langganan
+expired_at baru = expired_at lama + 30/365 hari (bukan dari now()).
+Riwayat Pembayaran
+User dapat melihat semua transaksi: tanggal, paket, status, nominal.
+
+E. Sistem Akses Konten
+
+Role
+Hak Akses
+Guest
+Hanya bisa lihat daftar film, poster, jadwal tayang, dan trailer.
+User Gratis
+Nonton maksimal 20 menit. Menit ke-20: video pause, iklan muncul, lalu block.
+Subscriber
+Akses penuh semua film sesuai jadwal tayang. Tanpa iklan, tanpa batas waktu.
+
+F. Sistem Iklan
+
+Fitur
+Deskripsi
+Preload Data Iklan
+GET /api/ads/active dipanggil saat player pertama load — tidak menunggu menit ke-20.
+Trigger Iklan
+Frontend timer 20 menit. Saat habis: player.pause() + simpan currentTime.
+Pemutaran Iklan
+Video iklan diputar. Countdown ditampilkan. Tidak bisa di-skip.
+Block Setelah Iklan
+Setelah iklan selesai, video film tetap di-block. Muncul modal subscribe.
+Iklan Null
+Jika tidak ada iklan aktif, langsung tampilkan modal subscribe tanpa crash.
+Kelola Iklan (Admin)
+Upload, aktifkan, nonaktifkan, hapus iklan. Hanya satu iklan aktif di satu waktu.
+
+G. Notifikasi Email
+
+Jenis Email
+Keterangan
+Verifikasi Email
+Dikirim saat register. Token 24 jam, 1x pakai.
+Konfirmasi Pembayaran
+Dikirim setelah webhook subscriber aktif. Isi: paket, nominal, expired_at.
+Reminder H-3
+Dikirim 3 hari sebelum langganan habis. Flag reminder_sent mencegah duplikat.
+Notif Expired
+Dikirim saat cron job mencabut akses. Berisi link untuk perpanjang.
+Notif Film Baru
+Dikirim ke semua subscriber saat film baru di-publish (is_published = true).
+Notif Rerun
+Dikirim ke subscriber saat film lama dijadwalkan tayang ulang.
+
+H. Halaman Beranda
+
+Komponen
+Deskripsi
+Banner Coming Soon
+Tampil H-7 sebelum jadwal tayang. Dihitung dari scheduled_at - 7 hari.
+Jadwal Tayang
+List film yang akan dan sudah tayang, diurutkan per minggu.
+List Film
+Grid poster film dengan judul, genre, dan label status (baru/coming soon/rerun).
+
+I. Dashboard
+
+Komponen
+Deskripsi
+Dashboard User
+Status langganan (aktif/expired), tanggal expired, paket aktif.
+Riwayat Pembayaran
+Tabel semua transaksi: tanggal, paket, nominal, status.
+Perpanjang Langganan
+Tombol perpanjang yang memulai flow payment baru.
+Dashboard Admin
+Kelola film (upload, edit, hapus, atur jadwal), kelola iklan, lihat data user.
+Dashboard Super Admin
+CRUD semua data, kelola admin, akses statistik (total subscriber, revenue).
+
+3. Kebutuhan Non-Fungsional
+
+A. Performa
+Aspek
+Target
+Streaming Video
+Memanfaatkan CDN Bunny.net untuk latensi rendah. Video tidak melewati server.
+Load Halaman
+Target &lt; 2 detik untuk halaman beranda. Gunakan lazy loading untuk daftar film.
+Skalabilitas
+Backend stateless (JWT) — bisa di-scale horizontal tanpa sesi tersimpan di server.
+
+B. Keamanan
+Aspek
+Implementasi
+Enkripsi Password
+bcrypt dengan cost factor minimum 12.
+JWT Authentication
+Token ditandatangani dengan secret key, disimpan di httpOnly cookie atau memory.
+HTTPS Wajib
+Semua komunikasi dienkripsi TLS. HTTP redirect ke HTTPS.
+Validasi Webhook
+SHA512 signature verification sebelum proses webhook Midtrans.
+Signed URL Video
+Token SHA256 dengan expiry. Bunny verifikasi setiap request stream.
+Rate Limiting
+Register &amp; login endpoint dibatasi untuk mencegah brute force.
+Input Validation
+Semua input divalidasi di backend (class-validator di NestJS).
+MIME Type Check
+Validasi MIME type file upload — tidak hanya cek ekstensi.
+
+C. Reliability &amp; Maintenance
+Aspek
+Implementasi
+Error Handling
+Global exception filter di NestJS. Semua error dikembalikan dalam format konsisten.
+Logging
+Semua request, error, dan webhook dicatat (Winston atau Pino).
+Idempotency
+Webhook payment diproses maksimal satu kali meski dikirim berulang.
+Backup Database
+Backup MySQL terjadwal. Simpan minimal 7 hari terakhir.
+Monitoring
+Pantau uptime server dan error rate.
+
+D. Infrastruktur
+Komponen
+Spesifikasi
+VPS
+Minimal 2 vCPU, 4GB RAM, 100GB SSD. Disarankan Ubuntu 22.04.
+CDN Video
+Bunny.net Storage Zone + Pull Zone dengan token authentication aktif.
+Email Service
+Resend — gratis 3.000 email/bulan. Verifikasi domain pengirim.
+Payment Gateway
+Midtrans — Sandbox untuk development, Production untuk live.
+Database
+MySQL 8.0 + Prisma ORM. Gunakan connection pooling.
+
+4. Matriks Akses per Role
+
+Tabel berikut merangkum hak akses setiap role terhadap fitur-fitur utama sistem.
+
+Fitur
+Guest
+User Gratis
+Subscriber
+Admin/Super Admin
+Lihat daftar film &amp; poster
+✓
+✓
+✓
+✓
+Lihat trailer film
+✓
+✓
+✓
+✓
+Lihat jadwal tayang
+✓
+✓
+✓
+✓
+Register &amp; login
+✓
+✓
+✓
+✓
+Nonton film (penuh)
+✗
+✗
+✓
+✓
+Nonton film (20 menit)
+✗
+✓
+✓
+✓
+Nonton tanpa iklan
+✗
+✗
+✓
+✓
+Subscribe / bayar
+✗
+✓
+✓
+✗
+Dashboard user
+✗
+✓
+✓
+✗
+Riwayat pembayaran
+✗
+✓
+✓
+✗
+Upload &amp; kelola film
+✗
+✗
+✗
+✓
+Atur jadwal tayang
+✗
+✗
+✗
+✓
+Kelola iklan
+✗
+✗
+✗
+✓
+Lihat data user
+✗
+✗
+✗
+✓
+CRUD semua data
+✗
+✗
+✗
+Super Admin
+Kelola admin
+✗
+✗
+✗
+Super Admin
+
+Catatan: Role Admin dan Super Admin tidak bisa subscribe sebagai pelanggan biasa.
+Super Admin memiliki semua akses Admin ditambah kemampuan mengelola akun Admin.
+Pengecekan role selalu dilakukan dari database, bukan dari payload JWT.
+
+5. Struktur Teknologi &amp; Repo
+
+Stack Teknologi
+Teknologi
+Fungsi
+NestJS
+Framework backend TypeScript. Modular, mendukung guard, interceptor, dan cron job.
+Next.js 14
+App Router, Server Components, optimasi image bawaan, SEO-friendly.
+Prisma ORM
+Schema-first ORM untuk MySQL. Type-safe queries dan migration otomatis.
+MySQL 8.0
+Database relasional utama untuk semua data platform.
+Bunny.net
+CDN dan storage untuk video, poster, dan file iklan.
+Midtrans
+Payment gateway Indonesia. Mendukung transfer bank, e-wallet, kartu kredit.
+Resend
+Email transaksional. Gratis 3.000 email/bulan, integrasi React Email.
+Tailwind CSS
+Utility-first CSS framework. Dikombinasikan dengan shadcn/ui untuk komponen.
+class-validator
+Validasi DTO di NestJS secara deklaratif dengan decorator.
+Turborepo
+Monorepo build system. Mempercepat build dengan caching paralel.
+
+Struktur Folder Monorepo
+streaming-platform/
+  apps/
+    frontend/          ← Next.js 14 (App Router)
+      src/app/         ← halaman: (auth)/, (main)/, admin/, dashboard/
+      src/components/  ← ui/, player/, layout/
+      src/hooks/       ← useAuth.ts, usePlayer.ts
+      src/lib/         ← api.ts (axios), auth.ts (JWT helpers)
+    backend/           ← NestJS
+      src/auth/        ← controller, service, dto, guards/
+      src/films/       ← controller, service, dto
+      src/subscriptions/ ← controller, service, dto
+      src/payments/    ← webhooks/, service
+      src/ads/         ← controller, service
+      src/storage/     ← bunny.service.ts
+      src/mail/        ← mail.service.ts (Resend)
+      src/scheduler/   ← subscription.cron.ts
+      prisma/          ← schema.prisma, migrations/
+  packages/
+    shared/            ← types, constants, validators (dipakai FE &amp; BE)
+  package.json         ← workspaces config
+  turbo.json           ← Turborepo config
+  .env.example         ← semua env variable yang dibutuhkan
+  .gitignore
+
+6. Roadmap Pengembangan 2 Bulan
+
+Dimulai: Senin 30 Maret 2026  |  Target selesai: Jumat 29 Mei 2026  |  Total: 8 minggu
+
+Ringkasan Milestone per Fase
+
+Periode
+Fokus
+Backend
+Frontend
+Minggu 1
+30 Mar–5 Apr
+Fondasi &amp; Setup
+Monorepo, NestJS init, Prisma schema, env setup
+Next.js init, Tailwind, struktur folder, axios setup
+Minggu 2
+6–12 Apr
+Auth System
+Register, login, verifikasi email, JWT guard, Resend
+Form register/login, useAuth hook, route guard
+Minggu 3
+13–19 Apr
+Film &amp; Streaming
+BunnyService, CRUD film, signed URL subscriber &amp; gratis
+Beranda, detail film, video player, request stream URL
+Minggu 4
+20–26 Apr
+Player &amp; Iklan
+Endpoint iklan, CRUD ads admin, testing signed URL
+Timer 20 menit, pause, putar iklan, modal subscribe
+Minggu 5
+27 Apr–3 Mei
+Payment &amp; Webhook
+Midtrans order, webhook verifikasi, DB transaction, email
+Halaman paket, redirect Midtrans, refresh JWT post-bayar
+Minggu 6
+4–10 Mei
+Cron Job &amp; Admin Panel
+Scheduler expire &amp; reminder, CRUD film admin, soft delete
+Admin panel film &amp; iklan, upload flow, jadwal tayang
+Minggu 7
+11–17 Mei
+Dashboard &amp; Polish
+Endpoint dashboard user, perpanjang, admin stats
+Dashboard user, riwayat bayar, auto refresh URL player
+Minggu 8
+18–29 Mei
+Testing &amp; Finalisasi
+Jest testing, cron simulation, logging, README
+E2E flow testing, responsive, loading states, error handling
+
+Detail Tugas per Minggu
+
+Minggu 1 — 30 Maret s/d 5 April 2026 | Fondasi &amp; Setup
+
+Backend — NestJS
+Frontend — Next.js
+Setup monorepo: Turborepo + workspaces (apps/ &amp; packages/)
+Init project Next.js 14 (App Router) dalam monorepo
+Init project NestJS, install dependencies utama (Prisma, JWT, class-validator, etc.)
+Install Tailwind CSS, shadcn/ui, axios, react-hook-form, zod
+Buat schema Prisma awal: users, films, subscriptions, payments, ads, email_tokens
+Setup struktur folder: app/, components/ui/, hooks/, lib/
+Run migration pertama ke MySQL lokal
+Buat axios instance (lib/api.ts) dengan interceptor JWT di header
+Setup file .env.example dengan semua variable yang dibutuhkan
+Setup layout dasar: RootLayout, navbar placeholder, font
+Konfigurasi ESLint + Prettier + Husky pre-commit hook
+Konfigurasi ESLint + Prettier konsisten dengan backend
+
+Minggu 2 — 6 s/d 12 April 2026 | Auth System
+
+Backend — NestJS
+Frontend — Next.js
+POST /auth/register: validasi input, hash bcrypt, simpan DB, generate token verifikasi
+Halaman /register: form (nama, email, password) + validasi zod
+GET /auth/verify-email: cek token, update email_verified_at, hapus token
+Halaman /login: form + validasi + handle error 401/403
+POST /auth/login: bcrypt compare, cek verified, generate JWT
+Halaman /verify-email: waiting screen setelah register
+POST /auth/refresh-token: generate JWT baru tanpa login ulang
+Hook useAuth(): simpan token, cek status login, logout
+Setup JWT Guard (proteksi endpoint) dan Roles Guard (cek role)
+Route guard: redirect ke /login jika belum login
+Integrasi Resend: kirim email verifikasi dengan template HTML
+Route guard: redirect ke /verify jika belum verifikasi email
+Endpoint POST /auth/resend-verification (kirim ulang email)
+Integrasi Google OAuth (tombol &apos;Login dengan Google&apos;)
+
+Minggu 3 — 13 s/d 19 April 2026 | Film &amp; Streaming
+
+Backend — NestJS
+Frontend — Next.js
+BunnyService: upload file (poster, video, iklan) ke Storage Zone
+Halaman beranda: grid poster film, label status, coming soon banner
+BunnyService: generate Signed URL (SHA256 hash) dengan expiry
+Halaman /film/[id]: judul, poster, sinopsis, genre, trailer embed
+BunnyService: delete file dari Bunny via API
+Integrasi video player (Vidstack atau Plyr) dengan HLS support
+POST /films (admin): validasi MIME type, upload poster, simpan ke DB
+Tombol Tonton: request GET /stream/:filmId, set URL ke player
+GET /films: list film published (is_published=true, is_deleted=false)
+Tampilkan hanya trailer untuk guest (belum login)
+GET /films/:id: detail film + cek scheduled_at
+Tampilkan prompt &apos;Login untuk nonton&apos; jika guest klik Tonton
+GET /stream/:filmId: generate signed URL (2 jam subscriber, 25 mnt gratis)
+Skeleton loading untuk grid film dan detail halaman
+Middleware: cek role dari DB, bukan dari JWT payload
+
+
+Minggu 4 — 20 s/d 26 April 2026 | Player &amp; Sistem Iklan
+
+Backend — NestJS
+Frontend — Next.js
+GET /ads/active: return iklan is_active=true atau null
+Hook usePlayer(): kelola state player (currentTime, paused, iklan aktif)
+POST /ads (admin): upload video iklan ke Bunny (folder ads/)
+GET /ads/active saat player pertama init, simpan di state
+PATCH /ads/:id: aktifkan/nonaktifkan iklan (auto-deaktivasi yang lain)
+Timer countdown 20 menit berjalan bersamaan dengan video
+DELETE /ads/:id: hapus dari Bunny dulu, lalu hapus DB
+Menit ke-20: player.pause() + simpan currentTime
+Testing signed URL end-to-end: subscriber vs user gratis vs guest
+Putar video iklan dari URL di state, tampilkan countdown durasi
+Testing batas waktu 25 menit URL user gratis
+Setelah iklan: modal &apos;Berlangganan untuk nonton full&apos;
+
+Handle null ads: langsung tampilkan modal subscribe
+
+Tombol X di modal: close saja, video tetap di-block
+
+Minggu 5 — 27 April s/d 3 Mei 2026 | Payment &amp; Webhook
+
+Backend — NestJS
+Frontend — Next.js
+Daftar Midtrans Sandbox, ambil Server Key &amp; Client Key
+Halaman /subscribe: pilih paket bulanan atau tahunan
+POST /subscriptions/create: validasi, buat order_id unik, kirim ke Midtrans
+Tampilkan perbandingan harga &amp; benefit tiap paket
+Simpan order ke DB dengan status=pending sebelum user bayar
+Klik berlangganan: POST /subscriptions/create, redirect ke Midtrans URL
+POST /webhooks/midtrans: verifikasi SHA512 signature
+Halaman /subscribe/success: tampilkan konfirmasi setelah redirect
+Cek idempotency (order sudah paid?) sebelum proses
+Refresh JWT setelah pembayaran sukses (request token baru)
+DB transaction: payments→paid, subscriptions→active, users.role→subscriber
+Update UI: badge &apos;Subscriber&apos; di navbar setelah aktivasi
+Kirim email konfirmasi subscriber via Resend setelah aktivasi
+Handle gagal bayar: tampilkan pesan, tawarkan coba lagi
+Endpoint GET /subscriptions/status: cek status langganan aktif
+
+
+Minggu 6 — 4 s/d 10 Mei 2026 | Cron Job &amp; Admin Panel
+
+Backend — NestJS
+Frontend — Next.js
+Setup @nestjs/schedule, konfigurasi cron expression (0 1 * * *)
+Halaman /admin/films: tabel film dengan status, jadwal, tombol aksi
+Cron job: query subscriber dengan expired_at &lt;= now() + 3 hari
+Form upload film: judul, deskripsi, genre, poster, trailer, scheduled_at
+Logic H-3: cek flag reminder_sent, kirim email, set flag=true
+Direct upload video ke Bunny dengan progress bar (XMLHttpRequest)
+Logic H-0: update status=expired, role=user, kirim email notif
+Tombol edit jadwal tayang inline di tabel
+GET /admin/films: list semua film (termasuk draft &amp; terhapus)
+Tombol aktif/nonaktif/hapus film dengan konfirmasi dialog
+PATCH /films/:id: edit metadata, ubah scheduled_at
+Halaman /admin/ads: list iklan, tombol aktifkan/hapus
+DELETE /films/:id: soft delete (is_deleted=true) + hapus dari Bunny
+Form upload iklan baru: file video, judul, durasi
+GET /admin/users: list user dengan filter role &amp; status
+
+
+Minggu 7 — 11 s/d 17 Mei 2026 | Dashboard User &amp; Fitur Tambahan
+
+Backend — NestJS
+Frontend — Next.js
+GET /user/subscription: status, plan, expired_at, reminder_sent
+Halaman /dashboard: status langganan, expired_at, tombol perpanjang
+GET /user/payments: riwayat transaksi (pagination)
+Halaman /dashboard/payments: tabel riwayat pembayaran + pagination
+POST /subscriptions/renew: buat order baru untuk perpanjang
+Auto refresh signed URL (useEffect timer di usePlayer hook)
+GET /admin/stats: total subscriber aktif, revenue bulan ini
+Error state: film belum tersedia, langganan habis, tidak ada koneksi
+GET /admin/users/:id: detail user + riwayat subscription
+Halaman /admin/stats: card total subscriber, revenue, film aktif
+Sistem rerun: PATCH /films/:id/rerun (set jadwal tayang ulang)
+Notifikasi toast untuk aksi admin (upload berhasil, hapus berhasil)
+Notifikasi email rerun ke semua subscriber aktif
+Breadcrumb navigasi di semua halaman admin
+
+Minggu 8 — 18 s/d 29 Mei 2026 | Testing &amp; Finalisasi
+
+Backend — NestJS
+Frontend — Next.js
+Unit test semua service utama (auth, films, subscriptions) dengan Jest
+Testing flow lengkap: register → verifikasi → login → nonton
+Integration test endpoint kritis (register, login, stream, webhook)
+Testing flow payment end-to-end dengan Midtrans Sandbox
+Simulasi cron job: test expire manual &amp; reminder email
+Testing iklan: timer 20 menit, putar iklan, modal subscribe
+End-to-end test webhook Midtrans dengan Sandbox
+Responsive testing: mobile (375px), tablet (768px), desktop
+Setup global exception filter &amp; logging Winston
+Loading &amp; skeleton screens semua halaman utama
+Rate limiting: register, login, webhook endpoint
+Error handling global: axios interceptor 401 → redirect login
+Review keamanan: SQL injection, XSS, input sanitization
+Optimasi: lazy load komponen berat, next/image untuk poster
+Buat README.md: cara setup, env variables, cara run dev &amp; prod
+Accessibility check dasar (label form, alt text gambar)
+
+7. Rencana Testing
+
+Testing per Role User
+Role
+Skenario Test
+Guest
+Lihat beranda, lihat trailer, coba klik tonton (harus muncul prompt login), akses register.
+User Gratis
+Login, nonton film, tunggu menit ke-20, iklan muncul, modal subscribe muncul, video block.
+Subscriber
+Login, nonton film penuh, tidak ada iklan, refresh URL otomatis untuk film 2+ jam.
+Admin
+Upload film, set jadwal, edit metadata, kelola iklan, lihat data user.
+Super Admin
+Semua akses Admin + kelola admin, akses statistik.
+
+Testing Kritis
+Skenario
+Cara Test
+Payment Sandbox
+Gunakan akun Midtrans Sandbox. Test sukses, gagal, dan cancel. Verifikasi webhook masuk dan subscriber aktif.
+Webhook Duplicate
+Kirim webhook yang sama dua kali. Verifikasi hanya satu aktivasi terjadi (idempotency).
+Signed URL
+Pastikan URL user gratis expired setelah 25 menit. Pastikan URL tidak bisa dipakai oleh role lain.
+Cron Job
+Set expired_at manual ke masa lalu. Jalankan cron. Verifikasi role berubah ke user dan email terkirim.
+Concurrent User
+Simulasi beberapa user nonton bersamaan. Pastikan server tidak overload.
+
+Catatan Penting Testing:
+  - Selalu gunakan Midtrans Sandbox (bukan Production) selama development.
+  - Untuk test webhook lokal, gunakan ngrok untuk expose endpoint ke internet.
+  - Simpan collection Postman/Insomnia untuk semua endpoint sebagai dokumentasi API.
+  - Setelah testing selesai, buat checklist sign-off sebelum deploy ke production.

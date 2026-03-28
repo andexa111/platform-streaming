@@ -1,0 +1,90 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                Int       @id @default(autoincrement())
+  name              String
+  email             String    @unique
+  password          String?
+  role              String    @default("guest") // guest, user, subscriber, admin, superadmin
+  email_verified_at DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  subscriptions Subscription[]
+  payments      Payment[]
+  tokens        EmailToken[]
+}
+
+model Film {
+  id           Int       @id @default(autoincrement())
+  title        String
+  description  String?
+  genre        String?
+  duration     Int?
+  release_year Int?
+  director     String?
+  poster_url   String?
+  trailer_url  String?
+  video_id     String? // Bunny stream ID
+  is_published Boolean   @default(false)
+  is_deleted   Boolean   @default(false)
+  scheduled_at DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Subscription {
+  id            Int       @id @default(autoincrement())
+  userId        Int
+  plan          String
+  status        String    @default("inactive") // inactive, active, expired
+  expired_at    DateTime?
+  reminder_sent Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Payment {
+  id        Int      @id @default(autoincrement())
+  order_id  String   @unique
+  userId    Int
+  plan      String
+  amount    Int
+  status    String   @default("pending") // pending, paid, cancelled
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Ad {
+  id        Int      @id @default(autoincrement())
+  title     String
+  duration  Int
+  video_url String
+  is_active Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model EmailToken {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
