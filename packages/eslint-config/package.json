@@ -1,0 +1,9 @@
+{
+  "name": "@streaming/eslint-config",
+  "version": "0.0.1",
+  "private": true,
+  "files": ["index.js"],
+  "dependencies": {
+    "eslint-config-prettier": "^9.1.0"
+  }
+}
