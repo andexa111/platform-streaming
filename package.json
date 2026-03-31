@@ -1,5 +1,5 @@
 {
-  "name": "streaming-platform",
+  "name": "lalakon",
   "private": true,
   "scripts": {
     "build": "turbo run build",

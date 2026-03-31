@@ -1,5 +1,5 @@
 {
-  "name": "@streaming/eslint-config",
+  "name": "@lalakon/eslint-config",
   "version": "0.0.1",
   "private": true,
   "files": ["index.js"],
