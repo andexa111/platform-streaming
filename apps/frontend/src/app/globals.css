@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+
+
+
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -65,5 +69,11 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* Hide browser default password reveal and clear buttons */
+  input::-ms-reveal,
+  input::-ms-clear {
+    display: none;
   }
 }
