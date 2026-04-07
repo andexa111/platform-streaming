@@ -6,8 +6,8 @@ function Footer() {
     <footer className="border-t border-white/5 bg-neutral-950 px-6 py-16">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
         <div className="flex items-center gap-3">
-          <div className="bg-emerald-500 p-2 rounded-xl">
-            <Icon name="Film" className="w-6 h-6 text-neutral-950" />
+          <div className="bg-brand p-2 rounded-xl">
+            <Icon name="film" className="w-6 h-6 text-neutral-950" />
           </div>
           <span className="text-2xl font-black tracking-tight text-white">LALAKON</span>
         </div>
