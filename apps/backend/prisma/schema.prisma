@@ -1,83 +1,190 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// Prisma Schema — Lalakon Streaming Platform
+// Database: PostgreSQL
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+  provider = "postgresql"
 }
+
+// ==================== ENUMS ====================
+
+enum Role {
+  guest
+  user
+  subscriber
+  admin
+  superadmin
+}
+
+enum SubPlan {
+  monthly
+  yearly
+}
+
+enum SubStatus {
+  inactive
+  active
+  expired
+}
+
+enum PaymentStatus {
+  pending
+  paid
+  cancelled
+}
+
+// ==================== USERS ====================
 
 model User {
   id                Int       @id @default(autoincrement())
   name              String
   email             String    @unique
-  password          String?
-  role              String    @default("guest") // guest, user, subscriber, admin, superadmin
+  password          String?   // nullable untuk Google OAuth
+  avatar_url        String?
+  role              Role      @default(guest)
   email_verified_at DateTime?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
-  subscriptions Subscription[]
-  payments      Payment[]
-  tokens        EmailToken[]
+  subscriptions  Subscription[]
+  payments       Payment[]
+  tokens         EmailToken[]
+  filmViews      FilmView[]
+  watchHistories WatchHistory[]
+
+  @@map("users")
 }
+
+// ==================== FILMS ====================
 
 model Film {
   id           Int       @id @default(autoincrement())
   title        String
-  description  String?
-  genre        String?
-  duration     Int?
-  release_year Int?
+  description  String?   @db.Text
+  producer     String?
   director     String?
+  duration     Int?      // durasi dalam menit
+  release_year Int?
   poster_url   String?
   trailer_url  String?
-  video_id     String? // Bunny stream ID
+  video_id     String?   // Bunny Stream video ID
   is_published Boolean   @default(false)
   is_deleted   Boolean   @default(false)
   scheduled_at DateTime?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+
+  genres         Genre[]        @relation("FilmGenres")
+  actors         Actor[]        @relation("FilmActors")
+  filmViews      FilmView[]
+  watchHistories WatchHistory[]
+
+  @@map("films")
 }
+
+// ==================== GENRE & ACTOR ====================
+
+model Genre {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  slug  String @unique
+
+  films Film[] @relation("FilmGenres")
+
+  @@map("genres")
+}
+
+model Actor {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  films Film[] @relation("FilmActors")
+
+  @@map("actors")
+}
+
+// ==================== VIEWS & WATCH HISTORY ====================
+
+model FilmView {
+  id              Int      @id @default(autoincrement())
+  filmId          Int
+  userId          Int
+  watched_seconds Int      @default(0)
+  counted         Boolean  @default(false) // sudah dihitung sebagai 1 view?
+  createdAt       DateTime @default(now())
+
+  film Film @relation(fields: [filmId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("film_views")
+}
+
+model WatchHistory {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  filmId        Int
+  last_position Int      @default(0) // posisi terakhir dalam detik
+  is_completed  Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+  film Film @relation(fields: [filmId], references: [id])
+
+  @@unique([userId, filmId]) // 1 user = 1 record per film
+  @@map("watch_histories")
+}
+
+// ==================== SUBSCRIPTION & PAYMENT ====================
 
 model Subscription {
   id            Int       @id @default(autoincrement())
   userId        Int
-  plan          String
-  status        String    @default("inactive") // inactive, active, expired
+  plan          SubPlan
+  status        SubStatus @default(inactive)
   expired_at    DateTime?
   reminder_sent Boolean   @default(false)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id])
+
+  @@map("subscriptions")
 }
 
 model Payment {
-  id        Int      @id @default(autoincrement())
-  order_id  String   @unique
+  id        Int           @id @default(autoincrement())
+  order_id  String        @unique
   userId    Int
-  plan      String
-  amount    Int
-  status    String   @default("pending") // pending, paid, cancelled
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  plan      SubPlan
+  amount    Int           // nominal dalam Rupiah
+  status    PaymentStatus @default(pending)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
   user User @relation(fields: [userId], references: [id])
+
+  @@map("payments")
 }
+
+// ==================== ADS ====================
 
 model Ad {
   id        Int      @id @default(autoincrement())
   title     String
-  duration  Int
+  duration  Int      // durasi dalam detik
   video_url String
   is_active Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@map("ads")
 }
+
+// ==================== EMAIL TOKEN ====================
 
 model EmailToken {
   id        Int      @id @default(autoincrement())
@@ -87,4 +194,6 @@ model EmailToken {
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id])
+
+  @@map("email_tokens")
 }
