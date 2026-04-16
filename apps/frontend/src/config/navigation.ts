@@ -5,7 +5,17 @@ export const NAV_LINKS = {
   ],
   member: [
     { name: "Home", href: "/home" },
-    { name: "Movies & Shows", href: "/membership" },
+    { name: "Movies & Shows", href: "/shows" },
     { name: "My List", href: "/profile" }, // Assuming My List is in profile for now
+  ],
+  admin: [
+    { name: "Home", href: "/admin", icon: "dashboard" },
+    { name: "Analytics", href: "/admin/analytics", icon: "analytics" },
+    { name: "Movies", href: "/admin/movies", icon: "film" },
+    { name: "Genres", href: "/admin/genres", icon: "tag" },
+    { name: "Banners", href: "/admin/banners", icon: "image" },
+    { name: "Subscriptions", href: "/admin/subscriptions", icon: "subscription" },
+    { name: "Ads", href: "/admin/ads", icon: "ads" },
+    { name: "Users", href: "/admin/users", icon: "users" },
   ],
 };

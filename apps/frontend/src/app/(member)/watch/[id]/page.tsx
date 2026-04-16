@@ -1,7 +1,8 @@
 import React from "react";
 import { Button } from "@/components/ui/Button";
 
-export default function MovieDetailPage({ params }: { params: { id: string } }) {
+// Renamed and moved to /(member)/watch/[id]/page.tsx to resolve routing conflict with (public)/movies/[id]
+export default function WatchPage({ params }: { params: { id: string } }) {
   return (
     <div className="bg-neutral-950 min-h-screen text-white pt-24 pb-32">
       <div className="container mx-auto px-6 grid grid-cols-1 lg:grid-cols-3 gap-16">
@@ -13,7 +14,7 @@ export default function MovieDetailPage({ params }: { params: { id: string } }) 
           </div>
           
           <div className="space-y-4">
-            <h1 className="text-4xl font-black">Detail Film — ID: {params.id}</h1>
+            <h1 className="text-4xl font-black">Streaming Movie — ID: {params.id}</h1>
             <p className="text-xl text-neutral-400 leading-relaxed max-w-3xl">
               Sinopsis film ini belum tersedia. Tim Lalakon sedang menyiapkan deskripsi terbaik untuk pengalaman hiburan Anda.
             </p>
