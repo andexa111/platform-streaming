@@ -186,4 +186,53 @@ export class AuthService {
 
     return user;
   }
+
+  /**
+   * OAuth Login Logic
+   */
+  async validateOAuthLogin(profile: any) {
+    try {
+      let user = await this.prisma.user.findUnique({
+        where: { email: profile.email },
+      });
+
+      if (!user) {
+        // Create new user, automatically verified if from Google
+        user = await this.prisma.user.create({
+          data: {
+            email: profile.email,
+            name: profile.name,
+            avatar_url: profile.avatar_url,
+            email_verified_at: new Date(),
+            // Empty password since they use OAuth
+          },
+        });
+        this.logger.log(`New user created via OAuth: ${user.email}`);
+      } else if (!user.email_verified_at) {
+        // If email was unverified but they logged in via Google with the same email, we trust it and verify it
+        user = await this.prisma.user.update({
+          where: { email: user.email },
+          data: { email_verified_at: new Date() },
+        });
+        this.logger.log(`User automatically verified via OAuth: ${user.email}`);
+      }
+
+      this.logger.log(`User logged in via OAuth: ${user.email}`);
+
+      // Generate JWT Access Token
+      const payload = { sub: user.id, email: user.email, role: user.role };
+      const access_token = await this.jwtService.signAsync(payload);
+
+      // Return both token and user info without password
+      const { password: _, ...userWithoutPassword } = user;
+      return {
+        message: 'Login sukses via Google',
+        access_token,
+        user: userWithoutPassword,
+      };
+    } catch (err) {
+      this.logger.error('OAuth login failed', err);
+      throw new BadRequestException('OAuth login failed');
+    }
+  }
 }
