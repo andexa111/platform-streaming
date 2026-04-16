@@ -66,4 +66,14 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Hide browser default password reveal and clear buttons */
+  input::-ms-reveal,
+  input::-ms-clear {
+    display: none;
+  }
+
+  collorku {
+    color: #024d94;
+  }
 }
