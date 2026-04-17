@@ -37,3 +37,6 @@ apps/backend/prisma/*.db
 
 # Misc
 *.tsbuildinfo
+
+# Internal Documentation (Do not track)
+docs/
