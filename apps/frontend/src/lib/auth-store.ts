@@ -5,6 +5,7 @@ export interface User {
   id: number;
   name: string;
   email: string;
+  avatar_url?: string | null;
   role: 'guest' | 'user' | 'subscriber' | 'admin' | 'superadmin';
   email_verified_at: string | null;
 }

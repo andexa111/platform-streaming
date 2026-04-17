@@ -55,7 +55,7 @@ export default function AdminGenresPage() {
     if (editingGenre) {
       setGenres(genres.map(g => g.title === editingGenre.title ? { ...g, title: genreName } : g));
     } else {
-      setGenres([...genres, { title: genreName, color: "from-neutral-600/20" }]);
+      setGenres([...genres, { title: genreName, emoji: "🎬", color: "from-neutral-600/20" }]);
     }
     setIsModalOpen(false);
   };

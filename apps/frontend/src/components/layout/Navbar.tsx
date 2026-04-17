@@ -3,8 +3,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NAV_LINKS } from "@/config/navigation";
 import { Icon } from "@/components/ui/Icon";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { SearchOverlay } from "./SearchOverlay";
+import { useAuthStore } from "@/lib/auth-store";
 
 interface NavbarProps {
   variant?: "public" | "member";
@@ -24,7 +26,7 @@ const TIER_CONFIG = {
   },
   BASIC: {
     label: "Basic Member",
-    color: "text-[#E6AA68]", // Light Bronze
+    color: "text-[#E6AA68]", 
     border: "border-[#CD7F32]/50",
     bg: "bg-[#CD7F32]/20",
     gradient: "linear-gradient(135deg, #4A2511 0%, #CD7F32 50%, #4A2511 100%)",
@@ -33,7 +35,7 @@ const TIER_CONFIG = {
   },
   STANDAR: {
     label: "Standar Member",
-    color: "text-white", // Clearer on silver
+    color: "text-white", 
     border: "border-[#C0C0C0]/50",
     bg: "bg-[#C0C0C0]/20",
     gradient: "linear-gradient(135deg, #333333 0%, #C0C0C0 50%, #333333 100%)",
@@ -42,7 +44,7 @@ const TIER_CONFIG = {
   },
   PREMIUM: {
     label: "Premium Member",
-    color: "text-white", // Clearer on gold
+    color: "text-white", 
     border: "border-[#FFD700]/50",
     bg: "bg-[#FFD700]/25",
     gradient: "linear-gradient(135deg, #5F4B0B 0%, #FFD700 50%, #5F4B0B 100%)",
@@ -51,19 +53,40 @@ const TIER_CONFIG = {
   },
 };
 
-function Navbar({ variant = "public" }: NavbarProps) {
+function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const { user, logout, isAuthenticated } = useAuthStore();
+  
+  // Decide variant based on auth state if not explicitly member
+  const variant = useMemo(() => {
+    if (isAuthenticated) return "member";
+    return initialVariant;
+  }, [isAuthenticated, initialVariant]);
+
   const links = NAV_LINKS[variant];
 
-  // Mock membership tier - this would normally come from an auth context or API
-  const [membershipTier, setMembershipTier] = useState<MembershipTier>("PREMIUM");
+  // Dynamic membership tier based on user role
+  const membershipTier: MembershipTier = useMemo(() => {
+    if (!user) return "NONE";
+    if (user.role === 'subscriber') return "PREMIUM";
+    if (user.role === 'admin' || user.role === 'superadmin') return "PREMIUM";
+    return "NONE"; // Default for trial/new users
+  }, [user]);
 
   const currentTier = TIER_CONFIG[membershipTier];
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const pathname = usePathname();
   const profileRef = useRef<HTMLDivElement>(null);
+
+  const handleLogout = () => {
+    logout();
+    setIsProfileOpen(false);
+    router.push("/");
+    router.refresh();
+  };
 
   // Close profile when clicking outside
   useEffect(() => {
@@ -140,7 +163,11 @@ function Navbar({ variant = "public" }: NavbarProps) {
                     className={`w-10 h-10 rounded-full bg-neutral-900 border-2 ${currentTier.border} flex items-center justify-center hover:brightness-125 transition-all cursor-pointer shadow-lg overflow-hidden`}
                   >
                     <div className="w-full h-full flex items-center justify-center bg-neutral-800">
-                      <Icon name="user" className={`w-5 h-5 ${currentTier.color}`} />
+                      {user?.avatar_url ? (
+                        <img src={user.avatar_url} alt={user.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <Icon name="user" className={`w-5 h-5 ${currentTier.color}`} />
+                      )}
                     </div>
                   </button>
 
@@ -169,12 +196,12 @@ function Navbar({ variant = "public" }: NavbarProps) {
                             <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent opacity-60 pointer-events-none" />
 
                             <div className={`relative z-10 w-11 h-11 rounded-full bg-black/30 border border-white/20 flex items-center justify-center shadow-lg`}>
-                              {currentTier.icon && <Icon name={currentTier.icon} className={`w-6 h-6 ${membershipTier === "NONE" ? "text-neutral-500" : "text-white"} drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]`} />}
+                              {currentTier.icon && <Icon name={currentTier.icon} className={`w-6 h-6 text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]`} />}
                             </div>
                             <div className="relative z-10 flex-1 bg-black/40 border border-white/10 rounded-xl px-3 py-2 backdrop-blur-sm">
                               <p className="text-[10px] font-black text-white/50 uppercase tracking-[0.2em] mb-0.5">Membership</p>
                               <p className={`text-[11px] font-black text-white tracking-tight drop-shadow-md whitespace-nowrap`}>{currentTier.label}</p>
-                              {membershipTier !== "NONE" && <p className="text-[9px] text-white/40 font-bold mt-1.5 uppercase tracking-widest">Expires 12/2026</p>}
+                              <p className="text-[9px] text-white/40 font-bold mt-1.5 uppercase tracking-widest">Expires 12/2026</p>
                             </div>
                           </div>
                         )}
@@ -189,10 +216,13 @@ function Navbar({ variant = "public" }: NavbarProps) {
                           Pengaturan Akun
                         </Link>
 
-                        <Link href="/" className="flex items-center gap-3 px-3 py-2.5 text-sm font-bold text-red-500 hover:text-red-400 hover:bg-red-500/5 rounded-xl transition-all" onClick={() => setIsProfileOpen(false)}>
+                        <button 
+                          onClick={handleLogout}
+                          className="flex items-center gap-3 w-full px-3 py-2.5 text-sm font-bold text-red-500 hover:text-red-400 hover:bg-red-500/5 rounded-xl transition-all"
+                        >
                           <Icon name="logout" className="w-4 h-4" />
                           Log Out
-                        </Link>
+                        </button>
                       </div>
                     </div>
                   </div>

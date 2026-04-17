@@ -26,7 +26,7 @@ const StatsCard = ({ title, value, subValue, icon, color }: { title: string; val
 export default function AdminMoviesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedGenre, setSelectedGenre] = useState("All");
-  const [selectedMovies, setSelectedMovies] = useState<number[]>([]);
+  const [selectedMovies, setSelectedMovies] = useState<(number | string)[]>([]);
 
   // Filter logic
   const filteredMovies = useMemo(() => {
@@ -45,7 +45,7 @@ export default function AdminMoviesPage() {
     }
   };
 
-  const toggleSelectMovie = (id: number) => {
+  const toggleSelectMovie = (id: number | string) => {
     if (selectedMovies.includes(id)) {
       setSelectedMovies(selectedMovies.filter((mId) => mId !== id));
     } else {
