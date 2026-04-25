@@ -36,6 +36,24 @@ export default function AdminGenresPage() {
     return genres.filter(g => g.title.toLowerCase().includes(searchQuery.toLowerCase()));
   }, [genres, searchQuery]);
 
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!genreName.trim()) return;
+
+    const newGenre = { 
+      title: genreName, 
+      color: "from-neutral-600/20" 
+    };
+
+    if (editingGenre) {
+      setGenres(genres.map(g => g.title === editingGenre.title ? newGenre : g));
+    } else {
+      setGenres([...genres, newGenre]);
+    }
+    setIsModalOpen(false);
+  };
+
   const handleOpenAdd = () => {
     setEditingGenre(null);
     setGenreName("");
@@ -46,18 +64,6 @@ export default function AdminGenresPage() {
     setEditingGenre(genre);
     setGenreName(genre.title);
     setIsModalOpen(true);
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!genreName.trim()) return;
-
-    if (editingGenre) {
-      setGenres(genres.map(g => g.title === editingGenre.title ? { ...g, title: genreName } : g));
-    } else {
-      setGenres([...genres, { title: genreName, emoji: "🎬", color: "from-neutral-600/20" }]);
-    }
-    setIsModalOpen(false);
   };
 
   const handleDelete = (title: string) => {
@@ -72,7 +78,7 @@ export default function AdminGenresPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-1">
           <h1 className="text-3xl font-black text-neutral-900 tracking-tight uppercase italic">Kelola Genre</h1>
-          <p className="text-neutral-500 text-sm font-medium">Tambah, edit, atau hapus kategori film untuk katalog Anda.</p>
+          <p className="text-neutral-500 text-sm font-medium">Tambah kategori film dengan mudah menggunakan Emoji sebagai icon.</p>
         </div>
         <button 
           onClick={handleOpenAdd}
@@ -105,7 +111,7 @@ export default function AdminGenresPage() {
           <div className="w-12 h-12 rounded-2xl bg-neutral-50 flex items-center justify-center group-hover:scale-110 transition-transform">
             <Icon name="chevron-right" className="w-6 h-6 rotate-90" />
           </div>
-          <span className="font-black uppercase tracking-widest text-[10px]">Add Category</span>
+          <span className="font-black uppercase tracking-widest text-[10px]">Add New Genre</span>
         </button>
 
         {filteredGenres.map((genre) => (
@@ -118,11 +124,23 @@ export default function AdminGenresPage() {
             
             <div className="flex flex-col gap-6">
               <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <h3 className="text-xl font-black text-neutral-900 group-hover:text-brand transition-colors uppercase">{genre.title}</h3>
-                  <p className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">
-                    {(Math.random() * 50).toFixed(0)} Movies
-                  </p>
+                <div className="flex items-center gap-4">
+                  <div className="bg-neutral-50 w-14 h-14 rounded-2xl flex items-center justify-center border border-neutral-100 shadow-inner">
+                    <Icon name="tag" className="w-6 h-6 text-neutral-400" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className={cn(
+                      "font-black text-neutral-900 group-hover:text-brand transition-all uppercase line-clamp-1",
+                      genre.title.length > 12 ? "text-sm" : 
+                      genre.title.length > 8 ? "text-base" : 
+                      "text-xl"
+                    )}>
+                      {genre.title}
+                    </h3>
+                    <p className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">
+                      Kategori Aktif
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -131,7 +149,7 @@ export default function AdminGenresPage() {
                   onClick={() => handleOpenEdit(genre)}
                   className="flex-1 px-4 py-2.5 bg-neutral-50 hover:bg-neutral-100 text-neutral-600 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
                 >
-                  Edit
+                  Edit Genre
                 </button>
                 <button 
                   onClick={() => handleDelete(genre.title)}
@@ -158,24 +176,24 @@ export default function AdminGenresPage() {
             <input 
               autoFocus
               type="text" 
-              placeholder="Contoh: Thriller, Action, dll"
+              placeholder="Contoh: Thriller, Action"
               value={genreName}
               onChange={(e) => setGenreName(e.target.value)}
-              className="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm font-bold"
+              className="w-full px-5 py-4 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm font-bold"
             />
           </div>
           
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-3 pt-2">
             <button 
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="flex-1 px-6 py-3.5 bg-neutral-100 text-neutral-900 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-neutral-200 transition-all"
+              className="flex-1 px-6 py-4 bg-neutral-100 text-neutral-900 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-neutral-200 transition-all"
             >
               Batal
             </button>
             <button 
               type="submit"
-              className="flex-1 px-6 py-3.5 bg-brand text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-brand/20 hover:scale-105 active:scale-95 transition-all"
+              className="flex-1 px-6 py-4 bg-brand text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-brand/20 hover:scale-105 active:scale-95 transition-all"
             >
               {editingGenre ? "Simpan Perubahan" : "Simpan Genre"}
             </button>

@@ -61,6 +61,126 @@ export const ALL_MOVIES: Video[] = [
     backdrop: "",
     description: "Beyond the known stars lies a frontier of endless possibilities. A crew of explorers seeks a new home for the last of their kind in the farthest reaches of space."
   },
+  { 
+    id: 7, 
+    title: "Shadow Protocol", 
+    genre: "Action", 
+    rating: "4.7", 
+    quality: "4K", 
+    thumbnail: "",
+    backdrop: "",
+    description: "An elite operative goes off-grid to expose a global conspiracy within the highest levels of government. Trust is a luxury he can no longer afford."
+  },
+  { 
+    id: 8, 
+    title: "Beyond the Horizon", 
+    genre: "Sci-Fi", 
+    rating: "4.8", 
+    quality: "4K", 
+    thumbnail: "",
+    backdrop: "",
+    description: "When a portal to another dimension opens in the middle of the Pacific Ocean, humanity must decide whether to embrace the unknown or fight to close the door."
+  },
+  { 
+    id: 9, 
+    title: "The Last Alchemist", 
+    genre: "Fantasy", 
+    rating: "4.6", 
+    quality: "HDR", 
+    thumbnail: "",
+    backdrop: "",
+    description: "In a world where magic is fading, the last surviving alchemist must find a way to restore the balance of nature before the world withers away."
+  },
+  { 
+    id: 10, 
+    title: "Deep Blue", 
+    genre: "Documentary", 
+    rating: "4.9", 
+    quality: "4K", 
+    thumbnail: "",
+    backdrop: "",
+    description: "Dive into the deepest parts of our oceans and discover the incredible creatures that thrive in the crushing darkness of the abyss."
+  },
+  { 
+    id: 11, 
+    title: "Midnight In Kyoto", 
+    genre: "Drama", 
+    rating: "4.5", 
+    quality: "HD+", 
+    thumbnail: "",
+    backdrop: "",
+    description: "A chance encounter between two strangers on a rainy night in Kyoto leads to a journey of self-discovery and forbidden love."
+  },
+  { 
+    id: 12, 
+    title: "Echoes of Silence", 
+    genre: "Thriller", 
+    rating: "4.7", 
+    quality: "4K", 
+    thumbnail: "",
+    backdrop: "",
+    description: "A blind pianist becomes the target of a mysterious organization after she accidentally witnesses a crime through her heightened senses."
+  },
+  { 
+    id: 13, 
+    title: "Titan Fall", 
+    genre: "Action", 
+    rating: "4.8", 
+    quality: "4K", 
+    thumbnail: "",
+    backdrop: "",
+    description: "When a massive tectonic shift threatens to tear the continent apart, a team of engineers must race against time to stabilize the earth's core."
+  },
+  { 
+    id: 14, 
+    title: "The Glass City", 
+    genre: "Sci-Fi", 
+    rating: "4.6", 
+    quality: "HDR", 
+    thumbnail: "",
+    backdrop: "",
+    description: "In a future where everyone lives in transparent cities, privacy is the ultimate crime. One woman risks everything to find the last opaque place on earth."
+  },
+  { 
+    id: 15, 
+    title: "Viking Spirit", 
+    genre: "Adventure", 
+    rating: "4.7", 
+    quality: "4K", 
+    thumbnail: "",
+    backdrop: "",
+    description: "Follow the legendary journey of a Viking warrior who travels beyond the known maps to discover a land of fire and ice."
+  },
+  { 
+    id: 16, 
+    title: "The Jazz Age", 
+    genre: "Drama", 
+    rating: "4.9", 
+    quality: "4K", 
+    thumbnail: "",
+    backdrop: "",
+    description: "Step into the smoky clubs of 1920s New York, where a young trumpet player must choose between fame and the music that defines his soul."
+  },
+  { 
+    id: 17, 
+    title: "Ghost in the Machine", 
+    genre: "Horror", 
+    rating: "4.4", 
+    quality: "HD+", 
+    thumbnail: "",
+    backdrop: "",
+    description: "A family's new smart home begins to develop a malevolent personality of its own, turning their futuristic dream into a technological nightmare."
+  },
+  { 
+    id: 18, 
+    title: "Urban Jungle", 
+    genre: "Documentary", 
+    rating: "4.8", 
+    quality: "4K", 
+    thumbnail: "",
+    backdrop: "",
+    description: "Discover the secret lives of animals that have adapted to live in the heart of the world's largest cities, from falcons in NYC to leopards in Mumbai."
+  },
 ];
 
 export const GENRES = [

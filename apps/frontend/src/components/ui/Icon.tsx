@@ -44,7 +44,8 @@ import {
   SlidersHorizontal,
   SearchX,
   Maximize,
-  Volume2
+  Volume2,
+  LogIn
 } from "lucide-react";
 
 const ICON_MAP = {
@@ -92,6 +93,7 @@ const ICON_MAP = {
   "search-x": SearchX,
   maximize: Maximize,
   "volume-2": Volume2,
+  login: LogIn,
 };
 
 interface IconProps extends LucideProps {

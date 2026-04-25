@@ -41,10 +41,11 @@ export default function AuthLayout({ mode, children }: AuthLayoutProps) {
           <div className={`w-full max-w-lg ${!isLogin ? "ml-auto" : ""}`}>
             {/* Logo */}
             <div className={`flex items-center gap-3 mb-12 ${!isLogin ? "justify-end" : "justify-start"}`}>
-              <div className="w-8 h-8 rounded-md bg-brand/20 flex items-center justify-center">
-                <Icon name="film" className="w-4 h-4 text-brand" />
-              </div>
-              <span className="text-3xl font-black text-brand tracking-tighter">LALAKON</span>
+              <img 
+                src="/SINEA - Logo Horisontal.webp" 
+                alt="SINEA" 
+                className="h-14 w-auto object-contain brightness-[1.6] contrast-[1.2] drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]" 
+              />
             </div>
 
             {/* Headline */}

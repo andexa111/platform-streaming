@@ -2,11 +2,12 @@ export const NAV_LINKS = {
   public: [
     { name: "Home", href: "/" },
     { name: "Movies & Shows", href: "/movies" },
+    { name: "Genres", href: "/genres" },
   ],
   member: [
     { name: "Home", href: "/home" },
-    { name: "Movies & Shows", href: "/shows" },
-    { name: "My List", href: "/profile" }, // Assuming My List is in profile for now
+    { name: "Movies & Shows", href: "/movies" },
+    { name: "Genres", href: "/genres" },
   ],
   admin: [
     { name: "Home", href: "/admin", icon: "dashboard" },

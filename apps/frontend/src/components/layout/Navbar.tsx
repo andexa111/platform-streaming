@@ -26,7 +26,7 @@ const TIER_CONFIG = {
   },
   BASIC: {
     label: "Basic Member",
-    color: "text-[#E6AA68]", 
+    color: "text-[#E6AA68]",
     border: "border-[#CD7F32]/50",
     bg: "bg-[#CD7F32]/20",
     gradient: "linear-gradient(135deg, #4A2511 0%, #CD7F32 50%, #4A2511 100%)",
@@ -35,7 +35,7 @@ const TIER_CONFIG = {
   },
   STANDAR: {
     label: "Standar Member",
-    color: "text-white", 
+    color: "text-white",
     border: "border-[#C0C0C0]/50",
     bg: "bg-[#C0C0C0]/20",
     gradient: "linear-gradient(135deg, #333333 0%, #C0C0C0 50%, #333333 100%)",
@@ -44,7 +44,7 @@ const TIER_CONFIG = {
   },
   PREMIUM: {
     label: "Premium Member",
-    color: "text-white", 
+    color: "text-white",
     border: "border-[#FFD700]/50",
     bg: "bg-[#FFD700]/25",
     gradient: "linear-gradient(135deg, #5F4B0B 0%, #FFD700 50%, #5F4B0B 100%)",
@@ -56,21 +56,26 @@ const TIER_CONFIG = {
 function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const [isMounted, setIsMounted] = useState(false);
   const { user, logout, isAuthenticated } = useAuthStore();
-  
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   // Decide variant based on auth state if not explicitly member
   const variant = useMemo(() => {
-    if (isAuthenticated) return "member";
+    if (isMounted && isAuthenticated) return "member";
     return initialVariant;
-  }, [isAuthenticated, initialVariant]);
+  }, [isMounted, isAuthenticated, initialVariant]);
 
   const links = NAV_LINKS[variant];
 
   // Dynamic membership tier based on user role
   const membershipTier: MembershipTier = useMemo(() => {
     if (!user) return "NONE";
-    if (user.role === 'subscriber') return "PREMIUM";
-    if (user.role === 'admin' || user.role === 'superadmin') return "PREMIUM";
+    if (user.role === "subscriber") return "PREMIUM";
+    if (user.role === "admin" || user.role === "superadmin") return "PREMIUM";
     return "NONE"; // Default for trial/new users
   }, [user]);
 
@@ -109,8 +114,12 @@ function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
               <Icon name={isMobileMenuOpen ? "x" : "menu"} className="w-6 h-6" />
             </button>
 
-            <Link href={variant === "member" ? "/home" : "/"} className="hidden md:flex items-center gap-2">
-              <span className="text-2xl font-black bg-gradient-to-r from-brand via-blue-500 to-cyan-500 bg-clip-text text-transparent tracking-tighter">LALAKON</span>
+            <Link href={variant === "member" ? "/home" : "/"} className="hidden md:flex items-center gap-2 group">
+              <img
+                src="/SINEA - Logo Horisontal.webp"
+                alt="SINEA"
+                className="h-12 w-auto object-contain brightness-[1.6] contrast-[1.2] drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] group-hover:brightness-[1.8] group-hover:scale-105 transition-all duration-300"
+              />
             </Link>
           </div>
 
@@ -118,7 +127,7 @@ function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center">
             {/* Mobile Logo */}
             <Link href={variant === "member" ? "/home" : "/"} className="md:hidden flex items-center gap-2">
-              <span className="text-2xl font-black bg-gradient-to-r from-brand via-blue-500 to-cyan-500 bg-clip-text text-transparent tracking-tighter">LALAKON</span>
+              <img src="/SINEA - Logo Horisontal.webp" alt="SINEA" className="h-10 w-auto object-contain brightness-[1.6] contrast-[1.2] drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]" />
             </Link>
 
             {/* Desktop Menu */}
@@ -163,11 +172,7 @@ function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
                     className={`w-10 h-10 rounded-full bg-neutral-900 border-2 ${currentTier.border} flex items-center justify-center hover:brightness-125 transition-all cursor-pointer shadow-lg overflow-hidden`}
                   >
                     <div className="w-full h-full flex items-center justify-center bg-neutral-800">
-                      {user?.avatar_url ? (
-                        <img src={user.avatar_url} alt={user.name} className="w-full h-full object-cover" />
-                      ) : (
-                        <Icon name="user" className={`w-5 h-5 ${currentTier.color}`} />
-                      )}
+                      {user?.avatar_url ? <img src={user.avatar_url} alt={user.name} className="w-full h-full object-cover" /> : <Icon name="user" className={`w-5 h-5 ${currentTier.color}`} />}
                     </div>
                   </button>
 
@@ -185,7 +190,7 @@ function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
                         {membershipTier === "NONE" ? (
                           <div className="p-4 rounded-xl bg-brand/10 border border-brand/20 space-y-3">
                             <p className="text-xs text-neutral-300 leading-relaxed font-medium">Nikmati akses tak terbatas ke semua konten premium kami.</p>
-                            <Link href="/pricing" className="flex items-center justify-center gap-2 w-full py-2.5 bg-brand text-white text-xs font-bold rounded-lg hover:bg-brand-dark transition-all shadow-lg shadow-brand/20">
+                            <Link href="/membership" className="flex items-center justify-center gap-2 w-full py-2.5 bg-brand text-white text-xs font-bold rounded-lg hover:bg-brand-dark transition-all shadow-lg shadow-brand/20">
                               Langganan Sekarang
                               <Icon name="arrow-right" className="w-3.5 h-3.5" />
                             </Link>
@@ -211,15 +216,12 @@ function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
 
                       {/* Utility Links */}
                       <div className="space-y-1">
-                        <Link href="/settings" className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-neutral-400 hover:text-white hover:bg-white/5 rounded-xl transition-all" onClick={() => setIsProfileOpen(false)}>
-                          <Icon name="settings" className="w-4 h-4" />
-                          Pengaturan Akun
+                        <Link href="/profile" className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-neutral-400 hover:text-white hover:bg-white/5 rounded-xl transition-all" onClick={() => setIsProfileOpen(false)}>
+                          <Icon name="user" className="w-4 h-4" />
+                          Profil
                         </Link>
 
-                        <button 
-                          onClick={handleLogout}
-                          className="flex items-center gap-3 w-full px-3 py-2.5 text-sm font-bold text-red-500 hover:text-red-400 hover:bg-red-500/5 rounded-xl transition-all"
-                        >
+                        <button onClick={handleLogout} className="flex items-center gap-3 w-full px-3 py-2.5 text-sm font-bold text-red-500 hover:text-red-400 hover:bg-red-500/5 rounded-xl transition-all">
                           <Icon name="logout" className="w-4 h-4" />
                           Log Out
                         </button>

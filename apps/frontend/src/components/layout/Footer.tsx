@@ -6,10 +6,11 @@ function Footer() {
     <footer className="border-t border-white/5 bg-neutral-950 px-6 py-16">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
         <div className="flex items-center gap-3">
-          <div className="bg-brand p-2 rounded-xl">
-            <Icon name="film" className="w-6 h-6 text-neutral-950" />
-          </div>
-          <span className="text-2xl font-black tracking-tight text-white">LALAKON</span>
+          <img 
+            src="/SINEA - Logo Horisontal.webp" 
+            alt="SINEA" 
+            className="h-12 w-auto object-contain brightness-[1.6] contrast-[1.2] drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]" 
+          />
         </div>
 
         <div className="flex items-center gap-8 text-sm font-medium text-neutral-500">
@@ -24,7 +25,7 @@ function Footer() {
           </Link>
         </div>
 
-        <p className="text-neutral-600 text-sm">&copy; 2026 Lalakon Streaming. Designed for the Future.</p>
+        <p className="text-neutral-600 text-sm">&copy; 2026 Sinea Streaming. Designed for the Future.</p>
       </div>
     </footer>
   );

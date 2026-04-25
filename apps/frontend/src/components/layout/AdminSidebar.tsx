@@ -39,10 +39,12 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
         <div className="flex flex-col h-full p-6">
           {/* Logo Section */}
           <div className="flex items-center justify-between mb-10 px-2 mt-2">
-            <Link href="/admin" className="flex items-center gap-2" onClick={onClose}>
-              <span className="text-2xl font-black bg-gradient-to-r from-brand via-blue-500 to-cyan-500 bg-clip-text text-transparent tracking-tighter">
-                LALAKON
-              </span>
+            <Link href="/admin" className="flex items-center gap-3 group" onClick={onClose}>
+              <img 
+                src="/SINEA - Logo Horisontal.webp" 
+                alt="SINEA" 
+                className="h-10 w-auto object-contain brightness-[1.6] contrast-[1.2] group-hover:scale-105 transition-transform" 
+              />
               <span className="px-2 py-0.5 rounded-md bg-brand/5 border border-brand/10 text-[10px] font-bold text-brand uppercase tracking-widest">
                 Admin
               </span>

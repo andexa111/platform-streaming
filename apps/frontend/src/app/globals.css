@@ -73,6 +73,10 @@
     display: none;
   }
 
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-oswald), sans-serif;
+  }
+
   collorku {
     color: #024d94;
   }
