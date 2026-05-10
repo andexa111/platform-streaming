@@ -3,49 +3,73 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { Icon } from "@/components/ui/Icon";
-import { GENRES as GENRE_LIST } from "@/constants/video-data";
 import { cn } from "@/lib/utils";
+import { api } from "@/lib/api";
+import { useRouter } from "next/navigation";
 
 const STEPS = [
   { id: 1, name: "Informasi Dasar", icon: "film" },
-  { id: 2, name: "Aset Visual", icon: "image" },
-  { id: 3, name: "Konten Video", icon: "monitor-play" },
+  { id: 2, name: "Aset & Video", icon: "image" },
+  { id: 3, name: "Review & Simpan", icon: "monitor-play" },
 ];
 
 export default function AddMoviePage() {
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [isUploading, setIsUploading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState("");
 
   // Form State
   const [formData, setFormData] = useState({
     title: "",
-    genre: "",
-    quality: "4K",
-    rating: "4.5",
     description: "",
+    director: "",
+    producer: "",
+    duration: "",
+    release_year: "",
+    video_id: "",
+    trailer_url: "",
+    poster_url: "",
+    is_published: false,
   });
+
+  const updateField = (field: string, value: string | boolean) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
 
   const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, 3));
   const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
 
-  const simulateUpload = () => {
-    setIsUploading(true);
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += Math.random() * 15;
-      if (progress >= 100) {
-        progress = 100;
-        clearInterval(interval);
-        setTimeout(() => {
-          setIsUploading(false);
-          alert("Film Berhasil Ditambahkan!");
-          window.location.href = "/admin/movies";
-        }, 1000);
-      }
-      setUploadProgress(progress);
-    }, 400);
+  const handleSubmit = async () => {
+    setIsSaving(true);
+    setError("");
+
+    try {
+      const payload: any = {
+        title: formData.title,
+        description: formData.description || undefined,
+        director: formData.director || undefined,
+        producer: formData.producer || undefined,
+        duration: formData.duration ? parseInt(formData.duration) : undefined,
+        release_year: formData.release_year ? parseInt(formData.release_year) : undefined,
+        video_id: formData.video_id || undefined,
+        trailer_url: formData.trailer_url || undefined,
+        poster_url: formData.poster_url || undefined,
+        is_published: formData.is_published,
+      };
+
+      await api.post("/films", payload);
+      alert("Film berhasil ditambahkan!");
+      router.push("/admin/movies");
+    } catch (err: any) {
+      console.error("Gagal menyimpan film:", err);
+      setError(err.response?.data?.message || "Gagal menyimpan film. Coba lagi.");
+    } finally {
+      setIsSaving(false);
+    }
   };
+
+  const isStep1Valid = formData.title.trim().length > 0;
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-700">
@@ -62,31 +86,38 @@ export default function AddMoviePage() {
         {/* Left: Stepper Indicator */}
         <div className="lg:w-72 space-y-2">
           {STEPS.map((step) => (
-            <div 
+            <button
               key={step.id}
+              onClick={() => step.id <= currentStep && setCurrentStep(step.id)}
               className={cn(
-                "flex items-center gap-4 p-4 rounded-2xl transition-all border",
+                "w-full flex items-center gap-4 p-4 rounded-2xl transition-all border text-left",
                 currentStep === step.id 
                   ? "bg-brand text-white border-brand shadow-lg shadow-brand/20" 
-                  : "bg-white text-neutral-400 border-neutral-200"
+                  : step.id < currentStep
+                    ? "bg-emerald-50 text-emerald-700 border-emerald-200 cursor-pointer"
+                    : "bg-white text-neutral-400 border-neutral-200"
               )}
             >
               <div className={cn(
                 "w-10 h-10 rounded-xl flex items-center justify-center",
-                currentStep === step.id ? "bg-white/20" : "bg-neutral-100"
+                currentStep === step.id ? "bg-white/20" : step.id < currentStep ? "bg-emerald-200" : "bg-neutral-100"
               )}>
-                <Icon name={step.icon as any} className="w-5 h-5" />
+                {step.id < currentStep ? (
+                  <span className="text-emerald-700 font-bold">✓</span>
+                ) : (
+                  <Icon name={step.icon as any} className="w-5 h-5" />
+                )}
               </div>
-              <div className="text-left leading-tight">
+              <div className="leading-tight">
                 <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Step 0{step.id}</p>
                 <p className="text-sm font-bold">{step.name}</p>
               </div>
-            </div>
+            </button>
           ))}
           
           <div className="p-6 bg-blue-50/50 rounded-2xl border border-blue-100 mt-10">
             <p className="text-xs text-blue-800 leading-relaxed font-medium">
-              Pastikan metadata telah sesuai dengan pedoman konten LALAKON sebelum mempublikasikan.
+              Film akan disimpan sebagai <strong>Draft</strong> kecuali kamu aktifkan &quot;Publish&quot; di step terakhir.
             </p>
           </div>
         </div>
@@ -103,44 +134,58 @@ export default function AddMoviePage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2 md:col-span-2">
-                  <label className="text-xs font-black uppercase text-neutral-400">Judul Film</label>
+                  <label className="text-xs font-black uppercase text-neutral-400">Judul Film *</label>
                   <input 
                     type="text" 
-                    placeholder="Contoh: Interstellar"
+                    placeholder="Contoh: Bersandiwara di Balik Layar"
                     className="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm"
                     value={formData.title}
-                    onChange={(e) => setFormData({...formData, title: e.target.value})}
+                    onChange={(e) => updateField("title", e.target.value)}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-black uppercase text-neutral-400">Genre</label>
-                  <select 
-                    className="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm font-medium"
-                    value={formData.genre}
-                    onChange={(e) => setFormData({...formData, genre: e.target.value})}
-                  >
-                    <option value="">Pilih Genre</option>
-                    {GENRE_LIST.map(g => <option key={g.title} value={g.title}>{g.title}</option>)}
-                  </select>
+                  <label className="text-xs font-black uppercase text-neutral-400">Sutradara</label>
+                  <input 
+                    type="text" 
+                    placeholder="Nama sutradara"
+                    className="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm"
+                    value={formData.director}
+                    onChange={(e) => updateField("director", e.target.value)}
+                  />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-black uppercase text-neutral-400">Kualitas</label>
-                  <div className="flex gap-4">
-                    {["4K", "HDR", "HD+"].map(q => (
-                      <button 
-                        key={q}
-                        onClick={() => setFormData({...formData, quality: q})}
-                        className={cn(
-                          "flex-1 py-3.5 rounded-2xl border font-bold text-xs transition-all",
-                          formData.quality === q ? "bg-neutral-900 border-neutral-900 text-white" : "bg-neutral-50 border-neutral-200 text-neutral-500"
-                        )}
-                      >
-                        {q}
-                      </button>
-                    ))}
-                  </div>
+                  <label className="text-xs font-black uppercase text-neutral-400">Produser</label>
+                  <input 
+                    type="text" 
+                    placeholder="Nama produser"
+                    className="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm"
+                    value={formData.producer}
+                    onChange={(e) => updateField("producer", e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase text-neutral-400">Durasi (menit)</label>
+                  <input 
+                    type="number" 
+                    placeholder="90"
+                    className="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm"
+                    value={formData.duration}
+                    onChange={(e) => updateField("duration", e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase text-neutral-400">Tahun Rilis</label>
+                  <input 
+                    type="number" 
+                    placeholder="2026"
+                    className="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm"
+                    value={formData.release_year}
+                    onChange={(e) => updateField("release_year", e.target.value)}
+                  />
                 </div>
 
                 <div className="space-y-2 md:col-span-2">
@@ -150,96 +195,141 @@ export default function AddMoviePage() {
                     placeholder="Tuliskan jalan cerita film secara singkat tetapi menarik..."
                     className="w-full px-5 py-4 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm resize-none"
                     value={formData.description}
-                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                    onChange={(e) => updateField("description", e.target.value)}
                   />
                 </div>
               </div>
             </div>
           )}
 
-          {/* Step 2: Assets */}
+          {/* Step 2: Assets & Video */}
           {currentStep === 2 && (
-            <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
-              <div className="space-y-2 border-b border-neutral-100 pb-4">
-                <h2 className="text-2xl font-black text-neutral-900 uppercase italic">Aset Visual</h2>
-                <p className="text-neutral-500 text-sm font-medium">Upload poster dan backdrop untuk tampilan di katalog.</p>
+            <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+              <div className="space-y-2 border-b border-neutral-100 pb-4 mb-8">
+                <h2 className="text-2xl font-black text-neutral-900 uppercase italic">Aset & Video</h2>
+                <p className="text-neutral-500 text-sm font-medium">Masukkan URL poster dari Bunny Storage dan Video ID dari Bunny Stream.</p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Poster Upload Area */}
-                <div className="space-y-4">
-                  <label className="text-xs font-black uppercase text-neutral-400 tracking-widest">Main Poster (2:3)</label>
-                  <div className="aspect-[2/3] w-full rounded-[2.5rem] border-2 border-dashed border-neutral-200 bg-neutral-50 flex flex-col items-center justify-center text-center p-6 group hover:border-brand/40 transition-colors cursor-pointer">
-                    <div className="w-16 h-16 rounded-3xl bg-white border border-neutral-200 flex items-center justify-center mb-4 shadow-sm group-hover:scale-110 transition-transform">
-                      <Icon name="image" className="w-8 h-8 text-neutral-300" />
-                    </div>
-                    <p className="text-sm font-bold text-neutral-900">Drop Poster Here</p>
-                    <p className="text-xs text-neutral-500 mt-1">Recommended: 1200 x 1800 px</p>
-                  </div>
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase text-neutral-400">Poster URL (Bunny CDN)</label>
+                  <input 
+                    type="text" 
+                    placeholder="https://sinea-cdn.b-cdn.net/posters/nama-poster.png"
+                    className="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm"
+                    value={formData.poster_url}
+                    onChange={(e) => updateField("poster_url", e.target.value)}
+                  />
+                  <p className="text-xs text-neutral-400">URL poster yang sudah diupload ke Bunny Storage</p>
                 </div>
 
-                {/* Backdrop Upload Area */}
-                <div className="space-y-4">
-                  <label className="text-xs font-black uppercase text-neutral-400 tracking-widest">Wide Backdrop (16:9)</label>
-                  <div className="aspect-video w-full rounded-[2.5rem] border-2 border-dashed border-neutral-200 bg-neutral-50 flex flex-col items-center justify-center text-center p-6 group hover:border-brand/40 transition-colors cursor-pointer">
-                    <div className="w-16 h-16 rounded-3xl bg-white border border-neutral-200 flex items-center justify-center mb-4 shadow-sm group-hover:scale-110 transition-transform">
-                      <Icon name="image" className="w-8 h-8 text-neutral-300" />
-                    </div>
-                    <p className="text-sm font-bold text-neutral-900">Drop Backdrop Here</p>
-                    <p className="text-xs text-neutral-500 mt-1">Recommended: 1920 x 1080 px</p>
-                  </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase text-neutral-400">Video ID Film (Bunny Stream)</label>
+                  <input 
+                    type="text" 
+                    placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                    className="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm font-mono"
+                    value={formData.video_id}
+                    onChange={(e) => updateField("video_id", e.target.value)}
+                  />
+                  <p className="text-xs text-neutral-400">Copy Video ID dari dashboard Bunny Stream</p>
                 </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase text-neutral-400">Trailer Video ID (Bunny Stream)</label>
+                  <input 
+                    type="text" 
+                    placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                    className="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm font-mono"
+                    value={formData.trailer_url}
+                    onChange={(e) => updateField("trailer_url", e.target.value)}
+                  />
+                  <p className="text-xs text-neutral-400">Copy Video ID trailer dari dashboard Bunny Stream</p>
+                </div>
+
+                {/* Preview */}
+                {formData.poster_url && (
+                  <div className="mt-6 p-4 bg-neutral-50 rounded-2xl border border-neutral-200">
+                    <p className="text-xs font-black uppercase text-neutral-400 mb-3">Preview Poster</p>
+                    <div className="w-32 h-48 rounded-xl overflow-hidden border border-neutral-200 shadow-sm">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={formData.poster_url} alt="Poster preview" className="w-full h-full object-cover" />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
 
-          {/* Step 3: Video Content */}
+          {/* Step 3: Review */}
           {currentStep === 3 && (
-            <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
-              <div className="space-y-2 border-b border-neutral-100 pb-4">
-                <h2 className="text-2xl font-black text-neutral-900 uppercase italic">File Video</h2>
-                <p className="text-neutral-500 text-sm font-medium">Upload master file video dengan kualitas terbaik (MP4/MKV).</p>
+            <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+              <div className="space-y-2 border-b border-neutral-100 pb-4 mb-8">
+                <h2 className="text-2xl font-black text-neutral-900 uppercase italic">Review & Simpan</h2>
+                <p className="text-neutral-500 text-sm font-medium">Periksa kembali data film sebelum menyimpan.</p>
               </div>
 
-              {!isUploading ? (
-                <div className="w-full py-20 px-10 rounded-[2.5rem] border-2 border-dashed border-neutral-200 bg-neutral-50 flex flex-col items-center justify-center text-center group hover:border-brand/40 transition-colors cursor-pointer">
-                  <div className="w-24 h-24 rounded-[2rem] bg-brand/5 border border-brand/10 flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform animate-bounce-subtle">
-                    <Icon name="monitor-play" className="w-10 h-10 text-brand" />
-                  </div>
-                  <h4 className="text-xl font-black text-neutral-900">Pilih File Video Master</h4>
-                  <p className="text-sm text-neutral-500 mt-2 max-w-xs">Drag and drop file video Anda di sini untuk diproses menjadi kualitas HD/4K.</p>
-                  <div className="mt-8 px-6 py-3 bg-neutral-900 text-white rounded-xl font-bold text-xs">Pilih File Dari Komputer</div>
-                </div>
-              ) : (
-                <div className="w-full py-20 px-10 rounded-[2.5rem] bg-neutral-900 flex flex-col items-center justify-center text-center shadow-2xl relative overflow-hidden">
-                  {/* Decorative Glow */}
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-brand/20 blur-[100px] pointer-events-none" />
-                  
-                  <div className="relative z-10 w-full max-w-md space-y-10">
-                    <div className="space-y-4">
-                      <div className="w-20 h-20 rounded-3xl bg-brand/20 flex items-center justify-center mx-auto mb-6">
-                        <div className="w-12 h-12 rounded-full border-4 border-brand/30 border-t-brand animate-spin" />
-                      </div>
-                      <h4 className="text-2xl font-black text-white italic tracking-tight">Uploading Movie Content...</h4>
-                      <p className="text-neutral-500 text-sm">Mohon jangan tutup halaman ini hingga proses selesai.</p>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  {[
+                    { label: "Judul", value: formData.title },
+                    { label: "Sutradara", value: formData.director },
+                    { label: "Produser", value: formData.producer },
+                    { label: "Durasi", value: formData.duration ? `${formData.duration} menit` : "" },
+                    { label: "Tahun Rilis", value: formData.release_year },
+                    { label: "Video ID", value: formData.video_id },
+                    { label: "Trailer ID", value: formData.trailer_url },
+                  ].map(item => (
+                    <div key={item.label} className="p-4 bg-neutral-50 rounded-xl">
+                      <p className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">{item.label}</p>
+                      <p className="text-sm font-bold text-neutral-900 mt-1 truncate">{item.value || <span className="text-neutral-300">—</span>}</p>
                     </div>
+                  ))}
+                </div>
 
-                    <div className="space-y-3 text-left">
-                      <div className="flex justify-between text-xs font-black uppercase tracking-widest">
-                        <span className="text-brand">Progress</span>
-                        <span className="text-white">{Math.round(uploadProgress)}%</span>
-                      </div>
-                      <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden p-0.5 border border-white/5">
-                        <div 
-                          className="h-full bg-brand rounded-full transition-all duration-300 shadow-[0_0_15px_rgba(2,77,148,0.5)]"
-                          style={{ width: `${uploadProgress}%` }}
-                        />
-                      </div>
-                      <p className="text-[10px] text-neutral-600 font-bold uppercase tracking-tighter">Uploading: {formData.title || "Untitled_Movie"}.mp4 ...</p>
+                {formData.description && (
+                  <div className="p-4 bg-neutral-50 rounded-xl">
+                    <p className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Sinopsis</p>
+                    <p className="text-sm text-neutral-700 mt-1 leading-relaxed">{formData.description}</p>
+                  </div>
+                )}
+
+                {formData.poster_url && (
+                  <div className="p-4 bg-neutral-50 rounded-xl">
+                    <p className="text-[10px] font-black uppercase text-neutral-400 tracking-widest mb-3">Poster</p>
+                    <div className="w-24 h-36 rounded-lg overflow-hidden border border-neutral-200">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={formData.poster_url} alt="Poster" className="w-full h-full object-cover" />
                     </div>
                   </div>
+                )}
+
+                {/* Publish Toggle */}
+                <div className="p-6 bg-amber-50/50 rounded-2xl border border-amber-200 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-bold text-neutral-900">Langsung Publish?</p>
+                    <p className="text-xs text-neutral-500 mt-1">Jika diaktifkan, film langsung tampil ke pengguna. Jika tidak, disimpan sebagai draft.</p>
+                  </div>
+                  <button
+                    onClick={() => updateField("is_published", !formData.is_published)}
+                    className={cn(
+                      "relative w-14 h-7 rounded-full transition-all",
+                      formData.is_published ? "bg-emerald-500" : "bg-neutral-300"
+                    )}
+                  >
+                    <div className={cn(
+                      "absolute top-0.5 w-6 h-6 bg-white rounded-full shadow-md transition-all",
+                      formData.is_published ? "left-7" : "left-0.5"
+                    )} />
+                  </button>
                 </div>
-              )}
+
+                {error && (
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+                    {error}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -247,10 +337,10 @@ export default function AddMoviePage() {
           <div className="mt-12 pt-8 border-t border-neutral-100 flex items-center justify-between">
             <button 
               onClick={prevStep}
-              disabled={currentStep === 1 || isUploading}
+              disabled={currentStep === 1 || isSaving}
               className={cn(
                 "px-8 py-3.5 rounded-2xl font-bold text-sm transition-all",
-                currentStep === 1 || isUploading ? "opacity-30 cursor-not-allowed" : "hover:bg-neutral-100 text-neutral-900"
+                currentStep === 1 || isSaving ? "opacity-30 cursor-not-allowed" : "hover:bg-neutral-100 text-neutral-900"
               )}
             >
               Kembali
@@ -259,19 +349,25 @@ export default function AddMoviePage() {
             {currentStep < 3 ? (
               <button 
                 onClick={nextStep}
-                className="px-10 py-3.5 bg-neutral-900 text-white rounded-2xl font-bold text-sm hover:scale-105 active:scale-95 transition-all shadow-xl shadow-neutral-200"
+                disabled={currentStep === 1 && !isStep1Valid}
+                className={cn(
+                  "px-10 py-3.5 bg-neutral-900 text-white rounded-2xl font-bold text-sm transition-all shadow-xl shadow-neutral-200",
+                  currentStep === 1 && !isStep1Valid ? "opacity-30 cursor-not-allowed" : "hover:scale-105 active:scale-95"
+                )}
               >
                 Selanjutnya
               </button>
             ) : (
-              !isUploading && (
-                <button 
-                  onClick={simulateUpload}
-                  className="px-12 py-3.5 bg-brand text-white rounded-2xl font-black text-sm hover:scale-105 active:scale-95 transition-all shadow-xl shadow-brand/20"
-                >
-                  Publikasikan Sekarang
-                </button>
-              )
+              <button 
+                onClick={handleSubmit}
+                disabled={isSaving}
+                className={cn(
+                  "px-12 py-3.5 bg-brand text-white rounded-2xl font-black text-sm transition-all shadow-xl shadow-brand/20",
+                  isSaving ? "opacity-50 cursor-not-allowed" : "hover:scale-105 active:scale-95"
+                )}
+              >
+                {isSaving ? "Menyimpan..." : "Simpan Film"}
+              </button>
             )}
           </div>
         </div>
