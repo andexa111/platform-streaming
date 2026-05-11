@@ -61,7 +61,10 @@ const config: Config = {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+        sans: ["var(--font-oswald)", "sans-serif"],
+        serif: ["Sentient", "serif"],
+        heading: ["var(--font-oswald)", "sans-serif"],
+        body: ["Sentient", "serif"],
       },
     },
   },

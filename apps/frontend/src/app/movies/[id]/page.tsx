@@ -3,7 +3,8 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import { useAuthStore } from "@/lib/auth-store";
 import { Icon } from "@/components/ui/Icon";
 import { VideoCard } from "@/components/video/VideoCard";
 import { cn } from "@/lib/utils";
@@ -13,10 +14,11 @@ import { ALL_MOVIES } from "@/constants/video-data";
 
 export default function MovieDetailPage() {
   const { id } = useParams();
+  const router = useRouter();
   const movieId = parseInt(id as string);
+  const { isAuthenticated, user } = useAuthStore();
 
   // States to handle In-Place Player & Access
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Simulated auth state
   const [isPlaying, setIsPlaying] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
 
@@ -24,15 +26,22 @@ export default function MovieDetailPage() {
   const relatedMovies = ALL_MOVIES.filter((m) => m.id !== movie.id).slice(0, 6);
 
   const handleWatchNow = () => {
-    if (!isLoggedIn) {
+    if (!isAuthenticated) {
       setShowAuthModal(true);
       return;
     }
+    // Logic: Free users go to /watch with limited access/ads (backend handled)
+    // Premium users go to /watch with full access
+    router.push(`/watch/${movie.id}`);
+  };
+
+  const handleWatchTrailer = () => {
+    // Both Public and Member can watch trailer in overlay
     setIsPlaying(true);
   };
 
   return (
-    <main className={cn("min-h-screen bg-neutral-950 text-white selection:bg-brand/30 transition-all duration-500", isPlaying ? "pt-20" : "pt-0")}>
+    <main className="min-h-screen bg-neutral-950 text-white selection:bg-brand/30">
       {/* Auth Modal Overlay */}
       {showAuthModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-in fade-in duration-300">
@@ -75,17 +84,6 @@ export default function MovieDetailPage() {
           </div>
         </div>
       )}
-
-      {/* Debug Switch (Development only) */}
-      <div className="fixed bottom-4 right-4 z-50 flex items-center gap-2 bg-neutral-900/80 p-2 rounded-full border border-white/10 backdrop-blur-md">
-        <span className="text-[10px] uppercase font-bold text-neutral-500 px-2 tracking-widest">Status: {isLoggedIn ? "Member" : "Guest"}</span>
-        <button
-          onClick={() => setIsLoggedIn(!isLoggedIn)}
-          className={cn("px-4 py-1.5 rounded-full text-[10px] font-black uppercase transition-all", isLoggedIn ? "bg-green-500 text-white" : "bg-neutral-700 text-white hover:bg-neutral-600")}
-        >
-          {isLoggedIn ? "Switch to Guest" : "Switch to Member"}
-        </button>
-      </div>
 
       {/* Media & Content Wrapper */}
       <div className="relative">
@@ -166,7 +164,7 @@ export default function MovieDetailPage() {
         <div
           className={cn(
             "max-w-7xl mx-auto px-6 flex flex-col space-y-6 md:space-y-8 animate-in fade-in transition-all duration-700",
-            isPlaying ? "relative pt-12 pb-4" : "absolute bottom-0 left-0 right-0 z-20 h-full justify-end pb-20 md:pb-32 bg-gradient-to-t from-neutral-950 via-transparent to-transparent",
+            isPlaying ? "relative pt-5 pb-4" : "absolute bottom-0 left-0 right-0 z-20 h-full justify-end pb-20 md:pb-32 bg-gradient-to-t from-neutral-950 via-transparent to-transparent",
           )}
         >
           <div className="space-y-4">
@@ -196,9 +194,12 @@ export default function MovieDetailPage() {
               className="w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-3.5 md:py-4 bg-brand hover:bg-brand-dark text-white rounded-full font-bold transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(2,77,148,0.3)] group"
             >
               <Icon name="play" className="w-4 h-4 md:w-5 md:h-5 fill-current transition-transform group-hover:scale-110" />
-              {isPlaying ? "Restart Movie" : "Watch Now"}
+              Watch Now
             </button>
-            <button className="w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-3.5 md:py-4 bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 text-white rounded-full font-bold transition-all hover:scale-105 active:scale-95">
+            <button
+              onClick={handleWatchTrailer}
+              className="w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-3.5 md:py-4 bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 text-white rounded-full font-bold transition-all hover:scale-105 active:scale-95"
+            >
               <Icon name="film" className="w-4 h-4 md:w-5 md:h-5" />
               Watch Trailer
             </button>
