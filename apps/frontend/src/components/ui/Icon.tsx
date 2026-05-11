@@ -45,8 +45,7 @@ import {
   SearchX,
   Maximize,
   Volume2,
-  LogIn,
-  Trash2
+  LogIn
 } from "lucide-react";
 
 const ICON_MAP = {
@@ -95,7 +94,6 @@ const ICON_MAP = {
   maximize: Maximize,
   "volume-2": Volume2,
   login: LogIn,
-  "trash-2": Trash2,
 };
 
 interface IconProps extends LucideProps {
