@@ -6,6 +6,7 @@ import { Icon } from "@/components/ui/Icon";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
 import { useRouter } from "next/navigation";
+import { GENRES } from "@/constants/video-data";
 
 const STEPS = [
   { id: 1, name: "Informasi Dasar", icon: "film" },
@@ -25,16 +26,34 @@ export default function AddMoviePage() {
     description: "",
     director: "",
     producer: "",
-    duration: "",
+    genre: "",
     release_year: "",
     video_id: "",
     trailer_url: "",
     poster_url: "",
     is_published: false,
+    actors: [] as string[],
   });
 
-  const updateField = (field: string, value: string | boolean) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const [actorInput, setActorInput] = useState("");
+
+  const updateField = (field: string, value: any) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleAddActor = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const newActor = actorInput.trim();
+      if (newActor && !formData.actors.includes(newActor)) {
+        updateField("actors", [...formData.actors, newActor]);
+      }
+      setActorInput("");
+    }
+  };
+
+  const handleRemoveActor = (actorToRemove: string) => {
+    updateField("actors", formData.actors.filter(a => a !== actorToRemove));
   };
 
   const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, 3));
@@ -50,7 +69,8 @@ export default function AddMoviePage() {
         description: formData.description || undefined,
         director: formData.director || undefined,
         producer: formData.producer || undefined,
-        duration: formData.duration ? parseInt(formData.duration) : undefined,
+        actors: formData.actors.length > 0 ? formData.actors : undefined,
+        genre: formData.genre || undefined,
         release_year: formData.release_year ? parseInt(formData.release_year) : undefined,
         video_id: formData.video_id || undefined,
         trailer_url: formData.trailer_url || undefined,
@@ -74,10 +94,7 @@ export default function AddMoviePage() {
   return (
     <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-700">
       {/* Back Link */}
-      <Link 
-        href="/admin/movies" 
-        className="inline-flex items-center gap-2 text-neutral-500 hover:text-neutral-900 transition-colors group px-2"
-      >
+      <Link href="/admin/movies" className="inline-flex items-center gap-2 text-neutral-500 hover:text-neutral-900 transition-colors group px-2">
         <Icon name="chevron-right" className="w-4 h-4 rotate-180 group-hover:-translate-x-1 transition-transform" />
         <span className="text-xs font-black uppercase tracking-widest">Kembali Ke Katalog</span>
       </Link>
@@ -91,22 +108,15 @@ export default function AddMoviePage() {
               onClick={() => step.id <= currentStep && setCurrentStep(step.id)}
               className={cn(
                 "w-full flex items-center gap-4 p-4 rounded-2xl transition-all border text-left",
-                currentStep === step.id 
-                  ? "bg-brand text-white border-brand shadow-lg shadow-brand/20" 
+                currentStep === step.id
+                  ? "bg-brand text-white border-brand shadow-lg shadow-brand/20"
                   : step.id < currentStep
                     ? "bg-emerald-50 text-emerald-700 border-emerald-200 cursor-pointer"
-                    : "bg-white text-neutral-400 border-neutral-200"
+                    : "bg-white text-neutral-400 border-neutral-200",
               )}
             >
-              <div className={cn(
-                "w-10 h-10 rounded-xl flex items-center justify-center",
-                currentStep === step.id ? "bg-white/20" : step.id < currentStep ? "bg-emerald-200" : "bg-neutral-100"
-              )}>
-                {step.id < currentStep ? (
-                  <span className="text-emerald-700 font-bold">✓</span>
-                ) : (
-                  <Icon name={step.icon as any} className="w-5 h-5" />
-                )}
+              <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", currentStep === step.id ? "bg-white/20" : step.id < currentStep ? "bg-emerald-200" : "bg-neutral-100")}>
+                {step.id < currentStep ? <span className="text-emerald-700 font-bold">✓</span> : <Icon name={step.icon as any} className="w-5 h-5" />}
               </div>
               <div className="leading-tight">
                 <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Step 0{step.id}</p>
@@ -114,7 +124,7 @@ export default function AddMoviePage() {
               </div>
             </button>
           ))}
-          
+
           <div className="p-6 bg-blue-50/50 rounded-2xl border border-blue-100 mt-10">
             <p className="text-xs text-blue-800 leading-relaxed font-medium">
               Film akan disimpan sebagai <strong>Draft</strong> kecuali kamu aktifkan &quot;Publish&quot; di step terakhir.
@@ -135,8 +145,8 @@ export default function AddMoviePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2 md:col-span-2">
                   <label className="text-xs font-black uppercase text-neutral-400">Judul Film *</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     placeholder="Contoh: Bersandiwara di Balik Layar"
                     className="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm"
                     value={formData.title}
@@ -146,8 +156,8 @@ export default function AddMoviePage() {
 
                 <div className="space-y-2">
                   <label className="text-xs font-black uppercase text-neutral-400">Sutradara</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     placeholder="Nama sutradara"
                     className="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm"
                     value={formData.director}
@@ -157,8 +167,8 @@ export default function AddMoviePage() {
 
                 <div className="space-y-2">
                   <label className="text-xs font-black uppercase text-neutral-400">Produser</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     placeholder="Nama produser"
                     className="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm"
                     value={formData.producer}
@@ -166,21 +176,62 @@ export default function AddMoviePage() {
                   />
                 </div>
 
+                <div className="space-y-2 md:col-span-2">
+                  <label className="text-xs font-black uppercase text-neutral-400">Aktor</label>
+                  <div className="p-3 bg-neutral-50 border border-neutral-200 rounded-2xl focus-within:border-brand transition-all">
+                    {formData.actors.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {formData.actors.map((actor) => (
+                          <span key={actor} className="inline-flex items-center gap-1 px-3 py-1.5 bg-neutral-900 text-white rounded-xl text-xs font-bold">
+                            {actor}
+                            <button type="button" onClick={() => handleRemoveActor(actor)} className="hover:text-red-400 ml-1 transition-colors">
+                              <Icon name="x" className="w-3 h-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    <input
+                      type="text"
+                      placeholder={formData.actors.length === 0 ? "Ketik nama aktor lalu tekan Enter..." : "Tambah aktor lain..."}
+                      className="w-full bg-transparent focus:outline-none text-sm px-2 py-1.5"
+                      value={actorInput}
+                      onChange={(e) => setActorInput(e.target.value)}
+                      onKeyDown={handleAddActor}
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-2">
-                  <label className="text-xs font-black uppercase text-neutral-400">Durasi (menit)</label>
-                  <input 
-                    type="number" 
-                    placeholder="90"
-                    className="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm"
-                    value={formData.duration}
-                    onChange={(e) => updateField("duration", e.target.value)}
-                  />
+                  <label className="text-xs font-black uppercase text-neutral-400">Genre</label>
+                  <div className="relative">
+                    <select
+                      className={cn(
+                        "w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm appearance-none pr-12",
+                        !formData.genre ? "text-neutral-400" : "text-neutral-900",
+                      )}
+                      value={formData.genre}
+                      onChange={(e) => updateField("genre", e.target.value)}
+                    >
+                      <option value="" disabled>
+                        Pilih Genre
+                      </option>
+                      {GENRES.map((g) => (
+                        <option key={g.title} value={g.title} className="text-neutral-900">
+                          {g.title}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-neutral-400">
+                      <Icon name="chevron-down" className="w-5 h-5" />
+                    </div>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-xs font-black uppercase text-neutral-400">Tahun Rilis</label>
-                  <input 
-                    type="number" 
+                  <input
+                    type="number"
                     placeholder="2026"
                     className="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm"
                     value={formData.release_year}
@@ -190,7 +241,7 @@ export default function AddMoviePage() {
 
                 <div className="space-y-2 md:col-span-2">
                   <label className="text-xs font-black uppercase text-neutral-400">Sinopsis / Deskripsi</label>
-                  <textarea 
+                  <textarea
                     rows={4}
                     placeholder="Tuliskan jalan cerita film secara singkat tetapi menarik..."
                     className="w-full px-5 py-4 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm resize-none"
@@ -213,8 +264,8 @@ export default function AddMoviePage() {
               <div className="space-y-6">
                 <div className="space-y-2">
                   <label className="text-xs font-black uppercase text-neutral-400">Poster URL (Bunny CDN)</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     placeholder="https://sinea-cdn.b-cdn.net/posters/nama-poster.png"
                     className="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm"
                     value={formData.poster_url}
@@ -225,8 +276,8 @@ export default function AddMoviePage() {
 
                 <div className="space-y-2">
                   <label className="text-xs font-black uppercase text-neutral-400">Video ID Film (Bunny Stream)</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
                     className="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm font-mono"
                     value={formData.video_id}
@@ -237,8 +288,8 @@ export default function AddMoviePage() {
 
                 <div className="space-y-2">
                   <label className="text-xs font-black uppercase text-neutral-400">Trailer Video ID (Bunny Stream)</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
                     className="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm font-mono"
                     value={formData.trailer_url}
@@ -275,11 +326,12 @@ export default function AddMoviePage() {
                     { label: "Judul", value: formData.title },
                     { label: "Sutradara", value: formData.director },
                     { label: "Produser", value: formData.producer },
-                    { label: "Durasi", value: formData.duration ? `${formData.duration} menit` : "" },
+                    { label: "Aktor", value: formData.actors.length > 0 ? formData.actors.join(", ") : "" },
+                    { label: "Genre", value: formData.genre },
                     { label: "Tahun Rilis", value: formData.release_year },
                     { label: "Video ID", value: formData.video_id },
                     { label: "Trailer ID", value: formData.trailer_url },
-                  ].map(item => (
+                  ].map((item) => (
                     <div key={item.label} className="p-4 bg-neutral-50 rounded-xl">
                       <p className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">{item.label}</p>
                       <p className="text-sm font-bold text-neutral-900 mt-1 truncate">{item.value || <span className="text-neutral-300">—</span>}</p>
@@ -310,61 +362,42 @@ export default function AddMoviePage() {
                     <p className="text-sm font-bold text-neutral-900">Langsung Publish?</p>
                     <p className="text-xs text-neutral-500 mt-1">Jika diaktifkan, film langsung tampil ke pengguna. Jika tidak, disimpan sebagai draft.</p>
                   </div>
-                  <button
-                    onClick={() => updateField("is_published", !formData.is_published)}
-                    className={cn(
-                      "relative w-14 h-7 rounded-full transition-all",
-                      formData.is_published ? "bg-emerald-500" : "bg-neutral-300"
-                    )}
-                  >
-                    <div className={cn(
-                      "absolute top-0.5 w-6 h-6 bg-white rounded-full shadow-md transition-all",
-                      formData.is_published ? "left-7" : "left-0.5"
-                    )} />
+                  <button onClick={() => updateField("is_published", !formData.is_published)} className={cn("relative w-14 h-7 rounded-full transition-all", formData.is_published ? "bg-emerald-500" : "bg-neutral-300")}>
+                    <div className={cn("absolute top-0.5 w-6 h-6 bg-white rounded-full shadow-md transition-all", formData.is_published ? "left-7" : "left-0.5")} />
                   </button>
                 </div>
 
-                {error && (
-                  <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
-                    {error}
-                  </div>
-                )}
+                {error && <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">{error}</div>}
               </div>
             </div>
           )}
 
           {/* Navigation Buttons */}
           <div className="mt-12 pt-8 border-t border-neutral-100 flex items-center justify-between">
-            <button 
+            <button
               onClick={prevStep}
               disabled={currentStep === 1 || isSaving}
-              className={cn(
-                "px-8 py-3.5 rounded-2xl font-bold text-sm transition-all",
-                currentStep === 1 || isSaving ? "opacity-30 cursor-not-allowed" : "hover:bg-neutral-100 text-neutral-900"
-              )}
+              className={cn("px-8 py-3.5 rounded-2xl font-bold text-sm transition-all", currentStep === 1 || isSaving ? "opacity-30 cursor-not-allowed" : "hover:bg-neutral-100 text-neutral-900")}
             >
               Kembali
             </button>
-            
+
             {currentStep < 3 ? (
-              <button 
+              <button
                 onClick={nextStep}
                 disabled={currentStep === 1 && !isStep1Valid}
                 className={cn(
                   "px-10 py-3.5 bg-neutral-900 text-white rounded-2xl font-bold text-sm transition-all shadow-xl shadow-neutral-200",
-                  currentStep === 1 && !isStep1Valid ? "opacity-30 cursor-not-allowed" : "hover:scale-105 active:scale-95"
+                  currentStep === 1 && !isStep1Valid ? "opacity-30 cursor-not-allowed" : "hover:scale-105 active:scale-95",
                 )}
               >
                 Selanjutnya
               </button>
             ) : (
-              <button 
+              <button
                 onClick={handleSubmit}
                 disabled={isSaving}
-                className={cn(
-                  "px-12 py-3.5 bg-brand text-white rounded-2xl font-black text-sm transition-all shadow-xl shadow-brand/20",
-                  isSaving ? "opacity-50 cursor-not-allowed" : "hover:scale-105 active:scale-95"
-                )}
+                className={cn("px-12 py-3.5 bg-brand text-white rounded-2xl font-black text-sm transition-all shadow-xl shadow-brand/20", isSaving ? "opacity-50 cursor-not-allowed" : "hover:scale-105 active:scale-95")}
               >
                 {isSaving ? "Menyimpan..." : "Simpan Film"}
               </button>

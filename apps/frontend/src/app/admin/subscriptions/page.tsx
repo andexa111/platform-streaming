@@ -45,7 +45,7 @@ export default function SubscriptionsDashboard() {
   const handleUpdatePrice = (e: React.FormEvent) => {
     e.preventDefault();
     const newPrice = Number((e.target as any).price.value);
-    setPlans(plans.map(p => p.id === editingPlan.id ? { ...p, price: newPrice } : p));
+    setPlans(plans.map((p) => (p.id === editingPlan.id ? { ...p, price: newPrice } : p)));
     setEditingPlan(null);
   };
 
@@ -57,24 +57,18 @@ export default function SubscriptionsDashboard() {
           <h1 className="text-3xl font-black text-neutral-900 tracking-tight uppercase italic">Subscriptions & Revenue</h1>
           <p className="text-neutral-500 text-sm font-medium">Atur skema paket langganan dan pantau arus kas platform.</p>
         </div>
-        
+
         {/* Tab Switcher */}
         <div className="flex p-1 bg-neutral-100 rounded-2xl border border-neutral-200 shadow-inner">
-          <button 
+          <button
             onClick={() => setActiveTab("plans")}
-            className={cn(
-              "px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
-              activeTab === "plans" ? "bg-white text-neutral-900 shadow-md" : "text-neutral-500 hover:text-neutral-700"
-            )}
+            className={cn("px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all", activeTab === "plans" ? "bg-white text-neutral-900 shadow-md" : "text-neutral-500 hover:text-neutral-700")}
           >
             Pricing Plans
           </button>
-          <button 
+          <button
             onClick={() => setActiveTab("transactions")}
-            className={cn(
-              "px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
-              activeTab === "transactions" ? "bg-white text-neutral-900 shadow-md" : "text-neutral-500 hover:text-neutral-700"
-            )}
+            className={cn("px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all", activeTab === "transactions" ? "bg-white text-neutral-900 shadow-md" : "text-neutral-500 hover:text-neutral-700")}
           >
             Transactions
           </button>
@@ -82,37 +76,29 @@ export default function SubscriptionsDashboard() {
       </div>
 
       {/* Stats Quick View */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard title="Total Revenue" value="Rp 8.4M" sub="+12% VS LAST MONTH" icon="play" color="bg-emerald-50 text-emerald-600" />
         <StatCard title="Active Subs" value="1,240" sub="FROM 4.2K USERS" icon="eye" color="bg-blue-50 text-blue-600" />
         <StatCard title="Churn Rate" value="2.4%" sub="GOOD RETENTION" icon="play" color="bg-purple-50 text-purple-600" />
-      </div>
+      </div> */}
 
       {/* Main Content Areas */}
       {activeTab === "plans" ? (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in slide-in-from-bottom-4 duration-500">
           {plans.map((plan) => (
-            <div 
-              key={plan.id}
-              className={cn(
-                "bg-white rounded-[2.5rem] border p-10 flex flex-col justify-between shadow-sm hover:shadow-xl transition-all relative overflow-hidden group",
-                plan.border
-              )}
-            >
+            <div key={plan.id} className={cn("bg-white rounded-[2.5rem] border p-10 flex flex-col justify-between shadow-sm hover:shadow-xl transition-all relative overflow-hidden group", plan.border)}>
               {/* Visual Decorative */}
               <div className={cn("absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl blur-[40px] opacity-60", plan.color)} />
-              
+
               <div className="space-y-8 relative z-10">
                 <div className="space-y-2">
                   <h4 className="text-4xl font-black text-neutral-900 italic tracking-tighter uppercase">{plan.name}</h4>
-                  <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest">{plan.description}</p>
+                  {/* <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest">{plan.description}</p> */}
                 </div>
-                
+
                 <div className="flex items-baseline gap-1">
                   <span className="text-xl font-bold text-neutral-400 italic">Rp</span>
-                  <p className="text-5xl font-black text-neutral-900 italic tracking-tighter">
-                    {plan.price.toLocaleString("id-ID")}
-                  </p>
+                  <p className="text-5xl font-black text-neutral-900 italic tracking-tighter">{plan.price.toLocaleString("id-ID")}</p>
                   <span className="text-sm font-bold text-neutral-400 uppercase tracking-widest">/mo</span>
                 </div>
 
@@ -120,18 +106,18 @@ export default function SubscriptionsDashboard() {
                   {[...Array(4)].map((_, i) => (
                     <div key={i} className="flex items-center gap-2 opacity-60">
                       <Icon name="chevron-right" className="w-3 h-3 text-brand" />
-                      <span className="text-xs font-bold text-neutral-600">Feature Benefit #0{i+1}</span>
+                      <span className="text-xs font-bold text-neutral-600">Feature Benefit #0{i + 1}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <button 
+              {/* <button
                 onClick={() => setEditingPlan(plan)}
                 className="mt-10 w-full py-4 bg-neutral-950 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-neutral-800 transition-all shadow-xl shadow-neutral-200 group-hover:bg-brand group-hover:shadow-brand/20 active:scale-95"
               >
                 Atur Harga
-              </button>
+              </button> */}
             </div>
           ))}
         </div>
@@ -157,9 +143,7 @@ export default function SubscriptionsDashboard() {
                     </td>
                     <td className="px-8 py-5">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-neutral-100 flex items-center justify-center font-black text-[10px] text-brand uppercase">
-                          {trx.user.charAt(0)}
-                        </div>
+                        <div className="w-8 h-8 rounded-lg bg-neutral-100 flex items-center justify-center font-black text-[10px] text-brand uppercase">{trx.user.charAt(0)}</div>
                         <p className="text-xs font-bold text-neutral-900">{trx.user}</p>
                       </div>
                     </td>
@@ -170,12 +154,12 @@ export default function SubscriptionsDashboard() {
                       <p className="text-xs font-black text-neutral-900 italic">Rp {trx.amount.toLocaleString("id-ID")}</p>
                     </td>
                     <td className="px-8 py-5 text-center">
-                      <span className={cn(
-                        "px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest",
-                        trx.status === "Success" ? "bg-emerald-50 text-emerald-600" :
-                        trx.status === "Pending" ? "bg-amber-50 text-amber-600" :
-                        "bg-red-50 text-red-600"
-                      )}>
+                      <span
+                        className={cn(
+                          "px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest",
+                          trx.status === "Success" ? "bg-emerald-50 text-emerald-600" : trx.status === "Pending" ? "bg-amber-50 text-amber-600" : "bg-red-50 text-red-600",
+                        )}
+                      >
                         {trx.status}
                       </span>
                     </td>
@@ -187,11 +171,9 @@ export default function SubscriptionsDashboard() {
               </tbody>
             </table>
           </div>
-          
+
           <div className="p-8 border-t border-neutral-100 bg-neutral-50/30">
-            <button className="text-[10px] font-black uppercase tracking-widest text-brand hover:underline">
-              Lihat Seluruh Riwayat Transaksi →
-            </button>
+            <button className="text-[10px] font-black uppercase tracking-widest text-brand hover:underline">Lihat Seluruh Riwayat Transaksi →</button>
           </div>
         </div>
       )}
@@ -210,10 +192,10 @@ export default function SubscriptionsDashboard() {
             <form onSubmit={handleUpdatePrice} className="p-8 space-y-6">
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Harga Per Bulan (IDR)</label>
-                <input 
+                <input
                   autoFocus
                   name="price"
-                  type="number" 
+                  type="number"
                   defaultValue={editingPlan.price}
                   className="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-xl font-black italic"
                 />
