@@ -14,16 +14,16 @@
 // ═══════════════════════════════════════════════════════════════════
 // COMING SOON MODE (AKTIF)
 // ═══════════════════════════════════════════════════════════════════
-import ComingSoon from "@/components/coming-soon/ComingSoon";
+// import ComingSoon from "@/components/coming-soon/ComingSoon";
 
-export default function Home() {
-  return <ComingSoon />;
-}
+// export default function Home() {
+//   return <ComingSoon />;
+// }
 
 // ═══════════════════════════════════════════════════════════════════
 // HALAMAN UTAMA ASLI (NONAKTIF — Uncomment saat mau launch)
 // ═══════════════════════════════════════════════════════════════════
-/*
+
 import { Icon } from "@/components/ui/Icon";
 import Link from "next/link";
 import { VideoSection } from "@/components/video/VideoSection";
@@ -33,7 +33,7 @@ import { ALL_MOVIES, GENRES } from "@/constants/video-data";
 export default function Home() {
   return (
     <main className="min-h-screen bg-neutral-950 text-white font-sans selection:bg-brand/30">
-      {/* Hero Section *-/}
+      {/* Hero Section */}
       <section className="relative pt-40 pb-20 px-6 overflow-hidden flex flex-col items-center justify-center min-h-[85vh]">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-neutral-800/20 via-neutral-950 to-neutral-950 -z-10" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-brand/10 blur-[120px] rounded-full -z-10 pointer-events-none animate-pulse" />
@@ -69,12 +69,9 @@ export default function Home() {
           </div>
         </div>
       </section>
-
       <VideoSection title="Sedang Tayang" videos={ALL_MOVIES} viewAllHref="/movies" />
-
       <VideoSection title="Segera Hadir" videos={[...ALL_MOVIES].reverse()} viewAllHref="/movies" className="bg-neutral-900/30" />
-
-      {/* Genres Section *-/}
+      {/* Genres Section */}
       <section className="py-24 px-6 bg-neutral-950 relative border-t border-white/5 overflow-hidden">
         <div className="absolute -left-1/4 top-0 w-[500px] h-[500px] bg-brand/10 blur-[120px] rounded-full mix-blend-screen pointer-events-none" />
         <div className="max-w-7xl mx-auto space-y-12 relative z-10">
@@ -110,8 +107,7 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* Features Section *-/}
+      {/* Features Section */}
       <section className="py-24 px-6 bg-neutral-950 relative border-t border-white/5">
         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-8">
           {[
@@ -134,8 +130,7 @@ export default function Home() {
           ))}
         </div>
       </section>
-
-      {/* Pricing Section *-/}
+      {/* Pricing Section */}
       <section className="py-24 px-6 bg-neutral-950 relative border-t border-white/5">
         <div className="max-w-7xl mx-auto space-y-16">
           <div className="text-center space-y-4">
@@ -143,7 +138,7 @@ export default function Home() {
             <p className="text-neutral-400 max-w-2xl mx-auto text-lg">Akses karya film eksklusif dari kreator independen. Pilih paket yang sesuai dan mulai menikmati tanpa batas.</p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-8 max-w-5xl mx-auto">
-            {/* Basic Plan *-/}
+            {/* Basic Plan */}
             <div className="group relative p-4 md:p-8 rounded-2xl md:rounded-3xl border border-[#CD7F32]/40 bg-neutral-900/40 shadow-[0_0_20px_rgba(205,127,50,0.1)] hover:shadow-[0_0_30px_rgba(205,127,50,0.2)] transition-all duration-500 hover:-translate-y-2 flex flex-col backdrop-blur-sm col-span-1 overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent opacity-30 pointer-events-none" />
               <div className="relative z-10 mb-6 md:mb-8">
@@ -164,15 +159,14 @@ export default function Home() {
                   <Icon name="check" className="w-4 h-4 md:w-5 md:h-5 text-[#CD7F32]" /> <span className="line-clamp-1">SD (720p)</span>
                 </li>
               </ul>
-              <Link 
+              <Link
                 href="/membership"
                 className="flex items-center justify-center relative z-10 w-full py-3 md:py-4 rounded-xl text-xs md:text-base font-bold bg-white/10 hover:bg-white/20 border border-white/10 text-white transition-all shadow-lg hover:shadow-[#CD7F32]/20"
               >
                 Pre-order
               </Link>
             </div>
-
-            {/* Standard Plan *-/}
+            {/* Standard Plan */}
             <div className="group relative p-4 md:p-8 rounded-2xl md:rounded-3xl border border-[#C0C0C0]/50 bg-neutral-900/60 shadow-[0_0_30px_rgba(192,192,192,0.15)] hover:shadow-[0_0_50px_rgba(192,192,192,0.3)] transform hover:-translate-y-2 transition-all duration-500 flex flex-col backdrop-blur-sm col-span-1">
               <div className="absolute inset-0 rounded-[inherit] overflow-hidden pointer-events-none">
                 <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent opacity-40" />
@@ -196,15 +190,14 @@ export default function Home() {
                   <Icon name="check" className="w-4 h-4 md:w-5 md:h-5 text-white" /> <span className="line-clamp-1 font-medium">FHD (1080p)</span>
                 </li>
               </ul>
-              <Link 
+              <Link
                 href="/membership"
                 className="flex items-center justify-center relative z-10 w-full py-3 md:py-4 rounded-xl text-xs md:text-base font-black bg-white text-neutral-950 hover:bg-neutral-100 transition-all shadow-xl shadow-white/10"
               >
                 Pre-order
               </Link>
             </div>
-
-            {/* Premium Plan *-/}
+            {/* Premium Plan */}
             <div className="group relative p-4 md:p-8 rounded-2xl md:rounded-3xl border border-[#FFD700]/50 bg-neutral-900/40 shadow-[0_0_40px_rgba(255,215,0,0.2)] hover:shadow-[0_0_70px_rgba(255,215,0,0.35)] transition-all duration-500 hover:-translate-y-2 flex flex-col backdrop-blur-sm col-span-2 md:col-span-1 max-w-[calc(50%-6px)] md:max-w-none mx-auto w-full overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent opacity-40 pointer-events-none" />
               <div className="relative z-10 mb-6 md:mb-8">
@@ -225,7 +218,7 @@ export default function Home() {
                   <Icon name="check" className="w-4 h-4 md:w-5 md:h-5 text-[#FFD700]" /> <span className="line-clamp-1 font-semibold">4K & HDR</span>
                 </li>
               </ul>
-              <Link 
+              <Link
                 href="/membership"
                 className="flex items-center justify-center relative z-10 w-full py-3 md:py-4 rounded-xl text-xs md:text-base font-black bg-neutral-950 text-[#FFD700] hover:bg-black transition-all shadow-2xl shadow-yellow-500/10 border border-[#FFD700]/20"
               >
@@ -238,4 +231,3 @@ export default function Home() {
     </main>
   );
 }
-*/

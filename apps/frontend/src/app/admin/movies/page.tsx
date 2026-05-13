@@ -3,7 +3,9 @@
 import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
+import { ButtonAction } from "@/components/ui/ButtonAction";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
 
@@ -44,6 +46,7 @@ const StatsCard = ({ title, value, subValue, icon, color }: { title: string; val
 );
 
 export default function AdminMoviesPage() {
+  const router = useRouter();
   const [films, setFilms] = useState<Film[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -138,8 +141,8 @@ export default function AdminMoviesPage() {
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-3xl font-black text-neutral-900 tracking-tight uppercase italic">Katalog Film</h1>
-          <p className="text-neutral-500 text-sm font-medium">Kelola konten visual, metadata, dan status publikasi film Anda.</p>
+          <h1 className="text-3xl font-black text-black tracking-tight uppercase italic">Katalog Film</h1>
+          <p className="text-neutral-600 text-sm font-bold">Kelola konten visual, metadata, dan status publikasi film Anda.</p>
         </div>
         <Link 
           href="/admin/movies/add"
@@ -237,7 +240,7 @@ export default function AdminMoviesPage() {
           ) : (
             <table className="w-full text-left">
               <thead>
-                <tr className="bg-neutral-50/50 border-b border-neutral-100">
+                <tr className="bg-brand text-white">
                   <th className="px-6 py-4">
                     <input 
                       type="checkbox" 
@@ -246,12 +249,12 @@ export default function AdminMoviesPage() {
                       className="w-4 h-4 rounded border-neutral-300 text-brand focus:ring-brand accent-brand cursor-pointer"
                     />
                   </th>
-                  <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-neutral-400">Film</th>
-                  <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-neutral-400">Genre</th>
-                  <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-neutral-400">Durasi</th>
-                  <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-neutral-400">Video</th>
-                  <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-neutral-400">Status</th>
-                  <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-neutral-400 text-right">Aksi</th>
+                  <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest">Film</th>
+                  <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-center">Genre</th>
+                  <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-center">Durasi</th>
+                  <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-center">Video</th>
+                  <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-center">Status</th>
+                  <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-right">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-50">
@@ -280,8 +283,8 @@ export default function AdminMoviesPage() {
                             )}
                           </div>
                           <div>
-                            <p className="text-sm font-bold text-neutral-900 group-hover:text-brand transition-colors">{film.title}</p>
-                            <p className="text-xs text-neutral-400">{formatDate(film.createdAt)}{film.director ? ` • ${film.director}` : ""}</p>
+                            <p className="text-sm font-black text-black group-hover:text-brand transition-colors">{film.title}</p>
+                            <p className="text-xs text-neutral-600 font-bold">{formatDate(film.createdAt)}{film.director ? ` • ${film.director}` : ""}</p>
                           </div>
                         </div>
                       </td>
@@ -315,32 +318,11 @@ export default function AdminMoviesPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center justify-end gap-2 relative z-10">
-                          <button 
-                            type="button"
-                            onClick={() => handleTogglePublish(film.id, film.is_published)}
-                            className={cn(
-                              "p-2.5 rounded-xl transition-all cursor-pointer",
-                              film.is_published 
-                                ? "text-amber-500 hover:bg-amber-50" 
-                                : "text-emerald-500 hover:bg-emerald-50"
-                            )} 
-                            title={film.is_published ? "Unpublish" : "Publish"}
-                          >
-                            <Icon name={film.is_published ? "eye-off" as any : "eye" as any} className="w-4 h-4 pointer-events-none" />
-                          </button>
-                          <Link href={`/admin/movies/edit/${film.id}`} className="p-2.5 text-neutral-400 hover:text-brand hover:bg-brand/5 rounded-xl transition-all cursor-pointer" title="Edit">
-                            <Icon name="settings" className="w-4 h-4 pointer-events-none" />
-                          </Link>
-                          <button 
-                            type="button"
-                            onClick={() => handleDelete(film.id, film.title)}
-                            className="p-2.5 text-neutral-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all cursor-pointer" 
-                            title="Hapus film"
-                          >
-                            <Icon name={"trash-2" as any} className="w-4 h-4 pointer-events-none" />
-                          </button>
-                        </div>
+                        <ButtonAction 
+                          onView={() => handleTogglePublish(film.id, film.is_published)}
+                          onEdit={() => router.push(`/admin/movies/edit/${film.id}`)}
+                          onDelete={() => handleDelete(film.id, film.title)}
+                        />
                       </td>
                     </tr>
                   );

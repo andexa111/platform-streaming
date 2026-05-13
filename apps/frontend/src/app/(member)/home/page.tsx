@@ -11,7 +11,7 @@ export default function MemberHomePage() {
   return (
     <main className="min-h-screen bg-neutral-950 text-white font-sans selection:bg-brand/30">
       {/* Dynamic Movie Banner - Featured Content */}
-      <MovieBanner movies={ALL_MOVIES.slice(0, 5)} />
+      <MovieBanner movies={ALL_MOVIES.slice(0, 10)} />
 
       {/* Content Sections */}
       <div className="space-y-4 md:space-y-8 pb-20">

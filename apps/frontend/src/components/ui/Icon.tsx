@@ -45,7 +45,16 @@ import {
   SearchX,
   Maximize,
   Volume2,
-  LogIn
+  LogIn,
+  Edit3,
+  Trash2,
+  Save,
+  Layout,
+  RefreshCw,
+  Plus,
+  CircleDashed,
+  Pencil,
+  ChevronLeft
 } from "lucide-react";
 
 const ICON_MAP = {
@@ -94,6 +103,16 @@ const ICON_MAP = {
   maximize: Maximize,
   "volume-2": Volume2,
   login: LogIn,
+  edit: Pencil,
+  "edit-3": Edit3,
+  trash: Trash2,
+  "trash-2": Trash2,
+  save: Save,
+  layout: Layout,
+  "refresh-cw": RefreshCw,
+  plus: Plus,
+  "circle-dashed": CircleDashed,
+  "chevron-left": ChevronLeft,
 };
 
 interface IconProps extends LucideProps {

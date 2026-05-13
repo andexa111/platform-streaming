@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { Icon } from "@/components/ui/Icon";
+import { ButtonAction } from "@/components/ui/ButtonAction";
 import { cn } from "@/lib/utils";
 
 // --- Mock Data ---
@@ -40,7 +41,7 @@ const RoleBadge = ({ role }: { role: string }) => {
   const styles: any = {
     "Super Admin": "bg-neutral-900 text-white",
     "Admin": "bg-purple-100 text-purple-700",
-    "User": "bg-blue-50 text-blue-600",
+    "User": "bg-brand/10 text-brand",
   };
   return (
     <span className={cn("px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest whitespace-nowrap", styles[role] || "bg-neutral-100 text-neutral-500")}>
@@ -117,8 +118,8 @@ export default function UsersManagementPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-1">
-          <h1 className="text-3xl font-black text-neutral-900 tracking-tight uppercase italic">Manajemen User</h1>
-          <p className="text-neutral-500 text-sm font-medium">Kelola hak akses, reset password, dan pantau status pelanggan.</p>
+          <h1 className="text-3xl font-black text-black tracking-tight uppercase italic">Manajemen User</h1>
+          <p className="text-neutral-600 text-sm font-bold">Kelola hak akses, reset password, dan pantau status pelanggan.</p>
         </div>
         <button 
           onClick={() => { setCurrentUser(null); setIsAddEditOpen(true); }}
@@ -132,7 +133,7 @@ export default function UsersManagementPage() {
       {/* Stats Quick View */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="p-6 bg-white rounded-3xl border border-neutral-200 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
+          <div className="w-12 h-12 rounded-2xl bg-brand/10 text-brand flex items-center justify-center">
             <Icon name="user" className="w-6 h-6" />
           </div>
           <div>
@@ -189,12 +190,12 @@ export default function UsersManagementPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="bg-neutral-50/50 border-b border-neutral-100">
-                <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-neutral-400">User Identity</th>
-                <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-neutral-400 text-center">Role</th>
-                <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-neutral-400 text-center">Plan</th>
-                <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-neutral-400 text-center">Status</th>
-                <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-neutral-400 text-right">Actions</th>
+              <tr className="bg-brand text-white">
+                <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest">User Identity</th>
+                <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-center">Role</th>
+                <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-center">Plan</th>
+                <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-center">Status</th>
+                <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-50">
@@ -207,8 +208,8 @@ export default function UsersManagementPage() {
                         {user.name.charAt(0)}
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-neutral-900">{user.name}</p>
-                        <p className="text-[11px] text-neutral-400 font-medium">{user.email}</p>
+                        <p className="text-sm font-black text-black">{user.name}</p>
+                        <p className="text-[11px] text-neutral-600 font-bold">{user.email}</p>
                       </div>
                     </div>
                   </td>
@@ -224,33 +225,15 @@ export default function UsersManagementPage() {
                       className="flex items-center gap-2 mx-auto px-3 py-1.5 rounded-lg hover:bg-neutral-50 transition-all"
                     >
                       <div className={cn("w-1.5 h-1.5 rounded-full", user.status === "Active" ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]")} />
-                      <span className="text-[10px] font-black uppercase text-neutral-600">{user.status}</span>
+                      <span className="text-[10px] font-black uppercase text-black">{user.status}</span>
                     </button>
                   </td>
                   <td className="px-8 py-5">
-                    <div className="flex items-center justify-end gap-2">
-                      <button 
-                        onClick={() => { setCurrentUser(user); setIsResetOpen(true); }}
-                        className="p-2.5 text-neutral-400 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition-all" 
-                        title="Reset Password"
-                      >
-                        <Icon name="star" className="w-4 h-4" /> {/* Use as reset icon */}
-                      </button>
-                      <button 
-                        onClick={() => { setCurrentUser(user); setIsAddEditOpen(true); }}
-                        className="p-2.5 text-neutral-400 hover:text-brand hover:bg-brand/5 rounded-xl transition-all" 
-                        title="Edit User"
-                      >
-                        <Icon name="settings" className="w-4 h-4" />
-                      </button>
-                      <button 
-                        onClick={() => handleDelete(user.id)}
-                        className="p-2.5 text-neutral-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all" 
-                        title="Delete User"
-                      >
-                        <Icon name="x" className="w-4 h-4" />
-                      </button>
-                    </div>
+                    <ButtonAction 
+                      onReset={() => { setCurrentUser(user); setIsResetOpen(true); }}
+                      onEdit={() => { setCurrentUser(user); setIsAddEditOpen(true); }}
+                      onDelete={() => handleDelete(user.id)}
+                    />
                   </td>
                 </tr>
               ))}

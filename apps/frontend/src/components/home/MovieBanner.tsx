@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Icon } from "@/components/ui/Icon";
@@ -14,6 +14,7 @@ interface MovieBannerProps {
 export function MovieBanner({ movies, autoPlayInterval = 5000 }: MovieBannerProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
   const nextSlide = useCallback(() => {
     if (isAnimating) return;
@@ -29,10 +30,33 @@ export function MovieBanner({ movies, autoPlayInterval = 5000 }: MovieBannerProp
     setTimeout(() => setIsAnimating(false), 500);
   };
 
+  // Manage auto-slide interval and limit video to 10s
   useEffect(() => {
-    const timer = setInterval(nextSlide, autoPlayInterval);
-    return () => clearInterval(timer);
-  }, [nextSlide, autoPlayInterval]);
+    if (!movies || movies.length === 0) return;
+    const currentMovie = movies[currentIndex];
+    // If it has a trailer, set timeout to 10 seconds. Else use autoPlayInterval (5s)
+    const delay = currentMovie?.trailerUrl ? 10000 : autoPlayInterval;
+    
+    const timer = setTimeout(nextSlide, delay);
+    return () => clearTimeout(timer);
+  }, [currentIndex, nextSlide, autoPlayInterval, movies]);
+
+  // Manage video playing state
+  useEffect(() => {
+    videoRefs.current.forEach((video, idx) => {
+      if (video) {
+        if (idx === currentIndex) {
+          video.currentTime = 0;
+          video.play().catch(() => {});
+        } else {
+          // Pause after 1s to allow the fade transition to complete smoothly
+          setTimeout(() => {
+            if (video) video.pause();
+          }, 1000);
+        }
+      }
+    });
+  }, [currentIndex]);
 
   const truncateDescription = (text: string, wordLimit: number) => {
     if (!text) return "";
@@ -48,7 +72,7 @@ export function MovieBanner({ movies, autoPlayInterval = 5000 }: MovieBannerProp
   const currentMovie = movies[currentIndex];
 
   return (
-    <section className="relative w-full h-[60vh] md:h-[80vh] overflow-hidden group">
+    <section className="relative w-full h-[60vh] md:h-[80vh] overflow-hidden group bg-neutral-950">
       {/* Background Slides */}
       {movies.map((movie, index) => (
         <div
@@ -57,7 +81,18 @@ export function MovieBanner({ movies, autoPlayInterval = 5000 }: MovieBannerProp
             index === currentIndex ? "opacity-100 z-10" : "opacity-0 z-0"
           }`}
         >
-          {movie.backdrop ? (
+          {movie.trailerUrl ? (
+            <video
+              ref={(el) => {
+                videoRefs.current[index] = el;
+              }}
+              src={movie.trailerUrl}
+              muted
+              playsInline
+              onEnded={nextSlide}
+              className="w-full h-full object-cover object-center"
+            />
+          ) : movie.backdrop ? (
             <Image
               src={movie.backdrop}
               alt={movie.title}
@@ -75,10 +110,28 @@ export function MovieBanner({ movies, autoPlayInterval = 5000 }: MovieBannerProp
         </div>
       ))}
 
-      {/* Content Section - Positioned at bottom corner as requested */}
+      {/* Content Section */}
       <div className="relative z-20 h-full max-w-7xl mx-auto px-6 flex flex-col justify-end pb-12 md:pb-20">
         <div className="max-w-xl space-y-4 md:space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
           <div className="space-y-2">
+            {/* Production House Info */}
+            {currentMovie.productionHouse && (
+              <div className="flex items-center gap-2 mb-3">
+                {currentMovie.productionHouseLogo && (
+                  <div className="relative w-6 h-6 md:w-8 md:h-8 rounded-full overflow-hidden border border-white/20 bg-white/10">
+                    <Image 
+                      src={currentMovie.productionHouseLogo} 
+                      alt={currentMovie.productionHouse} 
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                )}
+                <span className="text-xs md:text-sm font-bold text-brand tracking-widest uppercase drop-shadow-md">
+                  {currentMovie.productionHouse}
+                </span>
+              </div>
+            )}
             <h2 className="text-2xl md:text-5xl font-black tracking-tight drop-shadow-lg">
               {currentMovie.title}
             </h2>
@@ -100,7 +153,7 @@ export function MovieBanner({ movies, autoPlayInterval = 5000 }: MovieBannerProp
       </div>
 
       {/* Slide Indicators */}
-      <div className="absolute bottom-6 right-6 md:bottom-10 md:right-10 z-30 flex items-center gap-2">
+      <div className="absolute bottom-6 right-6 md:bottom-10 md:right-10 z-30 flex flex-wrap max-w-[50%] justify-end items-center gap-2">
         {movies.map((_, index) => (
           <button
             key={index}
@@ -112,7 +165,7 @@ export function MovieBanner({ movies, autoPlayInterval = 5000 }: MovieBannerProp
         ))}
       </div>
 
-      {/* Navigation Arrows (Optional but good for UX) */}
+      {/* Navigation Arrows */}
       <button
         onClick={prevSlide}
         className="absolute left-4 top-1/2 -translate-y-1/2 z-30 p-2 rounded-full bg-black/20 hover:bg-black/40 text-white/50 hover:text-white transition-all opacity-0 group-hover:opacity-100 hidden md:block"

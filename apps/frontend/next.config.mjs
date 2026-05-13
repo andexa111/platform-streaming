@@ -11,6 +11,14 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'sinea-cdn.b-cdn.net',
       },
+      {
+        protocol: 'https',
+        hostname: 'ui-avatars.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'commondatastorage.googleapis.com',
+      }
     ],
   },
 };

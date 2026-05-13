@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { Icon } from "@/components/ui/Icon";
+import { ButtonAction } from "@/components/ui/ButtonAction";
 import { GENRES as INITIAL_GENRES } from "@/constants/video-data";
 import { cn } from "@/lib/utils";
 
@@ -145,20 +146,12 @@ export default function AdminGenresPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 pt-2">
-                <button 
-                  onClick={() => handleOpenEdit(genre)}
-                  className="flex-1 px-4 py-2.5 bg-neutral-50 hover:bg-neutral-100 text-neutral-600 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
-                >
-                  Edit Genre
-                </button>
-                <button 
-                  onClick={() => handleDelete(genre.title)}
-                  className="p-2.5 text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                  title="Hapus"
-                >
-                  <Icon name="x" className="w-4 h-4" />
-                </button>
+              <div className="pt-2">
+                <ButtonAction 
+                  onEdit={() => handleOpenEdit(genre)}
+                  onDelete={() => handleDelete(genre.title)}
+                  className="justify-between"
+                />
               </div>
             </div>
           </div>

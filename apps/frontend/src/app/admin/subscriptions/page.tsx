@@ -25,9 +25,9 @@ const TRANSACTIONS = [
 const StatCard = ({ title, value, sub, icon, color }: any) => (
   <div className="bg-white p-6 rounded-3xl border border-neutral-200 shadow-sm flex items-center justify-between group hover:shadow-md transition-all">
     <div className="space-y-1">
-      <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400">{title}</p>
-      <h3 className="text-3xl font-black text-neutral-900 tracking-tight">{value}</h3>
-      <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">{sub}</p>
+      <p className="text-[10px] font-black uppercase tracking-widest text-neutral-500">{title}</p>
+      <h3 className="text-3xl font-black text-black tracking-tight">{value}</h3>
+      <p className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider">{sub}</p>
     </div>
     <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm", color)}>
       <Icon name={icon} className="w-6 h-6" />
@@ -54,8 +54,8 @@ export default function SubscriptionsDashboard() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-1">
-          <h1 className="text-3xl font-black text-neutral-900 tracking-tight uppercase italic">Subscriptions & Revenue</h1>
-          <p className="text-neutral-500 text-sm font-medium">Atur skema paket langganan dan pantau arus kas platform.</p>
+          <h1 className="text-3xl font-black text-black tracking-tight uppercase italic">Subscriptions & Revenue</h1>
+          <p className="text-neutral-600 text-sm font-bold">Atur skema paket langganan dan pantau arus kas platform.</p>
         </div>
 
         {/* Tab Switcher */}
@@ -78,7 +78,7 @@ export default function SubscriptionsDashboard() {
       {/* Stats Quick View */}
       {/* <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard title="Total Revenue" value="Rp 8.4M" sub="+12% VS LAST MONTH" icon="play" color="bg-emerald-50 text-emerald-600" />
-        <StatCard title="Active Subs" value="1,240" sub="FROM 4.2K USERS" icon="eye" color="bg-blue-50 text-blue-600" />
+        <StatCard title="Active Subs" value="1,240" sub="FROM 4.2K USERS" icon="eye" color="bg-brand/10 text-brand" />
         <StatCard title="Churn Rate" value="2.4%" sub="GOOD RETENTION" icon="play" color="bg-purple-50 text-purple-600" />
       </div> */}
 
@@ -122,49 +122,49 @@ export default function SubscriptionsDashboard() {
           ))}
         </div>
       ) : (
-        <div className="bg-white rounded-[2.5rem] border border-neutral-200 overflow-hidden shadow-sm animate-in slide-in-from-bottom-4 duration-500">
+        <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden shadow-sm animate-in slide-in-from-bottom-4 duration-500">
           <div className="overflow-x-auto">
-            <table className="w-full text-left">
+            <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-neutral-50/50 border-b border-neutral-100">
-                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-neutral-400">Order ID</th>
-                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-neutral-400">User / Identity</th>
-                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-neutral-400 text-center">Package</th>
-                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-neutral-400 text-center">Amount</th>
-                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-neutral-400 text-center">Status</th>
-                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-neutral-400 text-right">Date</th>
+                <tr className="bg-brand text-white">
+                  <th className="px-8 py-5 text-[13px] font-bold uppercase tracking-wide">Order ID</th>
+                  <th className="px-8 py-5 text-[13px] font-bold uppercase tracking-wide">User / Identity</th>
+                  <th className="px-8 py-5 text-[13px] font-bold uppercase tracking-wide text-center">Package</th>
+                  <th className="px-8 py-5 text-[13px] font-bold uppercase tracking-wide text-center">Amount</th>
+                  <th className="px-8 py-5 text-[13px] font-bold uppercase tracking-wide text-center">Status</th>
+                  <th className="px-8 py-5 text-[13px] font-bold uppercase tracking-wide text-right">Date</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-neutral-50">
+              <tbody className="divide-y divide-neutral-100">
                 {TRANSACTIONS.map((trx) => (
-                  <tr key={trx.id} className="hover:bg-neutral-50/30 transition-colors group">
-                    <td className="px-8 py-5">
-                      <span className="text-xs font-black text-neutral-400 group-hover:text-neutral-900 transition-colors">{trx.id}</span>
+                  <tr key={trx.id} className="hover:bg-neutral-50/80 transition-colors group">
+                    <td className="px-8 py-6">
+                      <span className="text-[15px] font-bold text-black">{trx.id}</span>
                     </td>
-                    <td className="px-8 py-5">
+                    <td className="px-8 py-6">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-neutral-100 flex items-center justify-center font-black text-[10px] text-brand uppercase">{trx.user.charAt(0)}</div>
-                        <p className="text-xs font-bold text-neutral-900">{trx.user}</p>
+                        <div className="w-9 h-9 rounded-xl bg-neutral-100 border border-neutral-200 flex items-center justify-center font-black text-xs text-brand uppercase shadow-sm">{trx.user.charAt(0)}</div>
+                        <p className="text-[15px] font-bold text-black">{trx.user}</p>
                       </div>
                     </td>
-                    <td className="px-8 py-5 text-center">
-                      <span className="text-[10px] font-black px-2 py-1 bg-neutral-100 rounded text-neutral-600 uppercase tracking-widest">{trx.plan}</span>
+                    <td className="px-8 py-6 text-center">
+                      <span className="text-[12px] font-black px-3 py-1 bg-neutral-100 rounded-lg text-black uppercase tracking-wider">{trx.plan}</span>
                     </td>
-                    <td className="px-8 py-5 text-center">
-                      <p className="text-xs font-black text-neutral-900 italic">Rp {trx.amount.toLocaleString("id-ID")}</p>
+                    <td className="px-8 py-6 text-center">
+                      <p className="text-[15px] font-black text-black">Rp {trx.amount.toLocaleString("id-ID")}</p>
                     </td>
-                    <td className="px-8 py-5 text-center">
+                    <td className="px-8 py-6 text-center">
                       <span
                         className={cn(
-                          "px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest",
-                          trx.status === "Success" ? "bg-emerald-50 text-emerald-600" : trx.status === "Pending" ? "bg-amber-50 text-amber-600" : "bg-red-50 text-red-600",
+                          "px-3 py-1.5 rounded-xl text-[11px] font-black uppercase tracking-widest shadow-sm",
+                          trx.status === "Success" ? "bg-emerald-500 text-white" : trx.status === "Pending" ? "bg-amber-500 text-white" : "bg-red-500 text-white",
                         )}
                       >
                         {trx.status}
                       </span>
                     </td>
-                    <td className="px-8 py-5 text-right">
-                      <span className="text-[10px] font-bold text-neutral-400 uppercase">{trx.date}</span>
+                    <td className="px-8 py-6 text-right">
+                      <span className="text-[13px] font-bold text-neutral-600 uppercase">{trx.date}</span>
                     </td>
                   </tr>
                 ))}

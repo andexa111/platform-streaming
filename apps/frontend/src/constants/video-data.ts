@@ -9,7 +9,10 @@ export const ALL_MOVIES: Video[] = [
     quality: "4K", 
     thumbnail: "",
     backdrop: "",
-    description: "In a world where every step could be your last, a lone traveler embarks on a quest to find the lost city of light before the eternal darkness consumes everything."
+    description: "In a world where every step could be your last, a lone traveler embarks on a quest to find the lost city of light before the eternal darkness consumes everything.",
+    trailerUrl: "/trailers/trailer.mp4",
+    productionHouse: "Sinea Studios",
+    productionHouseLogo: "/production-house-placeholder.png"
   },
   { 
     id: 2, 
@@ -19,7 +22,10 @@ export const ALL_MOVIES: Video[] = [
     quality: "HDR", 
     thumbnail: "",
     backdrop: "",
-    description: "The year is 2099. Artificial intelligence has surpassed human consciousness. A rogue programmer discovers a hidden protocol that could change the fate of humanity forever."
+    description: "The year is 2099. Artificial intelligence has surpassed human consciousness. A rogue programmer discovers a hidden protocol that could change the fate of humanity forever.",
+    trailerUrl: "/trailers/trailer.mp4",
+    productionHouse: "Neon Pictures",
+    productionHouseLogo: "/production-house-placeholder.png"
   },
   { 
     id: 3, 
@@ -29,7 +35,10 @@ export const ALL_MOVIES: Video[] = [
     quality: "HD+", 
     thumbnail: "",
     backdrop: "",
-    description: "Something ancient stirs beneath the trees. When a group of hikers goes missing, a local ranger must face her deepest fears to uncover the truth about the forest that doesn't speak."
+    description: "Something ancient stirs beneath the trees. When a group of hikers goes missing, a local ranger must face her deepest fears to uncover the truth about the forest that doesn't speak.",
+    trailerUrl: "/trailers/trailer.mp4",
+    productionHouse: "Dark Woods Entertainment",
+    productionHouseLogo: "/production-house-placeholder.png"
   },
   { 
     id: 4, 
@@ -39,7 +48,10 @@ export const ALL_MOVIES: Video[] = [
     quality: "4K", 
     thumbnail: "",
     backdrop: "",
-    description: "Experience the universe like never before. From the birth of galaxies to the mysterious power of black holes, explore the breathtaking beauty of our cosmic neighborhood."
+    description: "Experience the universe like never before. From the birth of galaxies to the mysterious power of black holes, explore the breathtaking beauty of our cosmic neighborhood.",
+    trailerUrl: "/trailers/trailer.mp4",
+    productionHouse: "Cosmic Docs",
+    productionHouseLogo: "/production-house-placeholder.png"
   },
   { 
     id: 5, 
@@ -49,7 +61,10 @@ export const ALL_MOVIES: Video[] = [
     quality: "4K", 
     thumbnail: "",
     backdrop: "",
-    description: "A high-stakes game of cat and mouse unfolds in the rain-soaked streets of a cyberpunk metropolis. A detective with a past must catch a killer who leaves no trace."
+    description: "A high-stakes game of cat and mouse unfolds in the rain-soaked streets of a cyberpunk metropolis. A detective with a past must catch a killer who leaves no trace.",
+    trailerUrl: "/trailers/trailer.mp4",
+    productionHouse: "Neon Pictures",
+    productionHouseLogo: "/production-house-placeholder.png"
   },
   { 
     id: 6, 
@@ -59,7 +74,10 @@ export const ALL_MOVIES: Video[] = [
     quality: "HDR", 
     thumbnail: "",
     backdrop: "",
-    description: "Beyond the known stars lies a frontier of endless possibilities. A crew of explorers seeks a new home for the last of their kind in the farthest reaches of space."
+    description: "Beyond the known stars lies a frontier of endless possibilities. A crew of explorers seeks a new home for the last of their kind in the farthest reaches of space.",
+    trailerUrl: "/trailers/trailer.mp4",
+    productionHouse: "Sinea Studios",
+    productionHouseLogo: "/production-house-placeholder.png"
   },
   { 
     id: 7, 
@@ -69,7 +87,10 @@ export const ALL_MOVIES: Video[] = [
     quality: "4K", 
     thumbnail: "",
     backdrop: "",
-    description: "An elite operative goes off-grid to expose a global conspiracy within the highest levels of government. Trust is a luxury he can no longer afford."
+    description: "An elite operative goes off-grid to expose a global conspiracy within the highest levels of government. Trust is a luxury he can no longer afford.",
+    trailerUrl: "/trailers/trailer.mp4",
+    productionHouse: "Action Force",
+    productionHouseLogo: "/production-house-placeholder.png"
   },
   { 
     id: 8, 
@@ -79,7 +100,10 @@ export const ALL_MOVIES: Video[] = [
     quality: "4K", 
     thumbnail: "",
     backdrop: "",
-    description: "When a portal to another dimension opens in the middle of the Pacific Ocean, humanity must decide whether to embrace the unknown or fight to close the door."
+    description: "When a portal to another dimension opens in the middle of the Pacific Ocean, humanity must decide whether to embrace the unknown or fight to close the door.",
+    trailerUrl: "/trailers/trailer.mp4",
+    productionHouse: "Sinea Studios",
+    productionHouseLogo: "/production-house-placeholder.png"
   },
   { 
     id: 9, 
@@ -89,7 +113,10 @@ export const ALL_MOVIES: Video[] = [
     quality: "HDR", 
     thumbnail: "",
     backdrop: "",
-    description: "In a world where magic is fading, the last surviving alchemist must find a way to restore the balance of nature before the world withers away."
+    description: "In a world where magic is fading, the last surviving alchemist must find a way to restore the balance of nature before the world withers away.",
+    trailerUrl: "/trailers/trailer.mp4",
+    productionHouse: "Magic Box",
+    productionHouseLogo: "/production-house-placeholder.png"
   },
   { 
     id: 10, 
@@ -99,7 +126,10 @@ export const ALL_MOVIES: Video[] = [
     quality: "4K", 
     thumbnail: "",
     backdrop: "",
-    description: "Dive into the deepest parts of our oceans and discover the incredible creatures that thrive in the crushing darkness of the abyss."
+    description: "Dive into the deepest parts of our oceans and discover the incredible creatures that thrive in the crushing darkness of the abyss.",
+    trailerUrl: "/trailers/trailer.mp4",
+    productionHouse: "Cosmic Docs",
+    productionHouseLogo: "/production-house-placeholder.png"
   },
   { 
     id: 11, 
@@ -109,7 +139,10 @@ export const ALL_MOVIES: Video[] = [
     quality: "HD+", 
     thumbnail: "",
     backdrop: "",
-    description: "A chance encounter between two strangers on a rainy night in Kyoto leads to a journey of self-discovery and forbidden love."
+    description: "A chance encounter between two strangers on a rainy night in Kyoto leads to a journey of self-discovery and forbidden love.",
+    trailerUrl: "/trailers/trailer.mp4",
+    productionHouse: "Indie Films",
+    productionHouseLogo: "/production-house-placeholder.png"
   },
   { 
     id: 12, 
@@ -119,7 +152,10 @@ export const ALL_MOVIES: Video[] = [
     quality: "4K", 
     thumbnail: "",
     backdrop: "",
-    description: "A blind pianist becomes the target of a mysterious organization after she accidentally witnesses a crime through her heightened senses."
+    description: "A blind pianist becomes the target of a mysterious organization after she accidentally witnesses a crime through her heightened senses.",
+    trailerUrl: "/trailers/trailer.mp4",
+    productionHouse: "Dark Woods Entertainment",
+    productionHouseLogo: "/production-house-placeholder.png"
   },
   { 
     id: 13, 
@@ -129,7 +165,10 @@ export const ALL_MOVIES: Video[] = [
     quality: "4K", 
     thumbnail: "",
     backdrop: "",
-    description: "When a massive tectonic shift threatens to tear the continent apart, a team of engineers must race against time to stabilize the earth's core."
+    description: "When a massive tectonic shift threatens to tear the continent apart, a team of engineers must race against time to stabilize the earth's core.",
+    trailerUrl: "/trailers/trailer.mp4",
+    productionHouse: "Action Force",
+    productionHouseLogo: "/production-house-placeholder.png"
   },
   { 
     id: 14, 
@@ -139,7 +178,10 @@ export const ALL_MOVIES: Video[] = [
     quality: "HDR", 
     thumbnail: "",
     backdrop: "",
-    description: "In a future where everyone lives in transparent cities, privacy is the ultimate crime. One woman risks everything to find the last opaque place on earth."
+    description: "In a future where everyone lives in transparent cities, privacy is the ultimate crime. One woman risks everything to find the last opaque place on earth.",
+    trailerUrl: "/trailers/trailer.mp4",
+    productionHouse: "Neon Pictures",
+    productionHouseLogo: "/production-house-placeholder.png"
   },
   { 
     id: 15, 
@@ -149,7 +191,10 @@ export const ALL_MOVIES: Video[] = [
     quality: "4K", 
     thumbnail: "",
     backdrop: "",
-    description: "Follow the legendary journey of a Viking warrior who travels beyond the known maps to discover a land of fire and ice."
+    description: "Follow the legendary journey of a Viking warrior who travels beyond the known maps to discover a land of fire and ice.",
+    trailerUrl: "/trailers/trailer.mp4",
+    productionHouse: "Sinea Studios",
+    productionHouseLogo: "/production-house-placeholder.png"
   },
   { 
     id: 16, 
@@ -159,7 +204,10 @@ export const ALL_MOVIES: Video[] = [
     quality: "4K", 
     thumbnail: "",
     backdrop: "",
-    description: "Step into the smoky clubs of 1920s New York, where a young trumpet player must choose between fame and the music that defines his soul."
+    description: "Step into the smoky clubs of 1920s New York, where a young trumpet player must choose between fame and the music that defines his soul.",
+    trailerUrl: "/trailers/trailer.mp4",
+    productionHouse: "Indie Films",
+    productionHouseLogo: "/production-house-placeholder.png"
   },
   { 
     id: 17, 
@@ -169,7 +217,10 @@ export const ALL_MOVIES: Video[] = [
     quality: "HD+", 
     thumbnail: "",
     backdrop: "",
-    description: "A family's new smart home begins to develop a malevolent personality of its own, turning their futuristic dream into a technological nightmare."
+    description: "A family's new smart home begins to develop a malevolent personality of its own, turning their futuristic dream into a technological nightmare.",
+    trailerUrl: "/trailers/trailer.mp4",
+    productionHouse: "Dark Woods Entertainment",
+    productionHouseLogo: "/production-house-placeholder.png"
   },
   { 
     id: 18, 
@@ -179,7 +230,10 @@ export const ALL_MOVIES: Video[] = [
     quality: "4K", 
     thumbnail: "",
     backdrop: "",
-    description: "Discover the secret lives of animals that have adapted to live in the heart of the world's largest cities, from falcons in NYC to leopards in Mumbai."
+    description: "Discover the secret lives of animals that have adapted to live in the heart of the world's largest cities, from falcons in NYC to leopards in Mumbai.",
+    trailerUrl: "/trailers/trailer.mp4",
+    productionHouse: "Cosmic Docs",
+    productionHouseLogo: "/production-house-placeholder.png"
   },
 ];
 

@@ -39,9 +39,9 @@ export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
         </button>
 
         <div className="flex items-center gap-2">
-          <span className="text-neutral-500 font-medium hidden sm:inline">Pages</span>
-          <span className="text-neutral-500 hidden sm:inline">/</span>
-          <h1 className="text-sm sm:text-base font-bold text-neutral-900 tracking-wide">{pageTitle}</h1>
+          <span className="text-neutral-600 font-black text-xs uppercase tracking-widest hidden sm:inline">Pages</span>
+          <span className="text-neutral-400 hidden sm:inline">/</span>
+          <h1 className="text-sm sm:text-base font-black text-black tracking-tight">{pageTitle}</h1>
         </div>
       </div>
 
@@ -54,8 +54,8 @@ export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
         <div ref={profileRef} className="relative">
           <button onClick={() => setIsProfileOpen(!isProfileOpen)} className="flex items-center gap-3 pl-2 group transition-all">
             <div className="text-right hidden sm:block">
-              <p className="text-xs font-bold text-neutral-900 group-hover:text-brand transition-colors">Super Admin</p>
-              <p className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider">Administrator</p>
+              <p className="text-xs font-black text-black group-hover:text-brand transition-colors">Super Admin</p>
+              <p className="text-[10px] text-neutral-600 font-bold uppercase tracking-wider">Administrator</p>
             </div>
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all shadow-sm ${isProfileOpen ? "bg-brand text-white" : "bg-brand/5 border border-brand/10 text-brand"}`}>
               <Icon name="user" className="w-5 h-5" />
