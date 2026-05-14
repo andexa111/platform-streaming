@@ -7,7 +7,6 @@ import {
   ParseFilePipe,
   MaxFileSizeValidator,
   FileTypeValidator,
-  BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -15,6 +14,8 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { BunnyService } from '../bunny/bunny.service';
 import { v4 as uuidv4 } from 'uuid';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 
 @Controller('upload')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -24,45 +25,71 @@ export class UploadController {
 
   /**
    * POST /upload/poster
-   * Upload gambar poster film
-   * Content-Type: multipart/form-data
-   * Field: file (max 5MB, hanya jpg/png/webp)
-   *
-   * Return: { url: "https://lalakon-cdn.b-cdn.net/posters/xxx.jpg" }
+   * Upload gambar poster film (Disimpan Lokal)
    */
   @Post('poster')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './public/uploads/posters',
+        filename: (req, file, cb) => {
+          const uniqueSuffix = uuidv4();
+          const ext = extname(file.originalname);
+          cb(null, `poster-${uniqueSuffix}${ext}`);
+        },
+      }),
+    }),
+  )
   async uploadPoster(
     @UploadedFile(
       new ParseFilePipe({
         validators: [
           new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }), // 5MB
-          new FileTypeValidator({ fileType: /image\/(jpg|jpeg|png|webp)/ }),
+          new FileTypeValidator({ fileType: /image\/(jpg|jpeg|png|webp|x-icon|vnd\.microsoft\.icon)/ }), // +ico support
         ],
       }),
     )
     file: Express.Multer.File,
   ) {
-    // Generate unique filename: poster-uuid.ext
-    const ext = file.originalname.split('.').pop();
-    const fileName = `poster-${uuidv4()}.${ext}`;
+    const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/uploads/posters/${file.filename}`;
+    return { url, fileName: file.filename };
+  }
 
-    const url = await this.bunnyService.uploadToStorage(
-      'posters',
-      fileName,
-      file.buffer,
-    );
-
-    return { url, fileName };
+  /**
+   * POST /upload/image
+   * Upload gambar umum (Avatar, Iklan, Favicon) (Disimpan Lokal)
+   */
+  @Post('image')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './public/uploads/images',
+        filename: (req, file, cb) => {
+          const uniqueSuffix = uuidv4();
+          const ext = extname(file.originalname);
+          cb(null, `img-${uniqueSuffix}${ext}`);
+        },
+      }),
+    }),
+  )
+  async uploadImage(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }), // 5MB
+          new FileTypeValidator({ fileType: /image\/(jpg|jpeg|png|webp|x-icon|vnd\.microsoft\.icon)/ }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
+    const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/uploads/images/${file.filename}`;
+    return { url, fileName: file.filename };
   }
 
   /**
    * POST /upload/trailer
-   * Upload video trailer film
-   * Content-Type: multipart/form-data
-   * Field: file (max 100MB, hanya mp4/webm/mov)
-   *
-   * Return: { url: "https://lalakon-cdn.b-cdn.net/trailers/xxx.mp4" }
+   * Upload video trailer film (Disimpan ke Bunny CDN)
    */
   @Post('trailer')
   @UseInterceptors(FileInterceptor('file'))
