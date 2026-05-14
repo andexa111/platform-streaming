@@ -218,23 +218,33 @@ export default function MovieDetailPage() {
                 Sinopsis
               </h2>
               <p className="text-muted-foreground text-base md:text-xl leading-relaxed font-light">
-                Temukan kisah epik dari {movie.title}, di mana takdir bertemu dengan ketidaktahuan. Mahakarya sinematik ini membawa Anda dalam perjalanan melalui visual yang tak tertandingi dan aksi yang memacu jantung. Saat batas-batas kenyataan memudar, sekelompok
-                pahlawan yang tidak terduga harus bersatu untuk menghadapi kekuatan kuno yang mengancam untuk membentuk kembali dunia seperti yang kita kenal.
+                {movie.description || `Temukan kisah epik dari ${movie.title}, di mana takdir bertemu dengan ketidaktahuan. Mahakarya sinematik ini membawa Anda dalam perjalanan melalui visual yang tak tertandingi dan aksi yang memacu jantung.`}
               </p>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-8 pt-6 border-t border-border">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 pt-6 border-t border-border">
               <div className="space-y-2">
                 <span className="text-[10px] md:text-xs font-black uppercase tracking-widest text-muted-foreground">Sutradara</span>
-                <p className="font-bold text-sm md:text-base">Christopher Nolan</p>
+                <p className="font-bold text-sm md:text-base">{movie.director || "Christopher Nolan"}</p>
               </div>
               <div className="space-y-2">
-                <span className="text-[10px] md:text-xs font-black uppercase tracking-widest text-muted-foreground">Studio Produksi</span>
-                <p className="font-bold text-sm md:text-base">Lalakon Originals</p>
+                <span className="text-[10px] md:text-xs font-black uppercase tracking-widest text-muted-foreground">Produser</span>
+                <p className="font-bold text-sm md:text-base">{movie.producer || "Emma Thomas"}</p>
               </div>
               <div className="space-y-2">
-                <span className="text-[10px] md:text-xs font-black uppercase tracking-widest text-muted-foreground">Tanggal Rilis</span>
-                <p className="font-bold text-sm md:text-base">12 Oktober 2024</p>
+                <span className="text-[10px] md:text-xs font-black uppercase tracking-widest text-muted-foreground">Rumah Produksi</span>
+                <div className="flex items-center gap-4">
+                  {movie.productionHouseLogo && (
+                    <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 p-2 flex items-center justify-center overflow-hidden flex-shrink-0">
+                      <img src={movie.productionHouseLogo} alt="Studio Logo" className="w-full h-full object-contain" />
+                    </div>
+                  )}
+                  <p className="font-bold text-sm md:text-base leading-tight">{movie.productionHouse || "Lalakon Originals"}</p>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <span className="text-[10px] md:text-xs font-black uppercase tracking-widest text-muted-foreground">Tahun Rilis</span>
+                <p className="font-bold text-sm md:text-base">{movie.releaseYear || movie.year || "2024"}</p>
               </div>
             </div>
           </div>
@@ -243,17 +253,16 @@ export default function MovieDetailPage() {
           <div className="space-y-10 bg-muted/30 p-8 rounded-3xl border border-border backdrop-blur-sm h-fit">
             <h3 className="text-xl font-bold border-b border-border pb-4">Pemeran Utama</h3>
             <div className="space-y-6">
-              {[
-                { name: "Cillian Murphy", role: "Protagonist" },
-                { name: "Emily Blunt", role: "Key Support" },
-                { name: "Matt Damon", role: "Antagonist" },
-                { name: "Florence Pugh", role: "Side Character" },
-              ].map((cast, i) => (
-                <div key={i} className="flex items-center gap-4 group cursor-pointer">
-                  <div className="w-12 h-12 rounded-full bg-muted border border-border group-hover:border-brand transition-colors overflow-hidden" />
+              {(movie.actors && movie.actors.length > 0 ? movie.actors : [
+                "Cillian Murphy",
+                "Emily Blunt",
+                "Matt Damon",
+                "Florence Pugh",
+              ]).map((actor, i) => (
+                <div key={i} className="group cursor-pointer">
                   <div className="space-y-1">
-                    <p className="text-sm font-bold group-hover:text-brand transition-colors">{cast.name}</p>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{cast.role}</p>
+                    <p className="text-sm font-bold group-hover:text-brand transition-colors">{actor}</p>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium">Pemeran</p>
                   </div>
                 </div>
               ))}

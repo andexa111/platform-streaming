@@ -43,7 +43,8 @@ export default function EditMoviePage() {
     release_year: "",
     video_id: "",
     trailer_url: "",
-    poster_url: "",
+    production_house: "",
+    production_house_logo: "",
     is_published: false,
   });
 
@@ -63,6 +64,8 @@ export default function EditMoviePage() {
           video_id: film.video_id || "",
           trailer_url: film.trailer_url || "",
           poster_url: film.poster_url || "",
+          production_house: (film as any).production_house || "",
+          production_house_logo: (film as any).production_house_logo || "",
           is_published: film.is_published,
         });
       } catch (err) {
@@ -77,6 +80,23 @@ export default function EditMoviePage() {
 
   const updateField = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleImageUpload = async (file: File, field: "poster_url" | "production_house_logo") => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await api.post("/upload/poster", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      updateField(field, res.data.url);
+    } catch (err) {
+      console.error(`Gagal upload ${field}:`, err);
+      alert(`Gagal mengunggah gambar. Pastikan formatnya jpg/png/webp dan ukuran maks 5MB.`);
+    }
   };
 
   const handleSubmit = async () => {
@@ -235,6 +255,45 @@ export default function EditMoviePage() {
                 onChange={(e) => updateField("description", e.target.value)}
               />
             </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-black uppercase text-neutral-400">Rumah Produksi</label>
+              <input 
+                type="text" 
+                placeholder="Contoh: Sinea Studios"
+                className="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm"
+                value={formData.production_house}
+                onChange={(e) => updateField("production_house", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-black uppercase text-neutral-400">Logo Rumah Produksi</label>
+              <div className="flex gap-4">
+                <label className="flex-1 cursor-pointer">
+                  <div className="w-full h-[54px] bg-neutral-50 border border-neutral-200 border-dashed rounded-2xl flex items-center px-5 gap-3 hover:border-brand transition-all">
+                    <Icon name="image" className="w-5 h-5 text-neutral-400" />
+                    <span className="text-sm text-neutral-400">
+                      {formData.production_house_logo ? "Ganti Logo" : "Upload Logo"}
+                    </span>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleImageUpload(file, "production_house_logo");
+                    }}
+                  />
+                </label>
+                {formData.production_house_logo && (
+                  <div className="w-[54px] h-[54px] rounded-2xl border border-neutral-200 bg-neutral-50 flex items-center justify-center overflow-hidden flex-shrink-0">
+                    <img src={formData.production_house_logo} alt="Logo" className="w-full h-full object-contain p-2" />
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           <div className="space-y-2 border-b border-neutral-100 pb-4 pt-4">
@@ -243,14 +302,24 @@ export default function EditMoviePage() {
 
           <div className="space-y-6">
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase text-neutral-400">Poster URL (Bunny CDN)</label>
-              <input 
-                type="text" 
-                placeholder="https://sinea-cdn.b-cdn.net/posters/..."
-                className="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm"
-                value={formData.poster_url}
-                onChange={(e) => updateField("poster_url", e.target.value)}
-              />
+              <label className="text-xs font-black uppercase text-neutral-400">Poster Film</label>
+              <label className="block cursor-pointer">
+                <div className="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 border-dashed rounded-2xl flex items-center gap-3 hover:border-brand transition-all">
+                  <Icon name="image" className="w-5 h-5 text-neutral-400" />
+                  <span className="text-sm text-neutral-400">
+                    {formData.poster_url ? "Ganti Poster" : "Klik untuk upload poster..."}
+                  </span>
+                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleImageUpload(file, "poster_url");
+                  }}
+                />
+              </label>
             </div>
 
             <div className="space-y-2">
