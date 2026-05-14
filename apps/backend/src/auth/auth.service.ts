@@ -235,4 +235,52 @@ export class AuthService {
       throw new BadRequestException('OAuth login failed');
     }
   }
+
+  // ==================== FORGOT PASSWORD ====================
+
+  async forgotPassword(email: string) {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      // Don't leak if user exists
+      return { message: 'Jika email terdaftar, instruksi reset password akan dikirimkan.' };
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    await this.prisma.emailToken.create({
+      data: {
+        userId: user.id,
+        token,
+        expiresAt: new Date(Date.now() + 1 * 60 * 60 * 1000), // 1 hour
+      },
+    });
+
+    await this.mailService.sendPasswordResetEmail(user.email, user.name, token);
+
+    return { message: 'Jika email terdaftar, instruksi reset password akan dikirimkan.' };
+  }
+
+  // ==================== RESET PASSWORD ====================
+
+  async resetPassword(token: string, new_password: string) {
+    const emailToken = await this.prisma.emailToken.findUnique({
+      where: { token },
+      include: { user: true },
+    });
+
+    if (!emailToken || emailToken.expiresAt < new Date()) {
+      throw new BadRequestException('Token tidak valid atau sudah kedaluwarsa');
+    }
+
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(new_password, saltRounds);
+
+    await this.prisma.user.update({
+      where: { id: emailToken.userId },
+      data: { password: hashedPassword },
+    });
+
+    await this.prisma.emailToken.delete({ where: { id: emailToken.id } });
+
+    return { message: 'Password berhasil diubah. Silakan login dengan password baru.' };
+  }
 }

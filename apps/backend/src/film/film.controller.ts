@@ -91,10 +91,9 @@ export class FilmController {
 
   /**
    * GET /films
-   * Daftar film yang sudah published — semua user yang login
+   * Daftar film yang sudah published — PUBLIC (Guest bisa akses)
    * Query: ?search=judul&genre=comedy&page=1&limit=10
    */
-  @UseGuards(JwtAuthGuard)
   @Get()
   findAll(
     @Query('search') search?: string,
@@ -112,9 +111,8 @@ export class FilmController {
 
   /**
    * GET /films/:id
-   * Detail 1 film — semua user yang login
+   * Detail 1 film — PUBLIC (Guest bisa akses)
    */
-  @UseGuards(JwtAuthGuard)
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.filmService.findOne(id);
@@ -152,7 +150,11 @@ export class FilmController {
   async recordView(
     @Param('id', ParseIntPipe) id: number,
     @Req() req: any,
+    @Body('watched_seconds') watched_seconds: number,
   ) {
-    return this.filmService.recordView(id, req.user.id);
+    if (watched_seconds == null) {
+      throw new BadRequestException('watched_seconds is required');
+    }
+    return this.filmService.recordView(id, req.user.id, watched_seconds);
   }
 }

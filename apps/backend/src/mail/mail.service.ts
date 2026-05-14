@@ -67,4 +67,55 @@ export class MailService {
       throw error;
     }
   }
+
+  /**
+   * Kirim email reset password
+   */
+  async sendPasswordResetEmail(
+    email: string,
+    name: string,
+    token: string,
+  ): Promise<void> {
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const resetLink = `${frontendUrl}/reset-password?token=${token}`;
+
+    try {
+      await this.resend.emails.send({
+        from: this.fromEmail,
+        to: email,
+        subject: 'Reset Password ?" Sinea',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h2 style="color: #1a1a2e;">Reset Password</h2>
+            <p>Halo <strong>${name}</strong>,</p>
+            <p>Kami menerima permintaan untuk mereset password akun Sinea kamu. Klik tombol di bawah untuk melanjutkan:</p>
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${resetLink}" 
+                 style="background-color: #e94560; color: white; padding: 14px 28px; 
+                        text-decoration: none; border-radius: 8px; font-weight: bold;
+                        display: inline-block;">
+                Reset Password
+              </a>
+            </div>
+            <p style="color: #666; font-size: 14px;">
+              Atau copy link berikut ke browser:<br/>
+              <a href="${resetLink}">${resetLink}</a>
+            </p>
+            <p style="color: #999; font-size: 12px;">
+              Link ini berlaku selama 1 jam. Jika kamu tidak meminta reset password, abaikan email ini.
+            </p>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+            <p style="color: #999; font-size: 12px; text-align: center;">
+              &copy; 2026 Sinea. All rights reserved.
+            </p>
+          </div>
+        `,
+      });
+
+      this.logger.log(`Email reset password terkirim ke ${email}`);
+    } catch (error) {
+      this.logger.error(`Gagal kirim email reset password ke ${email}:`, error);
+      throw error;
+    }
+  }
 }

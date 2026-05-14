@@ -264,17 +264,45 @@ export class FilmService {
 
   /**
    * Rekam view pengguna untuk sebuah film
-   * Mencegah spam klik dengan mengecek apakah user sudah ada record FilmView yang belum dihitung
+   * - Minimal 300 detik (5 menit)
+   * - 1 user = 1 view per film per 24 jam
    */
-  async recordView(filmId: number, userId: number) {
+  async recordView(filmId: number, userId: number, watched_seconds: number) {
     await this.findOne(filmId);
 
-    return this.prisma.filmView.create({
+    // Syarat 1: Nonton minimal 5 menit (300 detik)
+    if (watched_seconds < 300) {
+      return { message: 'View not counted (watched less than 5 minutes)', counted: false };
+    }
+
+    // Syarat 2: Belum ada view dalam 24 jam terakhir
+    const yesterday = new Date();
+    yesterday.setHours(yesterday.getHours() - 24);
+
+    const recentView = await this.prisma.filmView.findFirst({
+      where: {
+        filmId,
+        userId,
+        createdAt: {
+          gte: yesterday
+        }
+      }
+    });
+
+    if (recentView) {
+      return { message: 'View already counted in the last 24 hours', counted: false };
+    }
+
+    // Lolos kedua syarat, catat sebagai view
+    await this.prisma.filmView.create({
       data: {
         filmId,
         userId,
+        watched_seconds,
         counted: true
       }
     });
+
+    return { message: 'View successfully counted', counted: true };
   }
 }

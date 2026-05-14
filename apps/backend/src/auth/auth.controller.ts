@@ -84,4 +84,22 @@ export class AuthController {
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
     return res.redirect(`${frontendUrl}/auth/callback?token=${loginResult.access_token}`);
   }
+
+  /**
+   * POST /auth/forgot-password
+   * Body: { email }
+   */
+  @Post('forgot-password')
+  forgotPassword(@Body('email') email: string) {
+    return this.authService.forgotPassword(email);
+  }
+
+  /**
+   * POST /auth/reset-password
+   * Body: { token, new_password }
+   */
+  @Post('reset-password')
+  resetPassword(@Body() body: any) {
+    return this.authService.resetPassword(body.token, body.new_password);
+  }
 }
