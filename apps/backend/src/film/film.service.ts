@@ -259,4 +259,22 @@ export class FilmService {
     this.logger.log(`Film soft deleted: ${film.title} (ID: ${film.id})`);
     return { message: `Film "${film.title}" berhasil dihapus` };
   }
+
+  // ==================== VIEWS ====================
+
+  /**
+   * Rekam view pengguna untuk sebuah film
+   * Mencegah spam klik dengan mengecek apakah user sudah ada record FilmView yang belum dihitung
+   */
+  async recordView(filmId: number, userId: number) {
+    await this.findOne(filmId);
+
+    return this.prisma.filmView.create({
+      data: {
+        filmId,
+        userId,
+        counted: true
+      }
+    });
+  }
 }

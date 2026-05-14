@@ -10,6 +10,7 @@ import {
   UseGuards,
   ParseIntPipe,
   BadRequestException,
+  Req,
 } from '@nestjs/common';
 import { FilmService } from './film.service';
 import { CreateFilmDto } from './dto/create-film.dto';
@@ -140,5 +141,18 @@ export class FilmController {
       title: film.title,
       stream_url: streamUrl,
     };
+  }
+
+  /**
+   * POST /films/:id/view
+   * Rekam view ketika user menonton film
+   */
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/view')
+  async recordView(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: any,
+  ) {
+    return this.filmService.recordView(id, req.user.id);
   }
 }
