@@ -27,10 +27,10 @@ export default function AuthLayout({ mode, children }: AuthLayoutProps) {
   const panelTransition = "transform 0.8s cubic-bezier(0.22, 1, 0.36, 1)";
 
   return (
-    <div className="min-h-screen flex bg-neutral-950 selection:bg-brand/30 selection:text-white overflow-hidden">
+    <div className="min-h-screen flex bg-background selection:bg-brand/30 selection:text-foreground overflow-hidden">
       {/* TEXT PANEL */}
       <div
-        className={`hidden lg:flex relative overflow-hidden bg-neutral-950 ${isLogin ? "w-1/2" : "w-1/2 order-last"}`}
+        className={`hidden lg:flex relative overflow-hidden bg-background ${isLogin ? "w-1/2" : "w-1/2 order-last"}`}
         style={{
           transform: `translateX(${imageInitX})`,
           opacity: phase === "entering" ? 0 : 1,
@@ -44,17 +44,17 @@ export default function AuthLayout({ mode, children }: AuthLayoutProps) {
               <img 
                 src="/SINEA - Logo Horisontal.webp" 
                 alt="SINEA" 
-                className="h-14 w-auto object-contain brightness-[1.6] contrast-[1.2] drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]" 
+                className="h-14 w-auto object-contain dark:brightness-[1.6] brightness-[1.1] contrast-[1.2] dark:drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] drop-shadow-[0_0_15px_rgba(0,0,0,0.1)]" 
               />
             </div>
 
             {/* Headline */}
             <div className={`space-y-4 ${!isLogin ? "text-right" : "text-left"}`}>
-              <h1 className="text-4xl xl:text-5xl font-bold text-white tracking-tight leading-tight">
+              <h1 className="text-4xl xl:text-5xl font-bold text-foreground tracking-tight leading-tight">
                 Temukan pesona seni <br />
                 budaya Kudus.
               </h1>
-              <p className="text-neutral-400 text-lg leading-relaxed mt-4">
+              <p className="text-muted-foreground text-lg leading-relaxed mt-4">
                 Ribuan mahakarya video tari, teater, dan tradisi lokal.
                 <br />
                 Jelajahi kekayaan budaya Kudus dalam satu platform.
@@ -63,11 +63,11 @@ export default function AuthLayout({ mode, children }: AuthLayoutProps) {
 
             {/* Features */}
             <div className={`flex items-center gap-8 mt-12 ${!isLogin ? "justify-end" : "justify-start"}`}>
-              <span className="flex items-center gap-2 text-sm text-neutral-500">
+              <span className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Icon name="play" className="w-4 h-4 text-brand" />
                 Streaming tanpa batas
               </span>
-              <span className="flex items-center gap-2 text-sm text-neutral-500">
+              <span className="flex items-center gap-2 text-sm text-muted-foreground">
                 <div className="w-1.5 h-1.5 rounded-full bg-brand" />
                 Akses kebudayaan eksklusif
               </span>

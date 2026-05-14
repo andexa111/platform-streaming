@@ -6,17 +6,17 @@ export class BunnyService {
   private readonly logger = new Logger(BunnyService.name);
 
   // Bunny Storage config
-  private readonly storageApiKey = process.env.BUNNY_STORAGE_API_KEY || '';
-  private readonly storageZone = process.env.BUNNY_STORAGE_ZONE || 'lalakon-assets';
+  private readonly storageApiKey = process.env.BUNNY_STORAGE_PASSWORD || '';
+  private readonly storageZone = process.env.BUNNY_STORAGE_ZONE || 'sinea-storage';
   private readonly storageHost =
-    process.env.BUNNY_STORAGE_HOSTNAME || 'sg.storage.bunnycdn.com';
+    process.env.BUNNY_STORAGE_HOST || 'sg.storage.bunnycdn.com';
   private readonly cdnUrl =
-    process.env.BUNNY_CDN_URL || 'https://lalakon-cdn.b-cdn.net';
+    process.env.BUNNY_CDN_URL || 'https://sinea-cdn.b-cdn.net';
 
   // Bunny Stream config
   private readonly streamApiKey = process.env.BUNNY_STREAM_API_KEY || '';
   private readonly streamLibraryId = process.env.BUNNY_STREAM_LIBRARY_ID || '';
-  private readonly streamTokenKey = process.env.BUNNY_STREAM_TOKEN_KEY || '';
+  private readonly streamTokenKey = process.env.BUNNY_TOKEN_KEY || '';
 
   // ==================== STORAGE: UPLOAD ====================
 

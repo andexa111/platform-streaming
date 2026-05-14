@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { AdminSidebar } from "@/components/layout/AdminSidebar";
 import { AdminHeader } from "@/components/layout/AdminHeader";
+import { cn } from "@/lib/utils";
 
 export default function AdminLayout({
   children,
@@ -9,17 +10,23 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
-    <div className="flex h-screen bg-neutral-50 text-neutral-900 overflow-hidden">
+    <div className="flex h-screen bg-background text-foreground overflow-hidden">
       {/* Sidebar - Desktop and Mobile */}
       <AdminSidebar 
         isOpen={isSidebarOpen} 
+        isCollapsed={isCollapsed}
         onClose={() => setIsSidebarOpen(false)} 
+        onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
       />
 
       {/* Main Container */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <div className={cn(
+        "flex-1 flex flex-col min-w-0 overflow-hidden transition-all duration-300",
+        isCollapsed ? "lg:ml-0" : ""
+      )}>
         {/* Header */}
         <AdminHeader onMenuClick={() => setIsSidebarOpen(true)} />
 

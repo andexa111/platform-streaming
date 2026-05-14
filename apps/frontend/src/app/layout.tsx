@@ -3,6 +3,8 @@ import { Oswald } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
+
 const oswald = Oswald({
   subsets: ["latin"],
   variable: "--font-oswald",
@@ -20,12 +22,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" className={cn("antialiased", oswald.variable)}>
+    <html lang="id" className={cn("antialiased", oswald.variable)} suppressHydrationWarning>
       <head>
         <link href="https://api.fontshare.com/v2/css?f[]=sentient@200,300,400,500,700&display=swap" rel="stylesheet" />
       </head>
-      <body className="font-body bg-neutral-950 text-white">
-        {children}
+      <body className="font-body bg-background text-foreground transition-colors duration-300">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -7,6 +7,8 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { SearchOverlay } from "./SearchOverlay";
 import { useAuthStore } from "@/lib/auth-store";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { cn } from "@/lib/utils";
 
 interface NavbarProps {
   variant?: "public" | "member";
@@ -80,11 +82,21 @@ function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
   }, [user]);
 
   const currentTier = TIER_CONFIG[membershipTier];
+  const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const profileRef = useRef<HTMLDivElement>(null);
+
+  // Handle scroll for transparency
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -106,11 +118,18 @@ function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
 
   return (
     <>
-      <nav className="fixed top-0 w-full z-50 bg-neutral-950/80 backdrop-blur-md border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between relative">
+      <nav
+        className={cn(
+          "fixed top-0 w-full z-50 transition-all duration-500",
+          isScrolled 
+            ? "bg-background border-b border-border h-20 shadow-sm" 
+            : "bg-transparent h-24"
+        )}
+      >
+        <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between relative">
           {/* Left Section: Mobile Hamburger & Desktop Logo */}
           <div className="flex items-center flex-1 md:flex-none">
-            <button className="md:hidden p-2 -ml-2 text-neutral-400 hover:text-white" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+            <button className="md:hidden p-2 -ml-2 text-muted-foreground hover:text-foreground" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
               <Icon name={isMobileMenuOpen ? "x" : "menu"} className="w-6 h-6" />
             </button>
 
@@ -118,7 +137,7 @@ function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
               <img
                 src="/SINEA - Logo Horisontal.webp"
                 alt="SINEA"
-                className="h-12 w-auto object-contain brightness-[1.6] contrast-[1.2] drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] group-hover:brightness-[1.8] group-hover:scale-105 transition-all duration-300"
+                className="h-12 w-auto object-contain dark:brightness-[1.6] brightness-[1.1] contrast-[1.2] dark:drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] drop-shadow-[0_0_15px_rgba(0,0,0,0.1)] group-hover:brightness-[1.8] group-hover:scale-105 transition-all duration-300"
               />
             </Link>
           </div>
@@ -127,7 +146,11 @@ function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center">
             {/* Mobile Logo */}
             <Link href={variant === "member" ? "/home" : "/"} className="md:hidden flex items-center gap-2">
-              <img src="/SINEA - Logo Horisontal.webp" alt="SINEA" className="h-10 w-auto object-contain brightness-[1.6] contrast-[1.2] drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]" />
+              <img
+                src="/SINEA - Logo Horisontal.webp"
+                alt="SINEA"
+                className="h-10 w-auto object-contain dark:brightness-[1.6] brightness-[1.1] contrast-[1.2] dark:drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] drop-shadow-[0_0_15px_rgba(0,0,0,0.1)]"
+              />
             </Link>
 
             {/* Desktop Menu */}
@@ -135,7 +158,7 @@ function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
               {links.map((link) => {
                 const isActive = pathname === link.href;
                 return (
-                  <Link key={link.href} href={link.href} className={`relative py-1 transition-colors ${isActive ? "text-white font-bold" : "text-neutral-400 hover:text-white"}`}>
+                  <Link key={link.href} href={link.href} className={`relative py-1 transition-colors ${isActive ? "text-foreground font-bold" : "text-muted-foreground hover:text-foreground"}`}>
                     {link.name}
                     {isActive && <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-4 h-1 bg-brand rounded-full shadow-[0_0_10px_var(--tw-colors-brand)] animate-pulse" />}
                   </Link>
@@ -147,20 +170,25 @@ function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
           {/* Right Section: Actions */}
           <div className="flex items-center gap-4 flex-1 justify-end">
             {variant === "public" ? (
-              <div className="hidden md:flex items-center gap-4">
-                <Link href="/login" className="text-sm font-medium text-neutral-300 hover:text-white transition-colors">
-                  Login
-                </Link>
-                <Link href="/register" className="text-sm font-medium bg-brand text-white px-5 py-2.5 rounded-full hover:bg-brand-dark transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(2,77,148,0.2)]">
-                  Sign Up
-                </Link>
+              <div className="flex items-center gap-4">
+                <ThemeToggle />
+                <div className="hidden md:flex items-center gap-4 border-l border-border pl-4">
+                  <Link href="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                    Login
+                  </Link>
+                  <Link href="/register" className="text-sm font-medium bg-brand text-white px-5 py-2.5 rounded-full hover:bg-brand-dark transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(2,77,148,0.2)]">
+                    Sign Up
+                  </Link>
+                </div>
               </div>
             ) : (
               <div className="flex items-center gap-4">
+                <ThemeToggle />
+
                 {/* Search Trigger */}
                 <button
                   onClick={() => setIsSearchOpen(true)}
-                  className="w-10 h-10 rounded-full bg-neutral-900 border border-white/10 flex items-center justify-center hover:bg-neutral-800 text-neutral-400 hover:text-white transition-all hover:scale-105 active:scale-95"
+                  className="w-10 h-10 rounded-full bg-muted/50 border border-border/50 flex items-center justify-center hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-all hover:scale-105 active:scale-95"
                   aria-label="Search"
                 >
                   <Icon name="search" className="w-5 h-5" />
@@ -169,16 +197,16 @@ function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
                 <div ref={profileRef} className="relative group">
                   <button
                     onClick={() => setIsProfileOpen(!isProfileOpen)}
-                    className={`w-10 h-10 rounded-full bg-neutral-900 border-2 ${currentTier.border} flex items-center justify-center hover:brightness-125 transition-all cursor-pointer shadow-lg overflow-hidden`}
+                    className={`w-10 h-10 rounded-full bg-muted/50 border-2 ${currentTier.border} flex items-center justify-center hover:brightness-125 transition-all cursor-pointer shadow-lg overflow-hidden`}
                   >
-                    <div className="w-full h-full flex items-center justify-center bg-neutral-800">
+                    <div className="w-full h-full flex items-center justify-center bg-muted/30">
                       {user?.avatar_url ? <img src={user.avatar_url} alt={user.name} className="w-full h-full object-cover" /> : <Icon name="user" className={`w-5 h-5 ${currentTier.color}`} />}
                     </div>
                   </button>
 
                   {/* Profile Dropdown */}
                   <div
-                    className={`absolute right-0 top-full mt-3 w-64 bg-neutral-950 border border-white/10 rounded-2xl shadow-2xl transition-all duration-300 z-50 p-4 ${
+                    className={`absolute right-0 top-full mt-3 w-64 bg-card border border-border rounded-2xl shadow-2xl transition-all duration-300 z-50 p-4 ${
                       isProfileOpen ? "opacity-100 visible translate-y-0" : "opacity-0 invisible md:group-hover:opacity-100 md:group-hover:visible md:group-hover:translate-y-2"
                     }`}
                   >
@@ -212,11 +240,15 @@ function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
                         )}
                       </div>
 
-                      <div className="h-px bg-white/5 mx-1" />
+                      <div className="h-px bg-border mx-1" />
 
                       {/* Utility Links */}
                       <div className="space-y-1">
-                        <Link href="/profile" className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-neutral-400 hover:text-white hover:bg-white/5 rounded-xl transition-all" onClick={() => setIsProfileOpen(false)}>
+                        <Link
+                          href="/profile"
+                          className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-xl transition-all"
+                          onClick={() => setIsProfileOpen(false)}
+                        >
                           <Icon name="user" className="w-4 h-4" />
                           Profil
                         </Link>

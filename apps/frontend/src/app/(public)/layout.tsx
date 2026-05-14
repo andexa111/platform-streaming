@@ -14,30 +14,26 @@
 // ═══════════════════════════════════════════════════════════════════
 // COMING SOON LAYOUT (AKTIF) — Tanpa Navbar & Footer
 // ═══════════════════════════════════════════════════════════════════
-export default function PublicLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <>
-      {children}
-    </>
-  );
-}
+// export default function PublicLayout({
+//   children,
+// }: {
+//   children: React.ReactNode;
+// }) {
+//   return (
+//     <>
+//       {children}
+//     </>
+//   );
+// }
 
 // ═══════════════════════════════════════════════════════════════════
 // LAYOUT ASLI (NONAKTIF — Uncomment saat mau launch)
 // ═══════════════════════════════════════════════════════════════════
-/*
+
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
-export default function PublicLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <Navbar variant="public" />
@@ -46,4 +42,3 @@ export default function PublicLayout({
     </>
   );
 }
-*/

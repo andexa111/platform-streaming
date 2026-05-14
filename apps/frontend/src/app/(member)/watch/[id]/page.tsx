@@ -18,15 +18,15 @@ export default function WatchPage() {
   const relatedMovies = ALL_MOVIES.filter((m) => m.id !== movie.id).slice(0, 6);
 
   return (
-    <div className="bg-neutral-950 min-h-screen text-white selection:bg-brand/30 pb-20 font-sans">
+    <div className="bg-background min-h-screen text-foreground selection:bg-brand/30 pb-20 font-sans transition-colors duration-500">
       {/* Breadcrumb / Back Navigation */}
       <div className="max-w-[1600px] mx-auto px-6 pt-6 flex items-center gap-4">
-        <button onClick={() => router.back()} className="p-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition-all group">
-          <Icon name="arrow-right" className="w-5 h-5 rotate-180 group-hover:-translate-x-1 transition-transform" />
+        <button onClick={() => router.back()} className="p-2 rounded-full bg-muted border border-border hover:bg-muted/80 transition-all group">
+          <Icon name="arrow-right" className="w-5 h-5 rotate-180 group-hover:-translate-x-1 transition-transform text-foreground" />
         </button>
-        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-neutral-500">
+        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
           <span className="hover:text-white cursor-pointer transition-colors" onClick={() => router.push("/movies")}>
-            Movies
+            Katalog Film
           </span>
           <Icon name="chevron-right" className="w-3 h-3" />
           <span className="text-brand line-clamp-1">{movie.title}</span>
@@ -98,19 +98,19 @@ export default function WatchPage() {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-6 text-neutral-500">
+            <div className="flex flex-wrap items-center gap-6 text-muted-foreground">
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black uppercase tracking-widest text-neutral-600">Genre</span>
-                <span className="text-sm font-bold text-neutral-300">{movie.genre}</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Genre</span>
+                <span className="text-sm font-bold text-foreground/80">{movie.genre}</span>
               </div>
-              <div className="w-1.5 h-1.5 rounded-full bg-neutral-800" />
+              <div className="w-1.5 h-1.5 rounded-full bg-border" />
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black uppercase tracking-widest text-neutral-600">Release</span>
-                <span className="text-sm font-bold text-neutral-300">2024</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Rilis</span>
+                <span className="text-sm font-bold text-foreground/80">2024</span>
               </div>
-              <div className="w-1.5 h-1.5 rounded-full bg-neutral-800" />
+              <div className="w-1.5 h-1.5 rounded-full bg-border" />
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black uppercase tracking-widest text-neutral-600">Quality</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Kualitas</span>
                 <span className="text-sm font-bold text-brand">{movie.quality}</span>
               </div>
             </div>
@@ -132,21 +132,21 @@ export default function WatchPage() {
 
           <div className="space-y-5">
             {relatedMovies.map((m) => (
-              <div key={m.id} onClick={() => router.push(`/watch/${m.id}`)} className="group flex gap-4 p-3 rounded-2xl bg-neutral-900/30 border border-white/5 hover:bg-neutral-900/50 hover:border-brand/30 transition-all cursor-pointer">
-                <div className="relative w-32 h-20 rounded-xl overflow-hidden bg-neutral-800 flex-shrink-0">
+              <div key={m.id} onClick={() => router.push(`/watch/${m.id}`)} className="group flex gap-4 p-3 rounded-2xl bg-card border border-border hover:border-brand/30 transition-all cursor-pointer shadow-sm">
+                <div className="relative w-32 h-20 rounded-xl overflow-hidden bg-muted flex-shrink-0">
                   {m.thumbnail ? (
                     <Image src={m.thumbnail} alt={m.title} fill className="object-cover group-hover:scale-110 transition-transform duration-500" />
                   ) : (
-                    <div className="absolute inset-0 bg-gradient-to-br from-neutral-800 to-neutral-900" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-muted to-background" />
                   )}
                   <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
-                  <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-black/80 text-[8px] font-black">{m.quality}</div>
+                  <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-black/80 text-[8px] font-black text-white">{m.quality}</div>
                 </div>
                 <div className="flex flex-col justify-center gap-1 min-w-0">
-                  <h3 className="text-xs font-bold text-white line-clamp-2 group-hover:text-brand transition-colors uppercase tracking-tight leading-tight">{m.title}</h3>
+                  <h3 className="text-xs font-bold text-foreground line-clamp-2 group-hover:text-brand transition-colors uppercase tracking-tight leading-tight">{m.title}</h3>
                   <div className="flex items-center gap-2">
-                    <span className="text-[9px] font-bold text-neutral-500">{m.genre}</span>
-                    <div className="w-1 h-1 rounded-full bg-neutral-700" />
+                    <span className="text-[9px] font-bold text-muted-foreground">{m.genre}</span>
+                    <div className="w-1 h-1 rounded-full bg-border" />
                     <span className="text-[9px] font-bold text-yellow-500">{m.rating}</span>
                   </div>
                 </div>
@@ -155,17 +155,17 @@ export default function WatchPage() {
           </div>
 
           {/* Upsell Banner for Sidebar */}
-          <div className="p-6 rounded-[2rem] bg-gradient-to-br from-brand/20 to-neutral-900 border border-brand/20 space-y-4">
+          <div className="p-6 rounded-[2rem] bg-gradient-to-br from-brand/10 to-background border border-brand/20 space-y-4 shadow-sm">
             <Icon name="crown" className="w-8 h-8 text-brand" />
             <div className="space-y-1">
-              <h4 className="font-bold text-sm">Ingin nonton tanpa iklan?</h4>
-              <p className="text-xs text-neutral-400">Upgrade ke Premium untuk kualitas 4K tanpa hambatan.</p>
+              <h4 className="font-bold text-sm text-foreground">Ingin nonton tanpa iklan?</h4>
+              <p className="text-xs text-muted-foreground">Upgrade ke Premium untuk kualitas 4K tanpa hambatan.</p>
             </div>
             <Link 
               href="/membership"
               className="flex items-center justify-center w-full py-3 bg-brand hover:bg-brand-dark text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all"
             >
-              Lihat Paket
+              Berlangganan
             </Link>
           </div>
         </div>

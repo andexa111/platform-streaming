@@ -48,11 +48,11 @@ export default function LoginPage() {
 
   return (
     <AuthLayout mode="login">
-      <div className="w-full max-w-[440px] mx-auto p-10 bg-[#0A0A0A] border border-white/5 rounded-2xl shadow-2xl">
+      <div className="w-full max-w-[440px] mx-auto p-10 bg-card border border-border rounded-2xl shadow-2xl">
         {/* Header */}
         <div className="space-y-2 mb-8">
-          <h2 className="text-2xl font-bold text-white">Selamat datang kembali</h2>
-          <p className="text-sm text-neutral-400">Kami merindukan Anda. Lanjutkan menonton dari tempat terakhir Anda berhenti.</p>
+          <h2 className="text-2xl font-bold text-foreground">Selamat datang kembali</h2>
+          <p className="text-sm text-muted-foreground">Kami merindukan Anda. Lanjutkan menonton dari tempat terakhir Anda berhenti.</p>
         </div>
 
         {error && (
@@ -64,11 +64,11 @@ export default function LoginPage() {
         {/* Login Form */}
         <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
           <div className="space-y-3">
-            <label className="text-xs font-bold text-neutral-400 uppercase tracking-widest ml-1">Alamat Email</label>
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Alamat Email</label>
             <Input
               type="email"
               placeholder="name@example.com"
-              className="bg-[#141414] border-white/5 text-white focus:bg-[#1A1A1A] placeholder:text-neutral-600 h-12"
+              className="bg-muted/50 border-border text-foreground focus:bg-muted/70 placeholder:text-muted-foreground/50 h-12"
               {...register("email")}
             />
             {errors.email && <p className="text-[10px] text-red-500 ml-1">{errors.email.message}</p>}
@@ -76,8 +76,8 @@ export default function LoginPage() {
 
           <div className="space-y-3">
             <div className="flex items-center justify-between ml-1">
-              <label className="text-xs font-bold text-neutral-400 uppercase tracking-widest">Kata Sandi</label>
-              <Link href="#" className="text-xs font-medium text-neutral-500 hover:text-white transition-colors">
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Kata Sandi</label>
+              <Link href="#" className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors">
                 Lupa kata sandi?
               </Link>
             </div>
@@ -85,13 +85,13 @@ export default function LoginPage() {
               <Input
                 type={showPassword ? "text" : "password"}
                 placeholder="Masukkan kata sandi Anda"
-                className="bg-[#141414] border-white/5 text-white focus:bg-[#1A1A1A] placeholder:text-neutral-600 h-12 pr-12"
+                className="bg-muted/50 border-border text-foreground focus:bg-muted/70 placeholder:text-muted-foreground/50 h-12 pr-12"
                 {...register("password")}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
               >
                 <Icon name={showPassword ? "eye-off" : "eye"} className="w-4 h-4" />
               </button>
@@ -110,10 +110,10 @@ export default function LoginPage() {
         {/* Divider */}
         <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-white/5" />
+            <div className="w-full border-t border-border" />
           </div>
           <div className="relative flex justify-center text-[10px] uppercase tracking-widest">
-            <span className="bg-[#0A0A0A] px-4 text-neutral-500 font-bold">Atau</span>
+            <span className="bg-card px-4 text-muted-foreground font-bold">Atau</span>
           </div>
         </div>
 
@@ -121,7 +121,7 @@ export default function LoginPage() {
         <Button
           type="button"
           variant="outline"
-          className="w-full h-12 rounded-xl border-white/5 bg-[#141414] text-white hover:bg-[#1a1a1a] hover:text-brand hover:border-white/10 gap-3 font-semibold transition-all hover:scale-[1.02]"
+          className="w-full h-12 rounded-xl border-border bg-muted/50 text-foreground hover:bg-muted/70 hover:text-brand hover:border-border/80 gap-3 font-semibold transition-all hover:scale-[1.02]"
           onClick={() => window.location.href = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/auth/google`}
         >
           <svg width="20" height="20" viewBox="0 0 24 24">
@@ -134,7 +134,7 @@ export default function LoginPage() {
         </Button>
 
         {/* Switch to Register */}
-        <p className="text-center text-sm text-neutral-500 mt-8">
+        <p className="text-center text-sm text-muted-foreground mt-8">
           Baru di LALAKON?{" "}
           <Link href="/register" className="font-semibold text-brand hover:brightness-125 transition-colors">
             Buat akun baru
