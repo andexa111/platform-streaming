@@ -23,12 +23,12 @@ const Modal = ({ isOpen, onClose, title, children }: any) => {
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <div className="fixed inset-0 bg-neutral-900/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="bg-white rounded-[2rem] w-full max-w-md shadow-2xl relative z-10 overflow-hidden animate-in zoom-in-95 duration-200">
-        <div className="p-6 md:p-8 border-b border-neutral-100 flex items-center justify-between">
-          <h3 className="text-xl font-black text-neutral-900 uppercase italic">{title}</h3>
-          <button onClick={onClose} className="p-2 hover:bg-neutral-50 rounded-xl transition-colors">
-            <Icon name="x" className="w-5 h-5 text-neutral-400" />
+      <div className="fixed inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
+      <div className="bg-card rounded-[2rem] w-full max-w-md shadow-2xl relative z-10 overflow-hidden animate-in zoom-in-95 duration-200 border border-border">
+        <div className="p-6 md:p-8 border-b border-border flex items-center justify-between">
+          <h3 className="text-xl font-black text-foreground uppercase italic">{title}</h3>
+          <button onClick={onClose} className="p-2 hover:bg-secondary rounded-xl transition-colors">
+            <Icon name="x" className="w-5 h-5 text-muted-foreground" />
           </button>
         </div>
         <div className="p-6 md:p-8">{children}</div>
@@ -39,12 +39,12 @@ const Modal = ({ isOpen, onClose, title, children }: any) => {
 
 const RoleBadge = ({ role }: { role: string }) => {
   const styles: any = {
-    "Super Admin": "bg-neutral-900 text-white",
-    "Admin": "bg-purple-100 text-purple-700",
-    "User": "bg-brand/10 text-brand",
+    "Super Admin": "bg-foreground text-background",
+    "Admin": "bg-purple-500/20 text-purple-500 border border-purple-500/20",
+    "User": "bg-brand/20 text-brand border border-brand/20",
   };
   return (
-    <span className={cn("px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest whitespace-nowrap", styles[role] || "bg-neutral-100 text-neutral-500")}>
+    <span className={cn("px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest whitespace-nowrap", styles[role] || "bg-secondary text-muted-foreground")}>
       {role}
     </span>
   );
@@ -52,10 +52,10 @@ const RoleBadge = ({ role }: { role: string }) => {
 
 const PlanBadge = ({ plan }: { plan: string }) => {
   const styles: any = {
-    "Gold": "bg-amber-100 text-amber-700 border border-amber-200",
-    "Silver": "bg-neutral-100 text-neutral-600 border border-neutral-200",
-    "Bronze": "bg-orange-100 text-orange-700 border border-orange-200",
-    "Free": "bg-neutral-50 text-neutral-400 border border-neutral-100",
+    "Gold": "bg-amber-500/10 text-amber-500 border border-amber-500/20",
+    "Silver": "bg-neutral-500/10 text-neutral-400 border border-neutral-500/20",
+    "Bronze": "bg-orange-500/10 text-orange-500 border border-orange-500/20",
+    "Free": "bg-secondary text-muted-foreground border border-border",
   };
   return (
     <span className={cn("px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter", styles[plan])}>
@@ -75,6 +75,7 @@ export default function UsersManagementPage() {
   const [isAddEditOpen, setIsAddEditOpen] = useState(false);
   const [isResetOpen, setIsResetOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Filtered Users
   const filteredUsers = useMemo(() => {
@@ -118,8 +119,8 @@ export default function UsersManagementPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-1">
-          <h1 className="text-3xl font-black text-black tracking-tight uppercase italic">Manajemen User</h1>
-          <p className="text-neutral-600 text-sm font-bold">Kelola hak akses, reset password, dan pantau status pelanggan.</p>
+          <h1 className="text-3xl font-black text-foreground tracking-tight uppercase italic">Manajemen User</h1>
+          <p className="text-muted-foreground text-sm font-bold">Kelola hak akses, reset password, dan pantau status pelanggan.</p>
         </div>
         <button 
           onClick={() => { setCurrentUser(null); setIsAddEditOpen(true); }}
@@ -132,57 +133,56 @@ export default function UsersManagementPage() {
 
       {/* Stats Quick View */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-6 bg-white rounded-3xl border border-neutral-200 shadow-sm flex items-center gap-4">
+        <div className="p-6 bg-card rounded-3xl border border-border shadow-sm flex items-center gap-4">
           <div className="w-12 h-12 rounded-2xl bg-brand/10 text-brand flex items-center justify-center">
             <Icon name="user" className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-[10px] font-black uppercase text-neutral-400">Total Members</p>
-            <h4 className="text-2xl font-black text-neutral-900">{users.filter(u => u.role === "User").length}</h4>
+            <p className="text-[10px] font-black uppercase text-muted-foreground">Total Members</p>
+            <h4 className="text-2xl font-black text-foreground">{users.filter(u => u.role === "User").length}</h4>
           </div>
         </div>
-        <div className="p-6 bg-white rounded-3xl border border-neutral-200 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center">
+        <div className="p-6 bg-card rounded-3xl border border-border shadow-sm flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-500 flex items-center justify-center">
             <Icon name="settings" className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-[10px] font-black uppercase text-neutral-400">Moderators</p>
-            <h4 className="text-2xl font-black text-neutral-900">{users.filter(u => u.role !== "User").length}</h4>
+            <p className="text-[10px] font-black uppercase text-muted-foreground">Moderators</p>
+            <h4 className="text-2xl font-black text-foreground">{users.filter(u => u.role !== "User").length}</h4>
           </div>
         </div>
-        <div className="p-6 bg-emerald-950 text-white rounded-3xl shadow-xl flex items-center gap-4 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-16 h-16 bg-brand/30 blur-2xl" />
-          <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center">
-            <Icon name="star" className="w-6 h-6 text-brand" />
+        <div className="p-6 bg-card rounded-3xl border border-border shadow-sm flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+            <Icon name="star" className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-[10px] font-black uppercase text-white/50 tracking-widest">Active Subs</p>
-            <h4 className="text-2xl font-black text-white">{users.filter(u => u.plan !== "Free").length}</h4>
+            <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Active Subs</p>
+            <h4 className="text-2xl font-black text-foreground">{users.filter(u => u.plan !== "Free").length}</h4>
           </div>
         </div>
       </div>
 
       {/* Toolbar & Table */}
-      <div className="bg-white rounded-[2rem] border border-neutral-200 overflow-hidden shadow-sm">
-        <div className="p-6 border-b border-neutral-100 flex flex-col md:flex-row gap-4 justify-between items-center">
+      <div className="bg-card rounded-[2rem] border border-border overflow-hidden shadow-sm">
+        <div className="p-6 border-b border-border flex flex-col md:flex-row gap-4 justify-between items-center">
           <div className="flex items-center gap-4 w-full md:w-auto">
             <div className="relative flex-1 md:w-80">
-              <Icon name="search" className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+              <Icon name="search" className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input 
                 type="text" 
                 placeholder="Cari nama atau email..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-11 pr-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:border-brand transition-all"
+                className="w-full pl-11 pr-4 py-2.5 bg-secondary border border-border rounded-xl text-sm focus:outline-none focus:border-brand transition-all text-foreground placeholder:text-muted-foreground"
               />
             </div>
             <select 
               value={selectedRole}
               onChange={(e) => setSelectedRole(e.target.value)}
-              className="px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-xs font-black uppercase focus:outline-none focus:border-brand hidden sm:block shadow-sm"
+              className="px-4 py-2.5 bg-secondary border border-border rounded-xl text-xs font-black uppercase focus:outline-none focus:border-brand hidden sm:block shadow-sm text-foreground"
             >
-              <option value="All">Semua Role</option>
-              {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+              <option value="All" className="bg-card">Semua Role</option>
+              {ROLES.map(r => <option key={r} value={r} className="bg-card">{r}</option>)}
             </select>
           </div>
         </div>
@@ -198,18 +198,18 @@ export default function UsersManagementPage() {
                 <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-neutral-50">
+            <tbody className="divide-y divide-border">
               {filteredUsers.map((user) => (
-                <tr key={user.id} className="hover:bg-neutral-50/30 transition-colors group">
+                <tr key={user.id} className="hover:bg-secondary/50 transition-colors group">
                   <td className="px-8 py-5">
                     <div className="flex items-center gap-4">
                       {/* Avatar Mock */}
-                      <div className="w-10 h-10 rounded-full bg-neutral-100 border border-neutral-200 flex items-center justify-center font-black text-brand text-xs uppercase shadow-sm">
+                      <div className="w-10 h-10 rounded-full bg-secondary border border-border flex items-center justify-center font-black text-brand text-xs uppercase shadow-sm">
                         {user.name.charAt(0)}
                       </div>
                       <div>
-                        <p className="text-sm font-black text-black">{user.name}</p>
-                        <p className="text-[11px] text-neutral-600 font-bold">{user.email}</p>
+                        <p className="text-sm font-black text-foreground">{user.name}</p>
+                        <p className="text-[11px] text-muted-foreground font-bold">{user.email}</p>
                       </div>
                     </div>
                   </td>
@@ -222,10 +222,10 @@ export default function UsersManagementPage() {
                   <td className="px-8 py-5">
                     <button 
                       onClick={() => handleToggleStatus(user.id)}
-                      className="flex items-center gap-2 mx-auto px-3 py-1.5 rounded-lg hover:bg-neutral-50 transition-all"
+                      className="flex items-center gap-2 mx-auto px-3 py-1.5 rounded-lg hover:bg-secondary transition-all"
                     >
                       <div className={cn("w-1.5 h-1.5 rounded-full", user.status === "Active" ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]")} />
-                      <span className="text-[10px] font-black uppercase text-black">{user.status}</span>
+                      <span className="text-[10px] font-black uppercase text-foreground">{user.status}</span>
                     </button>
                   </td>
                   <td className="px-8 py-5">
@@ -251,24 +251,43 @@ export default function UsersManagementPage() {
         <form onSubmit={handleAddEdit} className="space-y-6">
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Nama Lengkap</label>
-              <input name="name" defaultValue={currentUser?.name} required placeholder="Nama User" className="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand text-sm font-bold" />
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Nama Lengkap</label>
+              <input name="name" defaultValue={currentUser?.name} required placeholder="Nama User" className="w-full px-5 py-3.5 bg-secondary border border-border rounded-2xl focus:outline-none focus:border-brand text-sm font-bold text-foreground placeholder:text-muted-foreground" />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Email Address</label>
-              <input name="email" type="email" defaultValue={currentUser?.email} required placeholder="email@user.com" className="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand text-sm font-bold" />
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Email Address</label>
+              <input name="email" type="email" defaultValue={currentUser?.email} required placeholder="email@user.com" className="w-full px-5 py-3.5 bg-secondary border border-border rounded-2xl focus:outline-none focus:border-brand text-sm font-bold text-foreground placeholder:text-muted-foreground" />
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Password</label>
+              <div className="relative group">
+                <input 
+                  name="password" 
+                  type={showPassword ? "text" : "password"} 
+                  required={!currentUser} 
+                  placeholder={currentUser ? "Kosongkan jika tidak ingin mengubah" : "••••••••"} 
+                  className="w-full px-5 py-3.5 bg-secondary border border-border rounded-2xl focus:outline-none focus:border-brand text-sm font-bold text-foreground placeholder:text-muted-foreground" 
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-brand transition-colors"
+                >
+                  <Icon name={showPassword ? "eye-off" : "eye"} className="w-4 h-4" />
+                </button>
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Role Platform</label>
-                <select name="role" defaultValue={currentUser?.role || "User"} className="w-full px-4 py-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand text-sm font-bold appearance-none">
-                  {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Role Platform</label>
+                <select name="role" defaultValue={currentUser?.role || "User"} className="w-full px-4 py-3.5 bg-secondary border border-border rounded-2xl focus:outline-none focus:border-brand text-sm font-bold appearance-none text-foreground">
+                  {ROLES.map(r => <option key={r} value={r} className="bg-card">{r}</option>)}
                 </select>
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Subscription Plan</label>
-                <select name="plan" defaultValue={currentUser?.plan || "Free"} className="w-full px-4 py-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand text-sm font-bold appearance-none">
-                  {PLANS.map(p => <option key={p} value={p}>{p}</option>)}
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Subscription Plan</label>
+                <select name="plan" defaultValue={currentUser?.plan || "Free"} className="w-full px-4 py-3.5 bg-secondary border border-border rounded-2xl focus:outline-none focus:border-brand text-sm font-bold appearance-none text-foreground">
+                  {PLANS.map(p => <option key={p} value={p} className="bg-card">{p}</option>)}
                 </select>
               </div>
             </div>
@@ -286,20 +305,20 @@ export default function UsersManagementPage() {
         title="Reset Password"
       >
         <div className="space-y-6 text-center">
-          <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto">
-            <Icon name="star" className="w-10 h-10 text-amber-500" />
+          <div className="w-20 h-20 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto">
+            <Icon name="warning" className="w-10 h-10 text-amber-500" />
           </div>
           <div className="space-y-2">
-            <p className="text-sm font-medium text-neutral-500">Anda akan mengatur ulang password untuk akun:</p>
-            <p className="text-lg font-black text-neutral-900 uppercase italic">{currentUser?.email}</p>
+            <p className="text-sm font-medium text-muted-foreground">Anda akan mengatur ulang password untuk akun:</p>
+            <p className="text-lg font-black text-foreground uppercase italic">{currentUser?.email}</p>
           </div>
-          <div className="p-4 bg-neutral-50 rounded-2xl border border-neutral-100">
-            <p className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-1">Generated Password</p>
-            <p className="text-xl font-black text-emerald-600 tracking-widest">LALAKON123!</p>
+          <div className="p-4 bg-secondary rounded-2xl border border-border">
+            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Generated Password</p>
+            <p className="text-xl font-black text-emerald-500 tracking-widest">LALAKON123!</p>
           </div>
           <button 
             onClick={() => { alert("Password telah di-reset ke: LALAKON123!"); setIsResetOpen(false); }}
-            className="w-full py-4 bg-neutral-900 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all hover:bg-neutral-800"
+            className="w-full py-4 bg-foreground text-background rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all hover:opacity-90"
           >
             Konfirmasi & Kirim Email
           </button>

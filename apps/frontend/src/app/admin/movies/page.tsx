@@ -31,12 +31,12 @@ interface Film {
 
 // Sub-component for Statistics Cards
 const StatsCard = ({ title, value, subValue, icon, color }: { title: string; value: string; subValue: string; icon: string; color: string }) => (
-  <div className="bg-white p-6 rounded-2xl border border-neutral-200 shadow-sm hover:shadow-md transition-shadow">
+  <div className="bg-card p-6 rounded-2xl border border-border shadow-sm hover:shadow-md transition-shadow">
     <div className="flex items-start justify-between">
       <div className="space-y-2">
-        <p className="text-xs font-bold text-neutral-500 uppercase tracking-widest">{title}</p>
-        <h3 className="text-3xl font-black text-neutral-900">{value}</h3>
-        <p className="text-xs text-neutral-400 font-medium">{subValue}</p>
+        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{title}</p>
+        <h3 className="text-3xl font-black text-foreground">{value}</h3>
+        <p className="text-xs text-muted-foreground font-medium">{subValue}</p>
       </div>
       <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center", color)}>
         <Icon name={icon as any} className="w-6 h-6" />
@@ -141,8 +141,8 @@ export default function AdminMoviesPage() {
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-3xl font-black text-black tracking-tight uppercase italic">Katalog Film</h1>
-          <p className="text-neutral-600 text-sm font-bold">Kelola konten visual, metadata, dan status publikasi film Anda.</p>
+          <h1 className="text-3xl font-black text-foreground tracking-tight uppercase italic">Katalog Film</h1>
+          <p className="text-muted-foreground text-sm font-bold">Kelola konten visual, metadata, dan status publikasi film Anda.</p>
         </div>
         <Link 
           href="/admin/movies/add"
@@ -167,45 +167,45 @@ export default function AdminMoviesPage() {
           value={publishedFilms.toString()} 
           subValue="Tayang ke pengguna" 
           icon="play" 
-          color="bg-emerald-50 text-emerald-600" 
+          color="bg-emerald-500/10 text-emerald-500" 
         />
         <StatsCard 
           title="Draft" 
           value={draftFilms.toString()} 
           subValue="Belum dipublikasikan" 
           icon="sparkles" 
-          color="bg-amber-50 text-amber-600" 
+          color="bg-amber-500/10 text-amber-500" 
         />
         <StatsCard 
           title="Dihapus" 
           value={deletedFilms.toString()} 
           subValue="Soft deleted" 
           icon="download-cloud" 
-          color="bg-red-50 text-red-600" 
+          color="bg-red-500/10 text-red-500" 
         />
       </div>
 
       {/* Toolbar & Table Section */}
-      <div className="bg-white rounded-[2rem] border border-neutral-200 overflow-hidden shadow-sm">
+      <div className="bg-card rounded-[2rem] border border-border overflow-hidden shadow-sm">
         {/* Toolbar */}
-        <div className="p-4 md:p-6 border-b border-neutral-100 flex flex-col md:flex-row gap-4 justify-between items-center">
+        <div className="p-4 md:p-6 border-b border-border flex flex-col md:flex-row gap-4 justify-between items-center">
           <div className="flex items-center gap-4 w-full md:w-auto">
             {/* Search */}
             <div className="relative flex-1 md:w-80">
-              <Icon name="search" className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+              <Icon name="search" className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input 
                 type="text" 
                 placeholder="Cari judul film..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-11 pr-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:border-brand transition-all"
+                className="w-full pl-11 pr-4 py-2.5 bg-secondary border border-border rounded-xl text-sm focus:outline-none focus:border-brand transition-all text-foreground placeholder:text-muted-foreground"
               />
             </div>
             {/* Filter Status */}
             <select 
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-sm font-medium focus:outline-none focus:border-brand hidden sm:block"
+              className="px-4 py-2.5 bg-secondary border border-border rounded-xl text-sm font-medium focus:outline-none focus:border-brand hidden sm:block text-foreground"
             >
               <option value="all">Semua Status</option>
               <option value="published">Published</option>
@@ -217,12 +217,12 @@ export default function AdminMoviesPage() {
           <div className="flex items-center gap-2 w-full md:w-auto">
             {selectedMovies.length > 0 && (
               <div className="flex items-center gap-2 mr-2 animate-in slide-in-from-right-4">
-                <span className="text-xs font-bold text-neutral-500">{selectedMovies.length} terpilih</span>
+                <span className="text-xs font-bold text-muted-foreground">{selectedMovies.length} terpilih</span>
               </div>
             )}
             <button 
               onClick={fetchFilms}
-              className="flex items-center gap-2 px-4 py-2.5 text-neutral-600 hover:bg-neutral-50 rounded-xl transition-all font-bold text-sm"
+              className="flex items-center gap-2 px-4 py-2.5 text-muted-foreground hover:bg-secondary rounded-xl transition-all font-bold text-sm"
             >
               <Icon name="download-cloud" className="w-4 h-4" />
               <span>Refresh</span>
@@ -235,7 +235,7 @@ export default function AdminMoviesPage() {
           {loading ? (
             <div className="py-20 flex flex-col items-center justify-center text-center space-y-4">
               <div className="w-10 h-10 rounded-full border-4 border-brand/30 border-t-brand animate-spin" />
-              <p className="text-neutral-400 text-sm">Memuat data film...</p>
+              <p className="text-muted-foreground text-sm">Memuat data film...</p>
             </div>
           ) : (
             <table className="w-full text-left">
@@ -257,11 +257,11 @@ export default function AdminMoviesPage() {
                   <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-right">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-neutral-50">
+              <tbody className="divide-y divide-border">
                 {filteredMovies.map((film) => {
                   const status = getStatusBadge(film);
                   return (
-                    <tr key={film.id} className="hover:bg-neutral-50/50 transition-colors group">
+                    <tr key={film.id} className="hover:bg-secondary/20 transition-colors group">
                       <td className="px-6 py-4">
                         <input 
                           type="checkbox" 
@@ -283,15 +283,15 @@ export default function AdminMoviesPage() {
                             )}
                           </div>
                           <div>
-                            <p className="text-sm font-black text-black group-hover:text-brand transition-colors">{film.title}</p>
-                            <p className="text-xs text-neutral-600 font-bold">{formatDate(film.createdAt)}{film.director ? ` • ${film.director}` : ""}</p>
+                            <p className="text-sm font-black text-foreground group-hover:text-brand transition-colors">{film.title}</p>
+                            <p className="text-xs text-muted-foreground font-bold">{formatDate(film.createdAt)}{film.director ? ` • ${film.director}` : ""}</p>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex flex-wrap gap-1">
                           {film.genres.length > 0 ? film.genres.map(g => (
-                            <span key={g.id} className="px-2 py-1 rounded-md bg-neutral-100 text-[10px] font-bold text-neutral-600 uppercase tracking-tighter">
+                            <span key={g.id} className="text-[10px] font-black uppercase text-muted-foreground tracking-widest whitespace-nowrap">
                               {g.title}
                             </span>
                           )) : (
@@ -299,8 +299,8 @@ export default function AdminMoviesPage() {
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <span className="text-xs font-bold text-neutral-500">
+                      <td className="px-6 py-4 text-center">
+                        <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
                           {film.duration ? `${film.duration} min` : "—"}
                         </span>
                       </td>
@@ -312,9 +312,9 @@ export default function AdminMoviesPage() {
                         )}
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center justify-center gap-2">
                           <div className={cn("w-2 h-2 rounded-full", status.dotColor)} />
-                          <span className={cn("text-xs font-bold", status.textColor)}>{status.label}</span>
+                          <span className={cn("text-xs font-bold", film.is_published && !film.is_deleted ? "text-foreground" : status.textColor)}>{status.label}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -337,16 +337,16 @@ export default function AdminMoviesPage() {
                 <Icon name="search-x" className="w-10 h-10 text-neutral-300" />
               </div>
               <div className="space-y-1">
-                <p className="text-neutral-900 font-bold">Film tidak ditemukan</p>
-                <p className="text-neutral-400 text-xs">Belum ada film atau coba kata kunci lain.</p>
+                <p className="text-foreground font-bold">Film tidak ditemukan</p>
+                <p className="text-muted-foreground text-xs">Belum ada film atau coba kata kunci lain.</p>
               </div>
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-neutral-100 flex items-center justify-between">
-          <p className="text-xs text-neutral-500">Menampilkan <span className="font-bold text-neutral-900">{filteredMovies.length}</span> dari <span className="font-bold text-neutral-900">{films.length}</span> film</p>
+        <div className="p-6 border-t border-border flex items-center justify-between">
+          <p className="text-xs text-muted-foreground">Menampilkan <span className="font-bold text-foreground">{filteredMovies.length}</span> dari <span className="font-bold text-foreground">{films.length}</span> film</p>
         </div>
       </div>
     </div>

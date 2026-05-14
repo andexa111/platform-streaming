@@ -12,12 +12,12 @@ const Modal = ({ isOpen, onClose, title, children }: any) => {
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <div className="fixed inset-0 bg-neutral-900/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="bg-white rounded-[2rem] w-full max-w-md shadow-2xl relative z-10 overflow-hidden animate-in zoom-in-95 duration-200">
-        <div className="p-8 border-b border-neutral-100 flex items-center justify-between">
-          <h3 className="text-xl font-black text-neutral-900 uppercase italic">{title}</h3>
-          <button onClick={onClose} className="p-2 hover:bg-neutral-50 rounded-xl transition-colors">
-            <Icon name="x" className="w-5 h-5 text-neutral-400" />
+      <div className="fixed inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
+      <div className="bg-card rounded-[2rem] w-full max-w-md shadow-2xl relative z-10 overflow-hidden animate-in zoom-in-95 duration-200 border border-border">
+        <div className="p-8 border-b border-border flex items-center justify-between">
+          <h3 className="text-xl font-black text-foreground uppercase italic">{title}</h3>
+          <button onClick={onClose} className="p-2 hover:bg-secondary rounded-xl transition-colors">
+            <Icon name="x" className="w-5 h-5 text-muted-foreground" />
           </button>
         </div>
         <div className="p-8">{children}</div>
@@ -79,8 +79,8 @@ export default function AdminGenresPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-1">
-          <h1 className="text-3xl font-black text-neutral-900 tracking-tight uppercase italic">Kelola Genre</h1>
-          <p className="text-neutral-500 text-sm font-medium">Tambah kategori film dengan mudah menggunakan Emoji sebagai icon.</p>
+          <h1 className="text-3xl font-black text-foreground tracking-tight uppercase italic">Kelola Genre</h1>
+          <p className="text-muted-foreground text-sm font-medium">Tambah kategori film dengan mudah menggunakan Emoji sebagai icon.</p>
         </div>
         <button 
           onClick={handleOpenAdd}
@@ -93,13 +93,13 @@ export default function AdminGenresPage() {
 
       {/* Toolbar */}
       <div className="relative max-w-md">
-        <Icon name="search" className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+        <Icon name="search" className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <input 
           type="text" 
           placeholder="Cari genre..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-11 pr-4 py-3 bg-white border border-neutral-200 rounded-2xl text-sm focus:outline-none focus:border-brand shadow-sm transition-all"
+          className="w-full pl-11 pr-4 py-3 bg-card border border-border rounded-2xl text-sm focus:outline-none focus:border-brand shadow-sm transition-all text-foreground placeholder:text-muted-foreground"
         />
       </div>
 
@@ -108,10 +108,10 @@ export default function AdminGenresPage() {
         {/* Simple Add Card */}
         <button 
           onClick={handleOpenAdd}
-          className="group border-2 border-dashed border-neutral-200 rounded-[2rem] p-8 flex flex-col items-center justify-center gap-4 hover:border-brand/40 hover:bg-brand/5 transition-all text-neutral-400 hover:text-brand"
+          className="group border-2 border-dashed border-border rounded-[2rem] p-8 flex flex-col items-center justify-center gap-4 hover:border-brand/40 hover:bg-brand/5 transition-all text-muted-foreground hover:text-brand bg-card/50"
         >
-          <div className="w-12 h-12 rounded-2xl bg-neutral-50 flex items-center justify-center group-hover:scale-110 transition-transform">
-            <Icon name="chevron-right" className="w-6 h-6 rotate-90" />
+          <div className="w-12 h-12 rounded-2xl bg-secondary flex items-center justify-center group-hover:scale-110 transition-transform border border-border">
+            <Icon name="plus" className="w-6 h-6" />
           </div>
           <span className="font-black uppercase tracking-widest text-[10px]">Add New Genre</span>
         </button>
@@ -119,7 +119,7 @@ export default function AdminGenresPage() {
         {filteredGenres.map((genre) => (
           <div 
             key={genre.title}
-            className="group bg-white rounded-[2rem] border border-neutral-200 p-8 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all relative overflow-hidden"
+            className="group bg-card rounded-[2rem] border border-border p-8 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all relative overflow-hidden"
           >
             {/* Visual Accent */}
             <div className={cn("absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r", genre.color || "from-neutral-200")} />
@@ -127,19 +127,19 @@ export default function AdminGenresPage() {
             <div className="flex flex-col gap-6">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="bg-neutral-50 w-14 h-14 rounded-2xl flex items-center justify-center border border-neutral-100 shadow-inner">
-                    <Icon name="tag" className="w-6 h-6 text-neutral-400" />
+                  <div className="bg-secondary w-14 h-14 rounded-2xl flex items-center justify-center border border-border shadow-inner">
+                    <Icon name="tag" className="w-6 h-6 text-muted-foreground" />
                   </div>
                   <div className="space-y-1">
                     <h3 className={cn(
-                      "font-black text-neutral-900 group-hover:text-brand transition-all uppercase line-clamp-1",
+                      "font-black text-foreground group-hover:text-brand transition-all uppercase line-clamp-1",
                       genre.title.length > 12 ? "text-sm" : 
                       genre.title.length > 8 ? "text-base" : 
                       "text-xl"
                     )}>
                       {genre.title}
                     </h3>
-                    <p className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">
+                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                       Kategori Aktif
                     </p>
                   </div>
@@ -166,14 +166,14 @@ export default function AdminGenresPage() {
       >
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Nama Genre</label>
+            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Nama Genre</label>
             <input 
               autoFocus
               type="text" 
               placeholder="Contoh: Thriller, Action"
               value={genreName}
               onChange={(e) => setGenreName(e.target.value)}
-              className="w-full px-5 py-4 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm font-bold"
+              className="w-full px-5 py-4 bg-secondary border border-border rounded-2xl focus:outline-none focus:border-brand transition-all text-sm font-bold text-foreground placeholder:text-muted-foreground"
             />
           </div>
           
@@ -181,7 +181,7 @@ export default function AdminGenresPage() {
             <button 
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="flex-1 px-6 py-4 bg-neutral-100 text-neutral-900 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-neutral-200 transition-all"
+              className="flex-1 px-6 py-4 bg-secondary text-foreground rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-muted transition-all border border-border"
             >
               Batal
             </button>

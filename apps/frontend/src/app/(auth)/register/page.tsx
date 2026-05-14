@@ -51,11 +51,11 @@ export default function RegisterPage() {
 
   return (
     <AuthLayout mode="register">
-      <div className="w-full max-w-[440px] mx-auto p-10 bg-[#0A0A0A] border border-white/5 rounded-2xl shadow-2xl">
+      <div className="w-full max-w-[440px] mx-auto p-10 bg-card border border-border rounded-2xl shadow-2xl">
         {/* Header */}
         <div className="space-y-2 mb-8">
-          <h2 className="text-2xl font-bold text-white">Buat akun baru</h2>
-          <p className="text-sm text-neutral-400">Bergabunglah dengan kami untuk menjelajahi ribuan mahakarya seni dan budaya Kudus.</p>
+          <h2 className="text-2xl font-bold text-foreground">Buat akun baru</h2>
+          <p className="text-sm text-muted-foreground">Bergabunglah dengan kami untuk menjelajahi ribuan mahakarya seni dan budaya Kudus.</p>
         </div>
 
         {error && (
@@ -73,40 +73,40 @@ export default function RegisterPage() {
         {/* Registration Form */}
         <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
           <div className="space-y-3">
-            <label className="text-xs font-bold text-neutral-400 uppercase tracking-widest ml-1">Nama Lengkap</label>
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Nama Lengkap</label>
             <Input
               type="text"
               placeholder="Masukkan nama lengkap Anda"
-              className="bg-[#141414] border-white/5 text-white focus:bg-[#1A1A1A] placeholder:text-neutral-600 h-12"
+              className="bg-muted/50 border-border text-foreground focus:bg-muted/70 placeholder:text-muted-foreground/50 h-12"
               {...register("name")}
             />
             {errors.name && <p className="text-[10px] text-red-500 ml-1">{errors.name.message}</p>}
           </div>
 
           <div className="space-y-3">
-            <label className="text-xs font-bold text-neutral-400 uppercase tracking-widest ml-1">Alamat Email</label>
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Alamat Email</label>
             <Input
               type="email"
               placeholder="email@contoh.com"
-              className="bg-[#141414] border-white/5 text-white focus:bg-[#1A1A1A] placeholder:text-neutral-600 h-12"
+              className="bg-muted/50 border-border text-foreground focus:bg-muted/70 placeholder:text-muted-foreground/50 h-12"
               {...register("email")}
             />
             {errors.email && <p className="text-[10px] text-red-500 ml-1">{errors.email.message}</p>}
           </div>
 
           <div className="space-y-3">
-            <label className="text-xs font-bold text-neutral-400 uppercase tracking-widest ml-1">Kata Sandi</label>
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Kata Sandi</label>
             <div className="relative group">
               <Input
                 type={showPassword ? "text" : "password"}
                 placeholder="Buat kata sandi Anda"
-                className="bg-[#141414] border-white/5 text-white focus:bg-[#1A1A1A] placeholder:text-neutral-600 h-12 pr-12"
+                className="bg-muted/50 border-border text-foreground focus:bg-muted/70 placeholder:text-muted-foreground/50 h-12 pr-12"
                 {...register("password")}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
               >
                 <Icon name={showPassword ? "eye-off" : "eye"} className="w-4 h-4" />
               </button>
@@ -115,18 +115,18 @@ export default function RegisterPage() {
           </div>
 
           <div className="space-y-3">
-            <label className="text-xs font-bold text-neutral-400 uppercase tracking-widest ml-1">Konfirmasi Kata Sandi</label>
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Konfirmasi Kata Sandi</label>
             <div className="relative group">
               <Input
                 type={showConfirmPassword ? "text" : "password"}
                 placeholder="Konfirmasi kata sandi Anda"
-                className="bg-[#141414] border-white/5 text-white focus:bg-[#1A1A1A] placeholder:text-neutral-600 h-12 pr-12"
+                className="bg-muted/50 border-border text-foreground focus:bg-muted/70 placeholder:text-muted-foreground/50 h-12 pr-12"
                 {...register("confirmPassword")}
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
               >
                 <Icon name={showConfirmPassword ? "eye-off" : "eye"} className="w-4 h-4" />
               </button>
@@ -145,10 +145,10 @@ export default function RegisterPage() {
         {/* Divider */}
         <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-white/5" />
+            <div className="w-full border-t border-border" />
           </div>
           <div className="relative flex justify-center text-[10px] uppercase tracking-widest">
-            <span className="bg-[#0A0A0A] px-4 text-neutral-500 font-bold">Atau</span>
+            <span className="bg-card px-4 text-muted-foreground font-bold">Atau</span>
           </div>
         </div>
 
@@ -156,7 +156,7 @@ export default function RegisterPage() {
         <Button
           type="button"
           variant="outline"
-          className="w-full h-12 rounded-xl border-white/5 bg-[#141414] text-white hover:text-brand hover:bg-[#1A1A1A] hover:border-white/10 gap-3 font-semibold transition-all hover:scale-[1.02]"
+          className="w-full h-12 rounded-xl border-border bg-muted/50 text-foreground hover:text-brand hover:bg-muted/70 hover:border-border/80 gap-3 font-semibold transition-all hover:scale-[1.02]"
           onClick={() => window.location.href = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/auth/google`}
         >
           <svg width="20" height="20" viewBox="0 0 24 24">
@@ -169,7 +169,7 @@ export default function RegisterPage() {
         </Button>
 
         {/* Switch to Login */}
-        <p className="text-center text-sm text-neutral-500 mt-8">
+        <p className="text-center text-sm text-muted-foreground mt-8">
           Sudah punya akun?{" "}
           <Link href="/login" className="font-semibold text-brand hover:brightness-125 transition-colors">
             Masuk

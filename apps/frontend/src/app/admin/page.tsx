@@ -14,10 +14,10 @@ export default function AdminDashboardPage() {
     <div className="space-y-12 py-8 animate-in fade-in duration-700">
       {/* Welcome Header */}
       <div className="space-y-2">
-        <h1 className="text-4xl font-black text-neutral-900 tracking-tight uppercase italic">
+        <h1 className="text-4xl font-black text-foreground tracking-tight uppercase italic">
           Dashboard <span className="text-brand">Control</span>
         </h1>
-        <p className="text-neutral-500 font-bold uppercase tracking-widest text-xs">
+        <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">
           Selamat datang kembali, Admin. Pilih menu untuk mulai mengelola platform.
         </p>
       </div>
@@ -28,17 +28,17 @@ export default function AdminDashboardPage() {
           <Link 
             key={item.href} 
             href={item.href}
-            className="group relative bg-white p-8 rounded-[2.5rem] border border-neutral-200 shadow-sm hover:shadow-2xl hover:shadow-brand/10 transition-all duration-500 hover:-translate-y-2 overflow-hidden flex flex-col items-center text-center gap-4"
+            className="group relative bg-card p-8 rounded-[2.5rem] border border-border shadow-sm hover:shadow-2xl hover:shadow-brand/10 transition-all duration-500 hover:-translate-y-2 overflow-hidden flex flex-col items-center text-center gap-4"
           >
             {/* Background Decorative Glow */}
             <div className="absolute -right-8 -top-8 w-24 h-24 bg-brand blur-3xl opacity-0 group-hover:opacity-10 transition-opacity duration-700" />
             
-            <div className="relative z-10 w-16 h-16 rounded-2xl bg-neutral-50 flex items-center justify-center text-brand transition-all duration-500 group-hover:bg-brand group-hover:text-white group-hover:scale-110 group-hover:rotate-3 shadow-inner">
+            <div className="relative z-10 w-16 h-16 rounded-2xl bg-brand flex items-center justify-center text-white transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 shadow-inner">
               <Icon name={item.icon as any} className="w-8 h-8" />
             </div>
             
             <div className="relative z-10">
-              <h3 className="text-xs font-black text-neutral-900 uppercase italic tracking-widest group-hover:text-brand transition-colors">
+              <h3 className="text-xs font-black text-foreground uppercase italic tracking-widest group-hover:text-brand transition-colors">
                 {item.name}
               </h3>
             </div>

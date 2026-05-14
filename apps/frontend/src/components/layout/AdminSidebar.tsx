@@ -31,7 +31,7 @@ export function AdminSidebar({ isOpen, isCollapsed, onClose, onToggleCollapse }:
       {/* Sidebar Container */}
       <aside 
         className={cn(
-          "fixed top-0 left-0 h-full bg-white border-r border-neutral-200 shadow-xl z-50 transition-all duration-300 transform lg:translate-x-0 lg:static",
+          "fixed top-0 left-0 h-full bg-card border-r border-border shadow-xl z-50 transition-all duration-300 transform lg:translate-x-0 lg:static",
           isOpen ? "translate-x-0" : "-translate-x-full",
           isCollapsed ? "w-24" : "w-72"
         )}
@@ -75,7 +75,7 @@ export function AdminSidebar({ isOpen, isCollapsed, onClose, onToggleCollapse }:
                 </Link>
               )}
               <button 
-                className="lg:hidden p-2 text-neutral-400 hover:text-neutral-900"
+                className="lg:hidden p-2 text-muted-foreground hover:text-foreground"
                 onClick={onClose}
               >
                 <Icon name="x" className="w-5 h-5" />
@@ -94,7 +94,7 @@ export function AdminSidebar({ isOpen, isCollapsed, onClose, onToggleCollapse }:
                       "relative flex items-center h-12 rounded-xl transition-all duration-200 group overflow-hidden",
                       isActive 
                         ? "bg-brand text-white font-bold shadow-lg shadow-brand/20" 
-                        : "text-blue-600 hover:text-blue-800 hover:bg-blue-50",
+                        : "text-muted-foreground hover:text-foreground hover:bg-secondary",
                       isCollapsed ? "justify-center px-0 w-12 mx-auto" : "gap-4 px-5"
                     )}
                     onClick={() => {
@@ -111,7 +111,7 @@ export function AdminSidebar({ isOpen, isCollapsed, onClose, onToggleCollapse }:
                       name={link.icon as any} 
                       className={cn(
                         "w-5 h-5 transition-transform duration-300 flex-shrink-0",
-                        isActive ? "text-white scale-110" : "text-blue-600 group-hover:scale-110"
+                        isActive ? "text-white scale-110" : "text-brand group-hover:scale-110"
                       )}
                     />
                     
@@ -126,7 +126,7 @@ export function AdminSidebar({ isOpen, isCollapsed, onClose, onToggleCollapse }:
             </nav>
 
             {/* Sidebar Footer */}
-            <div className={cn("pt-6 border-t border-neutral-200", isCollapsed ? "flex justify-center" : "")}>
+            <div className={cn("pt-6 border-t border-border", isCollapsed ? "flex justify-center" : "")}>
               <Link 
                 href="/"
                 className={cn(

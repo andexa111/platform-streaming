@@ -32,11 +32,11 @@ const Sparkline = ({ data, color }: { data: number[]; color: string }) => {
 
 // 2. Metric Card
 const MetricCard = ({ title, value, sub, trend, data, colorClass, icon }: any) => (
-  <div className="bg-white p-6 rounded-3xl border border-neutral-200 shadow-sm group hover:shadow-md transition-all">
+  <div className="bg-card p-6 rounded-3xl border border-border shadow-sm group hover:shadow-md transition-all">
     <div className="flex items-start justify-between mb-4">
       <div className="space-y-1">
-        <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400">{title}</p>
-        <h3 className="text-3xl font-black text-neutral-900 tracking-tight">{value}</h3>
+        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{title}</p>
+        <h3 className="text-3xl font-black text-foreground tracking-tight">{value}</h3>
       </div>
       <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shadow-sm", colorClass)}>
         <Icon name={icon} className="w-5 h-5" />
@@ -45,8 +45,8 @@ const MetricCard = ({ title, value, sub, trend, data, colorClass, icon }: any) =
     <div className="space-y-3">
       <Sparkline data={data} color={trend === "up" ? "#10b981" : "#f59e0b"} />
       <div className="flex items-center gap-2">
-        <span className={cn("text-[10px] font-black px-1.5 py-0.5 rounded", trend === "up" ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600")}>{trend === "up" ? "↑" : "↓"} 12%</span>
-        <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">{sub}</span>
+        <span className={cn("text-[10px] font-black px-1.5 py-0.5 rounded", trend === "up" ? "bg-emerald-500/10 text-emerald-500" : "bg-amber-500/10 text-amber-500")}>{trend === "up" ? "↑" : "↓"} 12%</span>
+        <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">{sub}</span>
       </div>
     </div>
   </div>
@@ -85,7 +85,7 @@ export default function AnalyticsPage() {
         icon: "eye",
         colorClass: "bg-brand/10 text-brand",
       },
-      { title: isFiltered ? "Total Hours" : "Watch Time", value: isFiltered ? "210h" : "12.5K", sub: "Total Hours", trend: "up", data: [2, 5, 4, 8, 7, 12, 10], icon: "play", colorClass: "bg-amber-50 text-amber-600" },
+      { title: isFiltered ? "Total Hours" : "Watch Time", value: isFiltered ? "210h" : "12.5K", sub: "Total Hours", trend: "up", data: [2, 5, 4, 8, 7, 12, 10], icon: "play", colorClass: "bg-secondary text-amber-500" },
     ];
   }, [selectedMovieId, selectedMovie]);
 
@@ -97,19 +97,19 @@ export default function AnalyticsPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-3xl font-black text-neutral-900 tracking-tight uppercase italic">Statistik Performa</h1>
-          <p className="text-neutral-500 text-sm font-medium">Monitor performa konten dan perilaku audiens untuk acuan penjurian.</p>
+          <h1 className="text-3xl font-black text-foreground tracking-tight uppercase italic">Statistik Performa</h1>
+          <p className="text-muted-foreground text-sm font-medium">Monitor performa konten dan perilaku audiens untuk acuan penjurian.</p>
         </div>
         <div className="flex items-center gap-3">
           {/* Movie Filter (Searchable Combobox) */}
           <div className="relative">
             <button
               onClick={() => setIsFilterOpen(!isFilterOpen)}
-              className="flex items-center gap-3 pl-3 pr-4 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-bold focus:outline-none focus:border-brand shadow-sm transition-all hover:bg-neutral-50 min-w-[180px]"
+              className="flex items-center gap-3 pl-3 pr-4 py-2 bg-card border border-border rounded-xl text-xs font-bold focus:outline-none focus:border-brand shadow-sm transition-all hover:bg-secondary min-w-[180px] text-foreground"
             >
-              <Icon name="film" className="w-3.5 h-3.5 text-neutral-400" />
+              <Icon name="film" className="w-3.5 h-3.5 text-muted-foreground" />
               <span className="flex-1 text-left truncate">{selectedMovieId === "All" ? "Semua Film (Global)" : selectedMovie?.title}</span>
-              <Icon name="chevron-down" className={cn("w-3 h-3 text-neutral-400 transition-transform", isFilterOpen ? "rotate-180" : "")} />
+              <Icon name="chevron-down" className={cn("w-3 h-3 text-muted-foreground transition-transform", isFilterOpen ? "rotate-180" : "")} />
             </button>
 
             {isFilterOpen && (
@@ -118,7 +118,7 @@ export default function AnalyticsPage() {
                 <div className="fixed inset-0 z-[60]" onClick={() => setIsFilterOpen(false)} />
 
                 {/* Dropdown Content */}
-                <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-neutral-100 rounded-2xl shadow-2xl z-[70] p-2 animate-in fade-in zoom-in-95 duration-200 origin-top">
+                <div className="absolute top-full left-0 mt-2 w-64 bg-card border border-border rounded-2xl shadow-2xl z-[70] p-2 animate-in fade-in zoom-in-95 duration-200 origin-top">
                   {/* Search Input */}
                   <div className="relative mb-2">
                     <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-neutral-400" />
@@ -128,7 +128,7 @@ export default function AnalyticsPage() {
                       placeholder="Cari judul..."
                       value={filterSearch}
                       onChange={(e) => setFilterSearch(e.target.value)}
-                      className="w-full pl-8 pr-3 py-2 bg-neutral-50 border border-neutral-100 rounded-lg text-[11px] focus:outline-none focus:border-brand"
+                      className="w-full pl-8 pr-3 py-2 bg-secondary border border-border rounded-lg text-[11px] focus:outline-none focus:border-brand text-foreground placeholder:text-muted-foreground"
                     />
                   </div>
 
@@ -139,7 +139,7 @@ export default function AnalyticsPage() {
                         setSelectedMovieId("All");
                         setIsFilterOpen(false);
                       }}
-                      className={cn("w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-colors", selectedMovieId === "All" ? "bg-brand/10 text-brand" : "text-neutral-600 hover:bg-neutral-50")}
+                      className={cn("w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-colors", selectedMovieId === "All" ? "bg-brand/10 text-brand" : "text-muted-foreground hover:bg-secondary hover:text-foreground")}
                     >
                       Semua Film (Global)
                     </button>
@@ -151,7 +151,10 @@ export default function AnalyticsPage() {
                           setSelectedMovieId(m.id);
                           setIsFilterOpen(false);
                         }}
-                        className={cn("w-full text-left px-3 py-2 rounded-lg text-xs transition-colors truncate", selectedMovieId === m.id ? "bg-brand/10 text-brand font-bold" : "text-neutral-600 hover:bg-neutral-50")}
+                        className={cn(
+                          "w-full text-left px-3 py-2 rounded-lg text-xs transition-colors truncate",
+                          selectedMovieId === m.id ? "bg-brand/10 text-brand font-bold" : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                        )}
                         title={m.title}
                       >
                         {m.title}
@@ -165,17 +168,17 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Custom Date Range Filter */}
-          <div className="flex items-center gap-2 bg-white p-1 rounded-xl border border-neutral-200 shadow-sm px-3 py-1.5">
+          <div className="flex items-center gap-2 bg-card p-1 rounded-xl border border-border shadow-sm px-3 py-1.5">
             <div className="flex items-center gap-2">
-              <label className="text-[9px] font-black uppercase text-neutral-400">Dari</label>
-              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="bg-transparent text-[11px] font-bold text-neutral-900 focus:outline-none focus:text-brand" />
+              <label className="text-[9px] font-black uppercase text-muted-foreground">Dari</label>
+              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="bg-transparent text-[11px] font-bold text-foreground focus:outline-none focus:text-brand" />
             </div>
-            <div className="w-px h-3 bg-neutral-200 mx-1" />
+            <div className="w-px h-3 bg-border mx-1" />
             <div className="flex items-center gap-2">
-              <label className="text-[9px] font-black uppercase text-neutral-400">Sampai</label>
-              <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="bg-transparent text-[11px] font-bold text-neutral-900 focus:outline-none focus:text-brand" />
+              <label className="text-[9px] font-black uppercase text-muted-foreground">Sampai</label>
+              <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="bg-transparent text-[11px] font-bold text-foreground focus:outline-none focus:text-brand" />
             </div>
-            <Icon name="calendar" className="w-3.5 h-3.5 text-neutral-400 ml-1" />
+            <Icon name="calendar" className="w-3.5 h-3.5 text-muted-foreground ml-1" />
           </div>
         </div>
       </div>
@@ -189,11 +192,11 @@ export default function AnalyticsPage() {
 
       {/* Main Analysis Section */}
       {/* Top 10 Leaderboard Section */}
-      <div className="bg-white rounded-[2rem] border border-neutral-200 shadow-sm overflow-hidden">
-        <div className="p-8 border-b border-neutral-100 flex items-center justify-between bg-neutral-50/50">
+      <div className="bg-card rounded-[2rem] border border-border shadow-sm overflow-hidden">
+        <div className="p-8 border-b border-border flex items-center justify-between bg-secondary/30">
           <div className="space-y-1">
-            <h2 className="text-2xl font-black text-neutral-900 uppercase italic tracking-tight">Top 10 Film Terpopuler</h2>
-            <p className="text-xs text-neutral-500 font-bold uppercase tracking-wider">Peringkat berdasarkan jumlah akumulasi penayangan.</p>
+            <h2 className="text-2xl font-black text-foreground uppercase italic tracking-tight">Top 10 Film Terpopuler</h2>
+            <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Peringkat berdasarkan jumlah akumulasi penayangan.</p>
           </div>
           <div className="flex items-center gap-2">
             <div className="px-4 py-2 bg-brand/10 text-brand rounded-xl text-[10px] font-black uppercase tracking-widest">Live Ranking</div>
@@ -211,9 +214,9 @@ export default function AnalyticsPage() {
                 <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-right">Total Views</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-neutral-100">
+            <tbody className="divide-y divide-border">
               {sortedMovies.slice(0, 10).map((movie, i) => (
-                <tr key={movie.id} className="hover:bg-neutral-50/50 transition-colors group">
+                <tr key={movie.id} className="hover:bg-secondary/20 transition-colors group">
                   <td className="px-8 py-6 text-center">
                     <span
                       className={cn(
@@ -226,22 +229,22 @@ export default function AnalyticsPage() {
                   </td>
                   <td className="px-8 py-6">
                     <div>
-                      <p className="text-sm font-black text-neutral-900 group-hover:text-brand transition-colors">{movie.title}</p>
-                      <p className="text-[10px] text-neutral-500 font-bold uppercase tracking-tighter">{movie.productionHouse}</p>
+                      <p className="text-sm font-black text-foreground group-hover:text-brand transition-colors">{movie.title}</p>
+                      <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter">{movie.productionHouse}</p>
                     </div>
                   </td>
                   <td className="px-8 py-6">
-                    <span className="px-2.5 py-1 bg-neutral-100 rounded-lg text-[9px] font-black uppercase text-neutral-600 tracking-widest">{movie.genre}</span>
+                    <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{movie.genre}</span>
                   </td>
                   <td className="px-8 py-6 text-center">
-                    <span className="text-[11px] font-bold text-neutral-500 italic">24:15m</span>
+                    <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">24:15m</span>
                   </td>
                   <td className="px-8 py-6 text-right">
                     <div className="space-y-0.5">
-                      <p className="text-lg font-black text-brand italic tracking-tight">{(12.5 - i * 0.8).toFixed(1)}K</p>
+                      <p className="text-lg font-black text-foreground italic tracking-tight">{(12.5 - i * 0.8).toFixed(1)}K</p>
                       <div className="flex items-center justify-end gap-1">
                         <div className="w-1 h-1 rounded-full bg-emerald-500" />
-                        <p className="text-[8px] font-black text-emerald-600 uppercase">+12%</p>
+                        <p className="text-[8px] font-black text-emerald-500 uppercase">+12%</p>
                       </div>
                     </div>
                   </td>
@@ -251,8 +254,8 @@ export default function AnalyticsPage() {
           </table>
         </div>
 
-        <div className="p-8 bg-neutral-50/30 border-t border-neutral-100 text-center">
-          <button className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400 hover:text-brand transition-colors">Generate Detailed PDF Report ↓</button>
+        <div className="p-8 bg-secondary/20 border-t border-border text-center">
+          <button className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-brand transition-colors">Generate Detailed PDF Report ↓</button>
         </div>
       </div>
     </div>

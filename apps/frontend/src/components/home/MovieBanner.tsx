@@ -72,7 +72,7 @@ export function MovieBanner({ movies, autoPlayInterval = 5000 }: MovieBannerProp
   const currentMovie = movies[currentIndex];
 
   return (
-    <section className="relative w-full h-[60vh] md:h-[80vh] overflow-hidden group bg-neutral-950">
+    <section className="relative w-full h-[60vh] md:h-[80vh] overflow-hidden group bg-background">
       {/* Background Slides */}
       {movies.map((movie, index) => (
         <div
@@ -101,12 +101,12 @@ export function MovieBanner({ movies, autoPlayInterval = 5000 }: MovieBannerProp
               className="object-cover object-center"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-neutral-900 via-neutral-800 to-brand/20" />
+            <div className="w-full h-full bg-gradient-to-br from-muted via-background to-brand/20" />
           )}
           
           {/* Overlays */}
-          <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/40 to-transparent z-10" />
-          <div className="absolute inset-0 bg-gradient-to-r from-neutral-950/60 via-transparent to-transparent z-10" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent z-10" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background/60 via-transparent to-transparent z-10" />
         </div>
       ))}
 
@@ -132,10 +132,10 @@ export function MovieBanner({ movies, autoPlayInterval = 5000 }: MovieBannerProp
                 </span>
               </div>
             )}
-            <h2 className="text-2xl md:text-5xl font-black tracking-tight drop-shadow-lg">
+            <h2 className="text-2xl md:text-5xl font-black tracking-tight text-foreground drop-shadow-sm">
               {currentMovie.title}
             </h2>
-            <p className="text-[10px] md:text-sm text-neutral-300 max-w-sm md:max-w-md leading-relaxed font-medium drop-shadow-md">
+            <p className="text-[10px] md:text-sm text-muted-foreground max-w-sm md:max-w-md leading-relaxed font-medium">
               {truncateDescription(currentMovie.description || "", 20)}
             </p>
           </div>
@@ -146,7 +146,7 @@ export function MovieBanner({ movies, autoPlayInterval = 5000 }: MovieBannerProp
               className="px-6 py-2.5 md:px-8 md:py-3 bg-brand hover:bg-brand-dark text-white rounded-full text-xs md:text-sm font-bold flex items-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-xl shadow-brand/20"
             >
               <Icon name="play" className="w-3 h-3 md:w-4 md:h-4 fill-current" />
-              Play Now
+              Tonton Sekarang
             </Link>
           </div>
         </div>

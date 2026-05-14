@@ -74,13 +74,13 @@ export default function BannersPage() {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
         <div className="space-y-1">
-          <h1 className="text-3xl font-black text-black tracking-tight uppercase italic">Banner Penayangan</h1>
-          <p className="text-neutral-600 text-sm font-medium">Atur konten yang tampil pada halaman utama.</p>
+          <h1 className="text-3xl font-black text-foreground tracking-tight uppercase italic">Banner Penayangan</h1>
+          <p className="text-muted-foreground text-sm font-medium">Atur konten yang tampil pada halaman utama.</p>
         </div>
       </div>
 
       {/* Main Table Container */}
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-neutral-200">
+      <div className="bg-card rounded-xl shadow-sm overflow-hidden border border-border">
         <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-neutral-200">
           <table className="w-full text-left border-collapse min-w-[1000px]">
             <thead>
@@ -92,14 +92,14 @@ export default function BannersPage() {
                 <th className="px-8 py-5 text-[13px] font-bold uppercase tracking-wide text-right w-40">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-neutral-100">
+            <tbody className="divide-y divide-border">
               {bannerSlots.map((movie, index) => (
-                <tr key={index} className="hover:bg-neutral-50/80 transition-colors">
+                <tr key={index} className="hover:bg-secondary/20 transition-colors">
                   <td className="px-8 py-6 text-center">
-                    <span className="text-[14px] font-black text-black">{index + 1}</span>
+                    <span className="text-[14px] font-black text-foreground">{index + 1}</span>
                   </td>
                   <td className="px-8 py-6">
-                    <div className="relative w-32 h-20 rounded-xl overflow-hidden bg-neutral-100 border border-neutral-200 shadow-sm group/thumb">
+                    <div className="relative w-32 h-20 rounded-xl overflow-hidden bg-secondary border border-border shadow-sm group/thumb">
                       {movie ? (
                         <>
                           <Image src={movie.backdrop} alt={movie.title} fill className="object-cover group-hover/thumb:scale-110 transition-transform duration-500" />
@@ -116,17 +116,17 @@ export default function BannersPage() {
                           )}
                         </>
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-neutral-300">
+                        <div className="w-full h-full flex items-center justify-center text-muted-foreground/30">
                           <Icon name="image" className="w-8 h-8" />
                         </div>
                       )}
                     </div>
                   </td>
                   <td className="px-8 py-6">
-                    <span className="text-[15px] font-bold text-black">{movie?.title || "Empty Slot"}</span>
+                    <span className="text-[15px] font-bold text-foreground">{movie?.title || "Empty Slot"}</span>
                   </td>
                   <td className="px-8 py-6">
-                    <span className="text-[14px] font-medium text-black">{movie?.productionHouse || "-"}</span>
+                    <span className="text-[14px] font-medium text-muted-foreground">{movie?.productionHouse || "-"}</span>
                   </td>
                   <td className="px-8 py-6">
                     <ButtonAction onEdit={() => setEditingSlot(index)} onDelete={movie ? () => handleRemoveMovie(index) : undefined} />
@@ -151,7 +151,7 @@ export default function BannersPage() {
           }}
         >
           <div
-            className="relative w-full max-w-5xl bg-white rounded-3xl shadow-[0_30px_100px_rgba(0,0,0,0.25)] overflow-visible flex flex-col md:flex-row animate-in slide-in-from-bottom-10 duration-500 border border-neutral-200"
+            className="relative w-full max-w-5xl bg-card rounded-3xl shadow-[0_30px_100px_rgba(0,0,0,0.5)] overflow-visible flex flex-col md:flex-row animate-in slide-in-from-bottom-10 duration-500 border border-border"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close Button */}
@@ -166,16 +166,16 @@ export default function BannersPage() {
               <Icon name="x" className="w-5 h-5" />
             </button>
             {/* Left Side: Autocomplete Selection */}
-            <div className="w-full md:w-[380px] md:shrink-0 bg-neutral-50 relative z-20 border-r border-neutral-200 rounded-l-3xl">
+            <div className="w-full md:w-[380px] md:shrink-0 bg-secondary/30 relative z-20 border-r border-border rounded-l-3xl">
               <div className="p-8">
-                <h2 className="text-2xl font-black text-black uppercase italic tracking-tighter">Atur Banner</h2>
-                <p className="text-sm text-neutral-500 font-bold mt-1 uppercase tracking-wider mb-6">Pilih Film untuk Slot #{editingSlot + 1}</p>
+                <h2 className="text-2xl font-black text-foreground uppercase italic tracking-tighter">Atur Banner</h2>
+                <p className="text-sm text-muted-foreground font-bold mt-1 uppercase tracking-wider mb-6">Pilih Film untuk Slot #{editingSlot + 1}</p>
 
                 {/* Autocomplete Input Container */}
                 <div className="relative">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 mb-2 block">Ketik Judul Film</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 block">Ketik Judul Film</label>
                   <div className="relative group">
-                    <Icon name="search" className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400 group-focus-within:text-brand transition-colors" />
+                    <Icon name="search" className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-brand transition-colors" />
                     <input
                       type="text"
                       placeholder="Contoh: Midnight Journey..."
@@ -185,21 +185,21 @@ export default function BannersPage() {
                         setIsListExpanded(true);
                       }}
                       onFocus={() => setIsListExpanded(true)}
-                      className="w-full pl-14 pr-6 py-5 bg-white border-2 border-neutral-300 rounded-2xl text-black font-bold placeholder:text-neutral-400 focus:outline-none focus:border-brand focus:shadow-xl focus:shadow-brand/10 transition-all shadow-sm"
+                      className="w-full pl-14 pr-6 py-5 bg-card border-2 border-border rounded-2xl text-foreground font-bold placeholder:text-muted-foreground focus:outline-none focus:border-brand focus:shadow-xl focus:shadow-brand/10 transition-all shadow-sm"
                     />
 
                     {/* Suggestions Dropdown */}
                     {isListExpanded && filteredMovies.length > 0 && (
-                      <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-2xl shadow-2xl border border-neutral-200 overflow-hidden animate-in slide-in-from-top-2 duration-200 z-50">
-                        <div className="max-h-[300px] overflow-y-auto scrollbar-thin scrollbar-thumb-neutral-300">
+                      <div className="absolute top-full left-0 w-full mt-2 bg-card rounded-2xl shadow-2xl border border-border overflow-hidden animate-in slide-in-from-top-2 duration-200 z-50">
+                        <div className="max-h-[300px] overflow-y-auto scrollbar-thin scrollbar-thumb-muted">
                           {filteredMovies.map((movie) => (
-                            <button key={movie.id} onClick={() => handleSelectMovie(movie)} className="w-full flex items-center gap-4 p-4 hover:bg-brand/5 transition-colors text-left group border-b border-neutral-100 last:border-none">
-                              <div className="relative w-12 h-8 rounded bg-neutral-200 overflow-hidden">
+                            <button key={movie.id} onClick={() => handleSelectMovie(movie)} className="w-full flex items-center gap-4 p-4 hover:bg-secondary transition-colors text-left group border-b border-border last:border-none">
+                              <div className="relative w-12 h-8 rounded bg-secondary overflow-hidden">
                                 <Image src={movie.backdrop} alt={movie.title} fill className="object-cover" />
                               </div>
                               <div>
-                                <p className="text-sm font-black text-black group-hover:text-brand transition-colors">{movie.title}</p>
-                                <p className="text-[10px] text-neutral-500 font-bold uppercase">{movie.productionHouse}</p>
+                                <p className="text-sm font-black text-foreground group-hover:text-brand transition-colors">{movie.title}</p>
+                                <p className="text-[10px] text-muted-foreground font-bold uppercase">{movie.productionHouse}</p>
                               </div>
                             </button>
                           ))}

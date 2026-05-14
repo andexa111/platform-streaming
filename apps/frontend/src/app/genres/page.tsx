@@ -27,7 +27,7 @@ export default function GenresPage() {
             <Link
               key={genre.title}
               href={`/movies?genre=${encodeURIComponent(genre.title)}`}
-              className="group bg-neutral-900/40 backdrop-blur-sm rounded-[2.5rem] border border-white/5 p-10 hover:border-brand/50 hover:bg-neutral-900/60 transition-all duration-500 relative overflow-hidden flex flex-col justify-between min-h-[280px] shadow-2xl hover:-translate-y-2"
+              className="group bg-card/40 backdrop-blur-sm rounded-[2.5rem] border border-border p-10 hover:border-brand/50 hover:bg-card/60 transition-all duration-500 relative overflow-hidden flex flex-col justify-between min-h-[280px] shadow-2xl hover:-translate-y-2"
               style={{ animationDelay: `${index * 100}ms` }}
             >
               {/* Visual Accent Top Bar */}
@@ -39,14 +39,14 @@ export default function GenresPage() {
               </div>
 
               <div className="space-y-6 relative z-10">
-                <div className="w-16 h-16 rounded-3xl bg-neutral-950 border border-white/5 flex items-center justify-center group-hover:scale-110 group-hover:border-brand/30 transition-all duration-500 shadow-inner">
+                <div className="w-16 h-16 rounded-3xl bg-muted border border-border flex items-center justify-center group-hover:scale-110 group-hover:border-brand/30 transition-all duration-500 shadow-inner">
                   <Icon name="tag" className="w-7 h-7 text-brand/70 group-hover:text-brand" />
                 </div>
 
                 <div className="space-y-2">
                   <h3
                     className={cn(
-                      "font-bold text-white group-hover:text-brand transition-all duration-500 tracking-tight line-clamp-1",
+                      "font-bold text-foreground group-hover:text-brand transition-all duration-500 tracking-tight line-clamp-1",
                       genre.title.length > 12 ? "text-xl md:text-2xl" : genre.title.length > 8 ? "text-2xl md:text-3xl" : "text-3xl md:text-4xl",
                     )}
                   >
@@ -54,21 +54,21 @@ export default function GenresPage() {
                   </h3>
                   <div className="flex items-center gap-2">
                     <div className="h-px w-8 bg-brand/30 group-hover:w-12 transition-all duration-500" />
-                    <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest group-hover:text-neutral-300">View Collection</p>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest group-hover:text-foreground">View Collection</p>
                   </div>
                 </div>
               </div>
 
               {/* Action Indicator */}
-              <div className="flex items-center justify-between mt-8 pt-6 border-t border-white/5">
+              <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
                 <div className="flex -space-x-2">
                   {[1, 2, 3].map((i) => (
-                    <div key={i} className="w-6 h-6 rounded-full bg-neutral-800 border border-neutral-950 flex items-center justify-center overflow-hidden">
-                      <div className="w-full h-full bg-gradient-to-br from-neutral-700 to-neutral-900 opacity-50" />
+                    <div key={i} className="w-6 h-6 rounded-full bg-muted border border-background flex items-center justify-center overflow-hidden">
+                      <div className="w-full h-full bg-gradient-to-br from-muted-foreground/10 to-muted-foreground/30 opacity-50" />
                     </div>
                   ))}
                 </div>
-                <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-brand group-hover:text-white transition-all duration-500">
+                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center group-hover:bg-brand group-hover:text-white transition-all duration-500">
                   <Icon name="arrow-right" className="w-5 h-5 transition-transform group-hover:translate-x-0.5" />
                 </div>
               </div>

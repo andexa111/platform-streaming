@@ -16,7 +16,7 @@ export function VideoCard({ video, priority = false, isFirst, isLast }: VideoCar
       href={`/movies/${video.id}`}
       className="group block snap-start flex-shrink-0 w-full cursor-pointer hover:z-20 transition-all duration-300"
     >
-      <div className={`relative aspect-[2/3] rounded-xl overflow-hidden bg-neutral-900 border border-white/5 group-hover:border-brand/50 transition-all duration-500 shadow-lg group-hover:shadow-brand/20 group-hover:scale-[1.02] ${
+      <div className={`relative aspect-[2/3] rounded-xl overflow-hidden bg-secondary border border-border group-hover:border-brand/50 transition-all duration-500 shadow-lg group-hover:shadow-brand/20 group-hover:scale-[1.02] ${
         isFirst ? "origin-left" : isLast ? "origin-right" : "origin-center"
       }`}>
         {/* Thumbnail or Placeholder */}
@@ -31,10 +31,10 @@ export function VideoCard({ video, priority = false, isFirst, isLast }: VideoCar
             loading={priority ? "eager" : "lazy"}
           />
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-neutral-800 via-neutral-900 to-brand/20 flex items-center justify-center">
+          <div className="absolute inset-0 bg-gradient-to-br from-secondary via-background to-brand/20 flex items-center justify-center">
             <div className="relative">
               <div className="absolute inset-0 bg-brand/20 blur-2xl rounded-full" />
-              <Icon name="play" className="w-12 h-12 text-white/10 relative z-10" />
+              <Icon name="play" className="w-12 h-12 text-muted-foreground/20 relative z-10" />
             </div>
           </div>
         )}
@@ -61,11 +61,11 @@ export function VideoCard({ video, priority = false, isFirst, isLast }: VideoCar
             {video.genre}
           </span>
         )}
-        <h3 className="text-[11px] md:text-sm font-bold text-white line-clamp-1 group-hover:text-brand transition-colors">
+        <h3 className="text-[11px] md:text-sm font-bold text-foreground line-clamp-1 group-hover:text-brand transition-colors">
           {video.title}
         </h3>
         <div className="flex items-center gap-1 mt-0.5">
-          <div className="flex items-center gap-1 text-neutral-400">
+          <div className="flex items-center gap-1 text-muted-foreground">
             <Icon name="star" className="w-2 h-2 md:w-2.5 md:h-2.5 text-yellow-500 fill-yellow-500" />
             <span className="text-[9px] md:text-xs font-medium">{video.rating || "N/A"}</span>
           </div>
