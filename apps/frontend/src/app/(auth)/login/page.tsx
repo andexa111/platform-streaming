@@ -17,7 +17,7 @@ import AuthLayout from "@/components/layout/AuthLayout";
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const router = useRouter();
   const setAuth = useAuthStore((state) => state.setAuth);
 
@@ -33,14 +33,14 @@ export default function LoginPage() {
     try {
       setError(null);
       const response = await api.post("/auth/login", data);
-      
+
       // Save token to store and cookie
       setAuth(response.data.user, response.data.access_token);
-      
+
       // Redirect using Next.js router
       router.push("/home");
       router.refresh();
-      
+
     } catch (err: any) {
       setError(err.response?.data?.message || "Login gagal. Periksa kembali email dan password Anda.");
     }
@@ -99,7 +99,7 @@ export default function LoginPage() {
             {errors.password && <p className="text-[10px] text-red-500 ml-1">{errors.password.message}</p>}
           </div>
 
-          <Button 
+          <Button
             disabled={isSubmitting}
             className="w-full h-12 rounded-xl bg-brand hover:brightness-110 text-white font-bold text-base mt-4 transition-all border-0 ring-0 hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed"
           >
@@ -135,7 +135,7 @@ export default function LoginPage() {
 
         {/* Switch to Register */}
         <p className="text-center text-sm text-muted-foreground mt-8">
-          Baru di LALAKON?{" "}
+          Baru di Sinea?{" "}
           <Link href="/register" className="font-semibold text-brand hover:brightness-125 transition-colors">
             Buat akun baru
           </Link>
