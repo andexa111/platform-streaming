@@ -45,6 +45,7 @@ export default function EditMoviePage() {
     trailer_url: "",
     production_house: "",
     production_house_logo: "",
+    poster_url: "",
     is_published: false,
   });
 

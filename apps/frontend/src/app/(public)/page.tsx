@@ -26,14 +26,14 @@ export default function Home() {
 
 /*
 import { Icon } from "@/components/ui/Icon";
+import Link from "next/link";
 import { VideoSection } from "@/components/video/VideoSection";
 
 import { ALL_MOVIES, GENRES } from "@/constants/video-data";
 
-export default function Home() {
+export function RealHome() {
   return (
     <main className="min-h-screen bg-background text-foreground font-sans selection:bg-brand/30">
-      {/* Hero Section */}
       <section className="relative pt-40 pb-20 px-6 overflow-hidden flex flex-col items-center justify-center min-h-[85vh]">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-brand/10 via-background to-background -z-10" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-brand/10 blur-[120px] rounded-full -z-10 pointer-events-none animate-pulse" />
@@ -71,7 +71,6 @@ export default function Home() {
       </section>
       <VideoSection title="Sedang Tayang" videos={ALL_MOVIES} viewAllHref="/movies" />
       <VideoSection title="Segera Hadir" videos={[...ALL_MOVIES].reverse()} viewAllHref="/movies" className="bg-secondary/20" />
-      {/* Genres Section */}
       <section className="py-24 px-6 bg-background relative border-t border-border overflow-hidden">
         <div className="absolute -left-1/4 top-0 w-[500px] h-[500px] bg-brand/10 blur-[120px] rounded-full mix-blend-screen pointer-events-none" />
         <div className="max-w-7xl mx-auto space-y-12 relative z-10">
@@ -107,7 +106,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-      {/* Features Section */}
       <section className="py-24 px-6 bg-secondary/10 relative border-t border-border">
         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-8">
           {[
@@ -130,7 +128,6 @@ export default function Home() {
           ))}
         </div>
       </section>
-      {/* Pricing Section */}
       <section className="py-24 px-6 bg-secondary/30 relative border-t border-border overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand/5 blur-[120px] rounded-full -z-10 pointer-events-none" />
         
@@ -140,7 +137,6 @@ export default function Home() {
             <p className="text-muted-foreground max-w-2xl mx-auto text-lg">Akses karya film eksklusif dari kreator independen. Pilih paket yang sesuai dan mulai menikmati tanpa batas.</p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-8 max-w-5xl mx-auto">
-            {/* Basic Plan */}
             <div className="group relative p-4 md:p-8 rounded-2xl md:rounded-3xl border border-border bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)] transition-all duration-500 hover:-translate-y-2 flex flex-col col-span-1 overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-brand/5 to-transparent opacity-30 pointer-events-none" />
               <div className="relative z-10 mb-6 md:mb-8">
@@ -168,7 +164,6 @@ export default function Home() {
                 Pre-order
               </Link>
             </div>
-            {/* Standard Plan */}
             <div className="group relative p-4 md:p-8 rounded-2xl md:rounded-3xl border border-brand/50 bg-card shadow-[0_20px_50px_rgba(2,77,148,0.1)] hover:shadow-[0_30px_70px_rgba(2,77,148,0.2)] transform hover:-translate-y-2 transition-all duration-500 flex flex-col col-span-1">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand text-white px-3 md:px-4 py-1 rounded-full text-[9px] md:text-xs font-black tracking-widest uppercase shadow-lg z-20">Popular</div>
               <div className="relative z-10 mb-6 md:mb-8 mt-1 md:mt-2">
@@ -196,7 +191,6 @@ export default function Home() {
                 Pre-order
               </Link>
             </div>
-            {/* Premium Plan */}
             <div className="group relative p-4 md:p-8 rounded-2xl md:rounded-3xl border border-[#FFD700]/50 bg-card shadow-[0_8px_30px_rgba(255,215,0,0.06)] hover:shadow-[0_30px_70px_rgba(255,215,0,0.15)] transition-all duration-500 hover:-translate-y-2 flex flex-col col-span-2 md:col-span-1 max-w-[calc(50%-6px)] md:max-w-none mx-auto w-full overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-[#FFD700]/5 to-transparent opacity-30 pointer-events-none" />
               <div className="relative z-10 mb-6 md:mb-8">
