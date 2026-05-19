@@ -66,6 +66,8 @@ export default function AddMoviePage() {
   const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, 3));
   const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
 
+  const [uploadingTrailer, setUploadingTrailer] = useState(false);
+
   const handleImageUpload = async (file: File, field: "poster_url" | "production_house_logo") => {
     const formData = new FormData();
     formData.append("file", file);
@@ -76,6 +78,22 @@ export default function AddMoviePage() {
     } catch (err: any) {
       console.error(`Gagal upload ${field}:`, err);
       alert(err.response?.data?.message || `Gagal mengunggah gambar. Pastikan formatnya jpg/png/webp dan ukuran maks 5MB.`);
+    }
+  };
+
+  const handleTrailerUpload = async (file: File) => {
+    setUploadingTrailer(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await api.post("/upload/trailer", formData);
+      updateField("trailer_url", res.data.url);
+    } catch (err: any) {
+      console.error("Gagal upload trailer:", err);
+      alert(err.response?.data?.message || "Gagal mengunggah trailer. Pastikan formatnya video (mp4/webm) dan ukuran maks 100MB.");
+    } finally {
+      setUploadingTrailer(false);
     }
   };
 
@@ -358,15 +376,40 @@ export default function AddMoviePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-black uppercase text-foreground">Trailer Video ID (Bunny Stream)</label>
-                  <input
-                    type="text"
-                    placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                    className="w-full px-5 py-3.5 bg-secondary border border-border rounded-2xl focus:outline-none focus:border-brand transition-all text-sm font-mono text-foreground placeholder:text-muted-foreground"
-                    value={formData.trailer_url}
-                    onChange={(e) => updateField("trailer_url", e.target.value)}
-                  />
-                  <p className="text-xs text-muted-foreground">Copy Video ID trailer dari dashboard Bunny Stream</p>
+                  <label className="text-xs font-black uppercase text-foreground">Video Trailer Film (Local MP4/WebM)</label>
+                  <div className="flex flex-col gap-3">
+                    <label className="block cursor-pointer">
+                      <div className="w-full px-5 py-3.5 bg-secondary border border-border border-dashed rounded-2xl flex items-center gap-3 hover:border-brand transition-all">
+                        {uploadingTrailer ? (
+                          <div className="w-5 h-5 border-2 border-brand border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Icon name="film" className="w-5 h-5 text-muted-foreground" />
+                        )}
+                        <span className="text-sm text-muted-foreground">
+                          {uploadingTrailer ? "Sedang mengunggah..." : formData.trailer_url ? "Ganti Trailer Video" : "Klik untuk upload trailer..."}
+                        </span>
+                      </div>
+                      <input
+                        type="file"
+                        accept="video/*"
+                        className="hidden"
+                        disabled={uploadingTrailer}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleTrailerUpload(file);
+                        }}
+                      />
+                    </label>
+                    {formData.trailer_url && (
+                      <div className="p-4 bg-secondary border border-border rounded-2xl">
+                        <p className="text-[10px] font-black uppercase text-foreground mb-2">Trailer Terunggah</p>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground font-mono break-all bg-card p-2 rounded border border-border">
+                          <span className="truncate flex-1">{formData.trailer_url}</span>
+                        </div>
+                        <video src={formData.trailer_url} controls className="w-full max-h-48 rounded-lg mt-3 bg-black" />
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Preview */}

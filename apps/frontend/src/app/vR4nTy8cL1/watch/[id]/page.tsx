@@ -6,11 +6,14 @@ import { api } from "@/lib/api";
 import { Icon } from "@/components/ui/Icon";
 import Image from "next/image";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/lib/auth-store";
 
 export default function SecretWatchPage() {
   const { id } = useParams();
   const router = useRouter();
   const movieId = parseInt(id as string);
+  const { user } = useAuthStore();
 
   const [movie, setMovie] = useState<any>(null);
   const [streamUrl, setStreamUrl] = useState<string | null>(null);
@@ -18,16 +21,19 @@ export default function SecretWatchPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // playMode can be: "none" | "movie" | "trailer"
+  const [playMode, setPlayMode] = useState<"none" | "movie" | "trailer">("none");
+
   useEffect(() => {
     setLoading(true);
     setError(null);
+    setPlayMode("none");
 
     Promise.all([
       api.get(`/films/${movieId}`).catch((err) => {
         throw new Error(err.response?.data?.message || "Film tidak ditemukan");
       }),
       api.get(`/films/${movieId}/stream`).catch((err) => {
-        // If stream fails (e.g. dummy video_id or not logged in), capture error but don't break page
         console.warn("Stream URL fetch failed", err);
         return { data: { stream_url: null, error: err.response?.data?.message || "Gagal memuat stream" } };
       }),
@@ -36,9 +42,6 @@ export default function SecretWatchPage() {
       .then(([movieRes, streamRes, relatedRes]) => {
         setMovie(movieRes.data);
         setStreamUrl(streamRes.data?.stream_url || null);
-        if (!streamRes.data?.stream_url) {
-          setError(streamRes.data?.error || "Film ini belum memiliki video di BunnyCDN (atau sesi Anda berakhir).");
-        }
         
         const all = relatedRes.data?.data || [];
         setRelatedMovies(all.filter((m: any) => m.id !== movieId).slice(0, 6));
@@ -73,130 +76,301 @@ export default function SecretWatchPage() {
     );
   }
 
+  const isTrailerLocal = movie?.trailer_url?.startsWith("http") || movie?.trailer_url?.includes("/uploads");
+
   return (
-    <div className="bg-neutral-950 min-h-screen text-white pb-20 font-sans transition-colors duration-500 selection:bg-brand/30">
-      {/* Top Bar */}
-      <div className="bg-neutral-900 border-b border-neutral-800">
+    <main className="min-h-screen bg-neutral-950 text-white selection:bg-brand/30 pb-24 font-sans">
+      {/* Top Navigation Bar */}
+      <div className="bg-neutral-900/80 backdrop-blur-md border-b border-neutral-800/60 sticky top-0 z-50">
         <div className="max-w-[1600px] mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <button onClick={() => router.push("/vR4nTy8cL1")} className="p-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 transition-all text-white flex items-center gap-2 text-xs font-bold pr-4">
-              <Icon name="arrow-right" className="w-4 h-4 rotate-180" />
+            <button 
+              onClick={() => router.push("/vR4nTy8cL1")} 
+              className="p-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 transition-all text-white flex items-center gap-2 text-xs font-bold pr-4 group"
+            >
+              <Icon name="arrow-right" className="w-4 h-4 rotate-180 group-hover:-translate-x-1 transition-transform" />
               Secret Dashboard
             </button>
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-neutral-500">
+              <Icon name="chevron-right" className="w-3 h-3" />
               <span className="text-brand line-clamp-1">{movie?.title}</span>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <span className="px-2.5 py-1 rounded bg-red-500/10 text-red-500 text-[10px] font-black tracking-widest border border-red-500/20 uppercase">
-              BunnyCDN Real Stream
-            </span>
+            {user ? (
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-brand/10 border border-brand/20">
+                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-xs font-black text-brand uppercase tracking-wider">
+                  {user.name} ({user.role})
+                </span>
+              </div>
+            ) : (
+              <span className="px-2.5 py-1 rounded bg-red-500/10 text-red-500 text-[10px] font-black tracking-widest border border-red-500/20 uppercase">
+                Mode Uji Coba (Guest)
+              </span>
+            )}
           </div>
         </div>
       </div>
 
-      <div className="max-w-[1600px] mx-auto px-6 mt-8 grid grid-cols-1 xl:grid-cols-4 gap-8 animate-in fade-in duration-700">
-        {/* Main Player Section */}
-        <div className="xl:col-span-3 space-y-8">
-          {streamUrl ? (
-            <div className="relative aspect-video bg-black rounded-[2rem] overflow-hidden border border-neutral-800 shadow-2xl shadow-brand/10">
-              <iframe
-                src={streamUrl}
-                loading="lazy"
-                allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen"
-                className="w-full h-full border-none absolute inset-0"
-              />
-            </div>
-          ) : (
-            <div className="relative aspect-video bg-neutral-900 rounded-[2rem] overflow-hidden border border-neutral-800 shadow-2xl flex flex-col items-center justify-center text-center p-8 space-y-4">
-              <div className="w-16 h-16 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-center justify-center text-amber-500 shadow-inner">
-                <Icon name="film" className="w-8 h-8" />
-              </div>
-              <div className="space-y-1 max-w-md">
-                <h3 className="text-lg font-black text-white">Stream Tidak Tersedia</h3>
-                <p className="text-xs text-neutral-400 leading-relaxed">
-                  {error || "Video asli belum ditautkan ke film ini di BunnyCDN, atau sesi otentikasi Anda telah berakhir."}
-                </p>
-              </div>
-            </div>
-          )}
+      {/* Hero Media Section (Backdrop / Video Player) */}
+      <div className="relative">
+        <section className="relative w-full h-[60vh] md:h-[80vh] overflow-hidden bg-black border-b border-neutral-800/40">
+          {playMode === "none" ? (
+            <>
+              {/* Backdrop Poster Image with Gradients */}
+              <div className="absolute inset-0 z-0 animate-in fade-in zoom-in-105 duration-1000">
+                <div className="absolute inset-0 bg-gradient-to-r from-neutral-950 via-neutral-950/40 to-transparent z-10" />
+                <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-transparent to-transparent z-10" />
+                <div className="absolute inset-0 bg-neutral-950/30 z-10" />
 
-          {/* Movie Info */}
-          {movie && (
-            <div className="space-y-6 bg-neutral-900/50 border border-neutral-800/80 rounded-[2rem] p-8 backdrop-blur-sm">
-              <div className="flex flex-wrap items-center gap-4 justify-between">
-                <h1 className="text-3xl md:text-4xl font-black tracking-tight text-white">{movie.title}</h1>
-                <div className="flex items-center gap-3">
-                  <span className="px-3 py-1 rounded-full bg-brand/10 border border-brand/20 text-brand font-black text-xs uppercase tracking-widest">
-                    {movie.quality || "4K UHD"}
-                  </span>
-                  <span className="px-3 py-1 rounded-full bg-neutral-800 border border-neutral-700 text-neutral-300 font-bold text-xs">
-                    {movie.release_year || "2026"}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-2 pt-2">
-                {movie.genres?.map((g: any) => (
-                  <span key={g.id} className="px-3 py-1 rounded-xl bg-neutral-800 text-neutral-300 text-xs font-bold border border-neutral-700/50">
-                    {g.name}
-                  </span>
-                ))}
-                {movie.duration && (
-                  <span className="px-3 py-1 rounded-xl bg-neutral-800 text-neutral-400 text-xs font-bold border border-neutral-700/50 flex items-center gap-1.5">
-                    <Icon name="clock" className="w-3.5 h-3.5" />
-                    {movie.duration} Menit
-                  </span>
+                {movie?.poster_url ? (
+                  <Image
+                    src={movie.poster_url}
+                    alt={movie.title}
+                    fill
+                    priority
+                    className="object-cover object-center opacity-85"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-neutral-900 via-neutral-950 to-brand/10" />
                 )}
               </div>
 
-              <p className="text-neutral-400 leading-relaxed font-light text-base md:text-lg max-w-4xl border-t border-neutral-800/80 pt-6">
-                {movie.description || "Tidak ada deskripsi yang tersedia untuk film ini."}
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Sidebar: Up Next */}
-        <div className="space-y-8">
-          <div className="flex items-center justify-between border-b border-neutral-800 pb-4">
-            <h2 className="text-lg font-black tracking-wider uppercase italic flex items-center gap-3 text-white">
-              <div className="w-1.5 h-5 bg-brand rounded-full" />
-              Film Lainnya
-            </h2>
-          </div>
-
-          <div className="space-y-4">
-            {relatedMovies.map((m) => (
-              <Link key={m.id} href={`/vR4nTy8cL1/watch/${m.id}`} className="group flex gap-4 p-3 rounded-2xl bg-neutral-900 border border-neutral-800 hover:border-brand/30 transition-all cursor-pointer shadow-sm block">
-                <div className="flex gap-4 items-center">
-                  <div className="relative w-28 h-36 rounded-xl overflow-hidden bg-neutral-800 flex-shrink-0 border border-neutral-700/30">
-                    {m.poster_url ? (
-                      <Image src={m.poster_url} alt={m.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
-                    ) : (
-                      <div className="absolute inset-0 bg-neutral-800 flex items-center justify-center text-neutral-600 font-bold text-xs">
-                        ?
-                      </div>
+              {/* Title & Actions Content Overlay */}
+              <div className="absolute bottom-0 left-0 right-0 z-20 max-w-[1600px] mx-auto px-6 pb-16 flex flex-col justify-end h-full">
+                <div className="space-y-6 max-w-4xl">
+                  {/* Tags */}
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span className="px-3 py-1 rounded bg-brand/90 text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-brand/20">
+                      {movie?.quality || "4K UHD"}
+                    </span>
+                    <span className="text-neutral-400 text-xs font-bold">
+                      {movie?.release_year || "2026"}
+                    </span>
+                    {movie?.duration && (
+                      <span className="text-neutral-400 text-xs font-bold flex items-center gap-1">
+                        <Icon name="clock" className="w-3.5 h-3.5" />
+                        {movie.duration} Menit
+                      </span>
                     )}
-                    <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
-                  </div>
-                  <div className="flex flex-col justify-center gap-2 min-w-0 flex-1">
-                    <h3 className="text-sm font-bold text-white line-clamp-2 group-hover:text-brand transition-colors leading-snug">{m.title}</h3>
-                    <div className="flex flex-wrap gap-1">
-                      {m.genres?.slice(0, 2).map((g: any) => (
-                        <span key={g.id} className="text-[10px] px-2 py-0.5 rounded bg-neutral-800 text-neutral-400 font-medium">
+                    <div className="w-1.5 h-1.5 rounded-full bg-neutral-700" />
+                    <div className="flex gap-2">
+                      {movie?.genres?.map((g: any) => (
+                        <span key={g.id} className="text-brand text-xs font-black uppercase tracking-wider">
                           {g.name}
                         </span>
                       ))}
                     </div>
-                    <span className="text-xs text-neutral-500 font-medium mt-1">{m.release_year || "—"}</span>
+                  </div>
+
+                  {/* Movie Title */}
+                  <h1 className="text-4xl md:text-7xl font-black tracking-tight leading-tight uppercase italic text-transparent bg-clip-text bg-gradient-to-b from-white to-neutral-300">
+                    {movie?.title}
+                  </h1>
+
+                  {/* Synopsis snippet */}
+                  <p className="text-neutral-300 text-sm md:text-base leading-relaxed line-clamp-3 font-medium max-w-3xl">
+                    {movie?.description || "Tidak ada deskripsi yang tersedia untuk film ini."}
+                  </p>
+
+                  {/* Play Buttons */}
+                  <div className="flex flex-wrap items-center gap-4 pt-4">
+                    <button
+                      onClick={() => setPlayMode("movie")}
+                      className="flex items-center justify-center gap-3 px-8 py-4 bg-brand hover:bg-brand-dark text-white rounded-full font-black text-sm uppercase tracking-widest transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(2,77,148,0.4)] group"
+                    >
+                      <Icon name="play" className="w-4 h-4 fill-current transition-transform group-hover:scale-110" />
+                      Putar Film
+                    </button>
+                    {movie?.trailer_url && (
+                      <button
+                        onClick={() => setPlayMode("trailer")}
+                        className="flex items-center justify-center gap-3 px-8 py-4 bg-neutral-900/60 hover:bg-neutral-800/80 backdrop-blur-md border border-neutral-700/80 text-white rounded-full font-black text-sm uppercase tracking-widest transition-all hover:scale-105 active:scale-95"
+                      >
+                        <Icon name="film" className="w-4 h-4" />
+                        Lihat Trailer
+                      </button>
+                    )}
                   </div>
                 </div>
-              </Link>
-            ))}
+              </div>
+            </>
+          ) : (
+            /* Active Video Player View */
+            <div className="absolute inset-0 z-40 bg-black animate-in fade-in duration-500">
+              {/* Back to details button */}
+              <button
+                onClick={() => setPlayMode("none")}
+                className="absolute top-6 left-6 z-50 px-4 py-2 bg-black/60 hover:bg-black/85 text-white rounded-xl backdrop-blur-md transition-all flex items-center gap-2 border border-neutral-800/80 text-xs font-bold"
+              >
+                <Icon name="arrow-right" className="w-3.5 h-3.5 rotate-180" />
+                Kembali ke Info Film
+              </button>
+
+              {playMode === "movie" ? (
+                streamUrl ? (
+                  <iframe
+                    src={streamUrl}
+                    loading="lazy"
+                    allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen"
+                    className="w-full h-full border-none absolute inset-0"
+                  />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center text-center p-6 space-y-4">
+                    <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center justify-center text-red-500">
+                      <Icon name="film" className="w-8 h-8" />
+                    </div>
+                    <h3 className="text-xl font-bold">Stream Tidak Tersedia</h3>
+                    <p className="text-sm text-neutral-400 max-w-md leading-relaxed">
+                      Video asli belum ditautkan ke film ini di BunnyCDN, atau sesi otentikasi Anda telah berakhir.
+                    </p>
+                  </div>
+                )
+              ) : (
+                /* Trailer playback mode */
+                movie?.trailer_url ? (
+                  isTrailerLocal ? (
+                    <video 
+                      src={movie.trailer_url} 
+                      controls 
+                      autoPlay 
+                      className="w-full h-full object-contain absolute inset-0 bg-black" 
+                    />
+                  ) : (
+                    <iframe
+                      src={`https://iframe.mediadelivery.net/embed/245642/${movie.trailer_url}?autoplay=true`}
+                      loading="lazy"
+                      allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen"
+                      className="w-full h-full border-none absolute inset-0"
+                    />
+                  )
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center text-center p-6">
+                    <p className="text-neutral-400">Trailer tidak tersedia untuk film ini.</p>
+                  </div>
+                )
+              )}
+            </div>
+          )}
+        </section>
+      </div>
+
+      {/* Detail Section & Cast Information */}
+      <section className="max-w-[1600px] mx-auto px-6 mt-16 grid grid-cols-1 xl:grid-cols-4 gap-12">
+        {/* Left columns: Synopsis & Details */}
+        <div className="xl:col-span-3 space-y-12">
+          <div className="space-y-6">
+            <h2 className="text-2xl font-black uppercase italic tracking-wider flex items-center gap-3 text-white">
+              <div className="w-1.5 h-6 bg-brand rounded-full" />
+              Sinopsis Film
+            </h2>
+            <p className="text-neutral-400 text-base md:text-lg leading-relaxed font-light">
+              {movie?.description || "Tidak ada deskripsi/sinopsis yang tersedia untuk film ini."}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 pt-8 border-t border-neutral-800/80">
+            <div className="space-y-2">
+              <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Sutradara</span>
+              <p className="font-bold text-sm md:text-base text-neutral-200">{movie?.director || "—"}</p>
+            </div>
+            <div className="space-y-2">
+              <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Produser</span>
+              <p className="font-bold text-sm md:text-base text-neutral-200">{movie?.producer || "—"}</p>
+            </div>
+            <div className="space-y-2">
+              <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Rumah Produksi</span>
+              <div className="flex items-center gap-3">
+                {movie?.production_house_logo && (
+                  <div className="w-10 h-10 rounded-xl bg-white border border-neutral-800 p-1.5 flex items-center justify-center overflow-hidden flex-shrink-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={movie.production_house_logo} alt="Studio Logo" className="w-full h-full object-contain" />
+                  </div>
+                )}
+                <p className="font-bold text-sm md:text-base text-neutral-200">{movie?.production_house || "Lalakon Originals"}</p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Tahun Rilis</span>
+              <p className="font-bold text-sm md:text-base text-neutral-200">{movie?.release_year || "—"}</p>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+
+        {/* Right column: Pemeran Utama / Cast */}
+        <div className="space-y-8 bg-neutral-900/40 p-8 rounded-3xl border border-neutral-800/60 backdrop-blur-sm h-fit">
+          <h3 className="text-lg font-black uppercase italic tracking-wider border-b border-neutral-800/80 pb-4 text-white">
+            Pemeran Utama
+          </h3>
+          <div className="space-y-6">
+            {movie?.actors && movie.actors.length > 0 ? (
+              movie.actors.map((actor: any) => (
+                <div key={actor.id} className="group">
+                  <div className="space-y-1">
+                    <p className="text-sm font-bold text-neutral-200 group-hover:text-brand transition-colors">
+                      {actor.name}
+                    </p>
+                    <p className="text-[9px] text-neutral-500 uppercase tracking-widest font-black">Aktor / Aktris</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-xs text-neutral-500 italic">Tidak ada daftar pemeran.</p>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Related Content / Film Serupa */}
+      <section className="max-w-[1600px] mx-auto px-6 mt-20 space-y-8">
+        <div className="flex items-center justify-between border-b border-neutral-800/60 pb-4">
+          <h2 className="text-xl font-black tracking-wider uppercase italic flex items-center gap-3 text-white">
+            <div className="w-1.5 h-6 bg-brand rounded-full" />
+            Film Serupa
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+          {relatedMovies.map((m) => (
+            <Link 
+              key={m.id} 
+              href={`/vR4nTy8cL1/watch/${m.id}`} 
+              className="group flex flex-col bg-neutral-900 border border-neutral-800/60 hover:border-brand/40 transition-all rounded-2xl overflow-hidden cursor-pointer shadow-sm block"
+            >
+              <div className="relative aspect-[2/3] w-full bg-neutral-800 overflow-hidden">
+                {m.poster_url ? (
+                  <Image 
+                    src={m.poster_url} 
+                    alt={m.title} 
+                    fill 
+                    className="object-cover group-hover:scale-105 transition-transform duration-500" 
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center text-neutral-600 font-bold text-xs">
+                    ?
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-black/30 group-hover:bg-transparent transition-colors" />
+                <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded bg-brand/80 text-[8px] font-black text-white uppercase tracking-widest">
+                  {m.quality || "4K UHD"}
+                </div>
+              </div>
+              <div className="p-4 flex flex-col gap-1.5">
+                <h3 className="text-sm font-bold text-white line-clamp-1 group-hover:text-brand transition-colors uppercase tracking-tight">
+                  {m.title}
+                </h3>
+                <div className="flex items-center justify-between text-[10px] text-neutral-500 font-bold">
+                  <span>{m.release_year || "—"}</span>
+                  {m.genres && m.genres.length > 0 && (
+                    <span className="text-brand/80">{m.genres[0].name}</span>
+                  )}
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+    </main>
   );
 }

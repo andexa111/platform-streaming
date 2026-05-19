@@ -16,6 +16,7 @@ import { BunnyService } from '../bunny/bunny.service';
 import { v4 as uuidv4 } from 'uuid';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import * as fs from 'fs';
 
 @Controller('upload')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -31,7 +32,13 @@ export class UploadController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: './public/uploads/posters',
+        destination: (req, file, cb) => {
+          const dir = './public/uploads/posters';
+          if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+          }
+          cb(null, dir);
+        },
         filename: (req, file, cb) => {
           const uniqueSuffix = uuidv4();
           const ext = extname(file.originalname);
@@ -67,7 +74,13 @@ export class UploadController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: './public/uploads/images',
+        destination: (req, file, cb) => {
+          const dir = './public/uploads/images';
+          if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+          }
+          cb(null, dir);
+        },
         filename: (req, file, cb) => {
           const uniqueSuffix = uuidv4();
           const ext = extname(file.originalname);
@@ -97,17 +110,34 @@ export class UploadController {
 
   /**
    * POST /upload/trailer
-   * Upload video trailer film (Disimpan ke Bunny CDN)
+   * Upload video trailer film (Disimpan Lokal)
    */
   @Post('trailer')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: (req, file, cb) => {
+          const dir = './public/uploads/trailers';
+          if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+          }
+          cb(null, dir);
+        },
+        filename: (req, file, cb) => {
+          const uniqueSuffix = uuidv4();
+          const ext = extname(file.originalname);
+          cb(null, `trailer-${uniqueSuffix}${ext}`);
+        },
+      }),
+    }),
+  )
   async uploadTrailer(
     @UploadedFile(
       new ParseFilePipe({
         validators: [
           new MaxFileSizeValidator({ maxSize: 100 * 1024 * 1024 }), // 100MB
           new FileTypeValidator({ 
-            fileType: /video\/(mp4|webm|quicktime)/,
+            fileType: /video\/(mp4|webm|quicktime|x-matroska|avi)/,
             skipMagicNumbersValidation: true,
             fallbackToMimetype: true,
           }),
@@ -116,15 +146,7 @@ export class UploadController {
     )
     file: Express.Multer.File,
   ) {
-    const ext = file.originalname.split('.').pop();
-    const fileName = `trailer-${uuidv4()}.${ext}`;
-
-    const url = await this.bunnyService.uploadToStorage(
-      'trailers',
-      fileName,
-      file.buffer,
-    );
-
-    return { url, fileName };
+    const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/uploads/trailers/${file.filename}`;
+    return { url, fileName: file.filename };
   }
 }
