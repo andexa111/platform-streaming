@@ -1,7 +1,6 @@
-import { Controller, Post, Body, UseGuards, Req, HttpCode, HttpStatus, Logger } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Req, HttpCode, HttpStatus, Logger, ParseIntPipe } from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { SubPlan } from '@prisma/client';
 
 @Controller('payment')
 export class PaymentController {
@@ -11,16 +10,15 @@ export class PaymentController {
 
   @UseGuards(JwtAuthGuard)
   @Post('checkout')
-  async checkout(@Req() req: any, @Body('plan') plan: SubPlan) {
-    const userId = req.user.id;
-    return this.paymentService.createTransaction(userId, plan);
+  async checkout(@Req() req: any, @Body('planId') planId: number) {
+    const userId = req.user.sub;
+    return this.paymentService.createTransaction(userId, planId);
   }
 
   @Post('webhook')
   @HttpCode(HttpStatus.OK)
   async handleWebhook(@Body() payload: any) {
     this.logger.log('Received Midtrans webhook');
-    // Midtrans expects 200 OK immediately
     this.paymentService.handleWebhook(payload);
     return { status: 'OK' };
   }

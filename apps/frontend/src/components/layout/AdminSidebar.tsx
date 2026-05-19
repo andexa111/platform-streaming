@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
 import { NAV_LINKS } from "@/config/navigation";
+import { useAuthStore } from "@/lib/auth-store";
 import { cn } from "@/lib/utils";
 
 interface AdminSidebarProps {
@@ -15,7 +16,10 @@ interface AdminSidebarProps {
 
 export function AdminSidebar({ isOpen, isCollapsed, onClose, onToggleCollapse }: AdminSidebarProps) {
   const pathname = usePathname();
-  const links = NAV_LINKS.admin;
+  const user = useAuthStore((s) => s.user);
+
+  // Pilih menu berdasarkan role user
+  const links = user?.role === 'superadmin' ? NAV_LINKS.adminSuper : NAV_LINKS.adminBasic;
 
   return (
     <>
@@ -62,7 +66,7 @@ export function AdminSidebar({ isOpen, isCollapsed, onClose, onToggleCollapse }:
                     className="h-10 w-auto object-contain brightness-[1.6] contrast-[1.2] group-hover:scale-105 transition-transform" 
                   />
                   <span className="px-2 py-0.5 rounded-md bg-brand/5 border border-brand/10 text-[10px] font-bold text-brand uppercase tracking-widest">
-                    Admin
+                    {user?.role === 'superadmin' ? 'Super' : 'Admin'}
                   </span>
                 </Link>
               ) : (

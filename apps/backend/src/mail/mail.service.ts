@@ -6,64 +6,83 @@ export class MailService {
   private readonly resend: Resend;
   private readonly logger = new Logger(MailService.name);
 
-  // Email pengirim — nanti ganti ke noreply@lalakon.id setelah domain verified
   private readonly fromEmail =
-    process.env.RESEND_FROM_EMAIL || 'Lalakon <onboarding@resend.dev>';
+    process.env.RESEND_FROM_EMAIL || 'Sinea <onboarding@resend.dev>';
 
   constructor() {
     this.resend = new Resend(process.env.RESEND_API_KEY);
   }
 
   /**
-   * Kirim email verifikasi ke user baru
-   * @param email - Email tujuan
-   * @param name - Nama user
-   * @param token - Token verifikasi (akan jadi link)
+   * Kirim email notifikasi: akun disetujui admin
    */
-  async sendVerificationEmail(
-    email: string,
-    name: string,
-    token: string,
-  ): Promise<void> {
+  async sendApprovalEmail(email: string, name: string): Promise<void> {
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    const verifyLink = `${frontendUrl}/verify-email?token=${token}`;
 
     try {
       await this.resend.emails.send({
         from: this.fromEmail,
         to: email,
-        subject: 'Verifikasi Email — Lalakon',
+        subject: 'Akun Anda Disetujui — Sinea',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h2 style="color: #1a1a2e;">Selamat Datang di Lalakon! 🎬</h2>
-            <p>Halo <strong>${name}</strong>,</p>
-            <p>Terima kasih sudah mendaftar. Klik tombol di bawah untuk verifikasi email kamu:</p>
+            <h2 style="color: #1a1a2e;">Selamat, ${name}! 🎉</h2>
+            <p>Kabar baik! Akun Sinea Anda telah <strong>disetujui</strong> oleh admin.</p>
+            <p>Sekarang Anda dapat login dan mulai menikmati berbagai tayangan eksklusif di platform kami.</p>
             <div style="text-align: center; margin: 30px 0;">
-              <a href="${verifyLink}" 
-                 style="background-color: #e94560; color: white; padding: 14px 28px; 
+              <a href="${frontendUrl}/login" 
+                 style="background-color: #024D94; color: white; padding: 14px 28px; 
                         text-decoration: none; border-radius: 8px; font-weight: bold;
                         display: inline-block;">
-                Verifikasi Email
+                Login Sekarang
               </a>
             </div>
-            <p style="color: #666; font-size: 14px;">
-              Atau copy link berikut ke browser:<br/>
-              <a href="${verifyLink}">${verifyLink}</a>
-            </p>
             <p style="color: #999; font-size: 12px;">
-              Link ini berlaku selama 24 jam. Jika kamu tidak merasa mendaftar, abaikan email ini.
+              Jika Anda tidak merasa mendaftar, abaikan email ini.
             </p>
             <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
             <p style="color: #999; font-size: 12px; text-align: center;">
-              &copy; 2026 Lalakon. All rights reserved.
+              &copy; 2026 Sinea. All rights reserved.
             </p>
           </div>
         `,
       });
 
-      this.logger.log(`Email verifikasi terkirim ke ${email}`);
+      this.logger.log(`Email approval terkirim ke ${email}`);
     } catch (error) {
-      this.logger.error(`Gagal kirim email ke ${email}:`, error);
+      this.logger.error(`Gagal kirim email approval ke ${email}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Kirim email notifikasi: akun ditolak
+   */
+  async sendRejectionEmail(email: string, name: string): Promise<void> {
+    try {
+      await this.resend.emails.send({
+        from: this.fromEmail,
+        to: email,
+        subject: 'Pendaftaran Ditolak — Sinea',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h2 style="color: #1a1a2e;">Mohon Maaf, ${name}</h2>
+            <p>Pendaftaran akun Anda di Sinea <strong>tidak dapat kami setujui</strong> saat ini.</p>
+            <p>Jika Anda merasa ini adalah kesalahan, silakan hubungi tim kami untuk informasi lebih lanjut.</p>
+            <p style="color: #999; font-size: 12px;">
+              Terima kasih atas minat Anda terhadap Sinea.
+            </p>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+            <p style="color: #999; font-size: 12px; text-align: center;">
+              &copy; 2026 Sinea. All rights reserved.
+            </p>
+          </div>
+        `,
+      });
+
+      this.logger.log(`Email rejection terkirim ke ${email}`);
+    } catch (error) {
+      this.logger.error(`Gagal kirim email rejection ke ${email}:`, error);
       throw error;
     }
   }
@@ -83,7 +102,7 @@ export class MailService {
       await this.resend.emails.send({
         from: this.fromEmail,
         to: email,
-        subject: 'Reset Password ?" Sinea',
+        subject: 'Reset Password — Sinea',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <h2 style="color: #1a1a2e;">Reset Password</h2>
@@ -91,7 +110,7 @@ export class MailService {
             <p>Kami menerima permintaan untuk mereset password akun Sinea kamu. Klik tombol di bawah untuk melanjutkan:</p>
             <div style="text-align: center; margin: 30px 0;">
               <a href="${resetLink}" 
-                 style="background-color: #e94560; color: white; padding: 14px 28px; 
+                 style="background-color: #024D94; color: white; padding: 14px 28px; 
                         text-decoration: none; border-radius: 8px; font-weight: bold;
                         display: inline-block;">
                 Reset Password

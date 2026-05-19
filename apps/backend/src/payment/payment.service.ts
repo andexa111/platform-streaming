@@ -1,6 +1,6 @@
-import { Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { SubPlan, SubStatus, PaymentStatus, Role } from '@prisma/client';
+import { SubStatus, PaymentStatus, Role } from '@prisma/client';
 // @ts-ignore
 import * as midtransClient from 'midtrans-client';
 
@@ -17,18 +17,47 @@ export class PaymentService {
     });
   }
 
-  async createTransaction(userId: number, plan: SubPlan) {
+  async createTransaction(userId: number, planId: number) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
 
-    const amount = plan === SubPlan.monthly ? 49000 : 490000;
+    // Ambil harga dari MembershipPlan
+    const plan = await this.prisma.membershipPlan.findUnique({
+      where: { id: planId },
+      include: {
+        discounts: {
+          where: {
+            is_active: true,
+            valid_from: { lte: new Date() },
+            valid_until: { gte: new Date() },
+          },
+          take: 1,
+        },
+      },
+    });
+
+    if (!plan || !plan.is_active) {
+      throw new BadRequestException('Paket membership tidak tersedia');
+    }
+
+    // Hitung harga setelah diskon
+    let amount = plan.price;
+    const discount = plan.discounts[0];
+    if (discount) {
+      if (discount.percentage) {
+        amount = Math.round(plan.price * (1 - discount.percentage / 100));
+      } else if (discount.fixed_amount) {
+        amount = Math.max(0, plan.price - discount.fixed_amount);
+      }
+    }
+
     const orderId = `ORDER-${Date.now()}-U${userId}`;
 
     const payment = await this.prisma.payment.create({
       data: {
         order_id: orderId,
         userId: userId,
-        plan: plan,
+        planId: plan.id,
         amount: amount,
         status: PaymentStatus.pending,
       },
@@ -45,10 +74,10 @@ export class PaymentService {
       },
       item_details: [
         {
-          id: plan,
+          id: plan.slug,
           price: amount,
           quantity: 1,
-          name: `Sinea Subscription - ${plan === SubPlan.monthly ? 'Monthly' : 'Yearly'}`,
+          name: `Sinea Membership - ${plan.name}`,
         },
       ],
     };
@@ -86,7 +115,7 @@ export class PaymentService {
           await this.updatePaymentStatus(payment.id, PaymentStatus.pending);
         } else if (fraudStatus == 'accept' || !fraudStatus) {
           await this.updatePaymentStatus(payment.id, PaymentStatus.paid);
-          await this.activateSubscription(payment.userId, payment.plan);
+          await this.activateSubscription(payment.userId, payment.planId);
         }
       } else if (transactionStatus == 'cancel' || transactionStatus == 'deny' || transactionStatus == 'expire') {
         await this.updatePaymentStatus(payment.id, PaymentStatus.cancelled);
@@ -105,42 +134,31 @@ export class PaymentService {
     });
   }
 
-  private async activateSubscription(userId: number, plan: SubPlan) {
-    const durationDays = plan === SubPlan.monthly ? 30 : 365;
-    const expiredAt = new Date();
-    expiredAt.setDate(expiredAt.getDate() + durationDays);
-
+  private async activateSubscription(userId: number, planId: number) {
     const existingSub = await this.prisma.subscription.findFirst({
       where: { userId },
     });
 
+    // Instead of activating, we just create/update as PENDING.
+    // Admin needs to approve it to become ACTIVE.
     if (existingSub) {
       await this.prisma.subscription.update({
         where: { id: existingSub.id },
         data: {
-          plan,
-          status: SubStatus.active,
-          expired_at: expiredAt,
+          planId,
+          status: SubStatus.pending,
         },
       });
     } else {
       await this.prisma.subscription.create({
         data: {
           userId,
-          plan,
-          status: SubStatus.active,
-          expired_at: expiredAt,
+          planId,
+          status: SubStatus.pending,
         },
       });
     }
 
-    // Update user role to subscriber if not admin
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (user && user.role === Role.user) {
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: { role: Role.subscriber },
-      });
-    }
+    this.logger.log(`Subscription for user ${userId} set to pending. Waiting for admin approval.`);
   }
 }

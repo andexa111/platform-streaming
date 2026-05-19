@@ -9,6 +9,7 @@ interface VideoSectionProps {
   videos: Video[];
   viewAllHref?: string;
   className?: string;
+  basePath?: string;
 }
 
 export function VideoSection({ 
@@ -16,7 +17,8 @@ export function VideoSection({
   subtitle, 
   videos, 
   viewAllHref = "/browse",
-  className = "" 
+  className = "",
+  basePath = "/movies"
 }: VideoSectionProps) {
   return (
     <section className={`py-8 md:py-12 px-6 ${className}`}>
@@ -47,7 +49,7 @@ export function VideoSection({
         </div>
 
         {/* Content Row */}
-        <VideoRow videos={videos} viewAllHref={viewAllHref} />
+        <VideoRow videos={videos} viewAllHref={viewAllHref} basePath={basePath} />
       </div>
     </section>
   );

@@ -142,6 +142,23 @@ export class FilmController {
   }
 
   /**
+   * PATCH /films/:id/clip
+   * Update clip_start & clip_end untuk highlight trailer — superadmin only
+   */
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('superadmin')
+  @Patch(':id/clip')
+  async updateClip(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: { clip_start: number; clip_end: number },
+  ) {
+    return this.filmService.update(id, {
+      clip_start: body.clip_start,
+      clip_end: body.clip_end,
+    } as any);
+  }
+
+  /**
    * POST /films/:id/view
    * Rekam view ketika user menonton film
    */

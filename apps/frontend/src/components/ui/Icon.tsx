@@ -59,7 +59,8 @@ import {
   Calendar,
   Smartphone,
   Download,
-  ShieldCheck
+  ShieldCheck,
+  Clock
 } from "lucide-react";
 
 const ICON_MAP = {
@@ -123,6 +124,7 @@ const ICON_MAP = {
   smartphone: Smartphone,
   download: Download,
   "shield-check": ShieldCheck,
+  clock: Clock,
 };
 
 interface IconProps extends LucideProps {

@@ -37,7 +37,7 @@ export default function RegisterPage() {
       const { confirmPassword, ...payload } = data;
       await api.post("/auth/register", payload);
       
-      setSuccess("Registrasi berhasil! Silakan cek email Anda untuk proses verifikasi.");
+      setSuccess("Pendaftaran berhasil! Mengalihkan ke halaman login...");
       
       // Optionally redirect to login after a few seconds
       setTimeout(() => {

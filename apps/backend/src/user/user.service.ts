@@ -86,4 +86,43 @@ export class UserService {
       },
     });
   }
+
+  // Admin/Superadmin: get users
+  async findAllUsers(requesterRole?: string) {
+    const whereClause: any = requesterRole === 'admin' ? { role: 'subscriber' } : {};
+
+    const users = await this.prisma.user.findMany({
+      where: whereClause,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        avatar_url: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    return users;
+  }
+
+  async updateUserRole(userId: number, role: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+
+    const updated = await this.prisma.user.update({
+      where: { id: userId },
+      data: { role: role as any },
+      select: { id: true, name: true, email: true, role: true },
+    });
+    return updated;
+  }
+
+  async deleteUser(userId: number) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+
+    await this.prisma.user.delete({ where: { id: userId } });
+    return { message: 'User deleted successfully' };
+  }
 }

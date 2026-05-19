@@ -38,6 +38,11 @@ export default function AddMoviePage() {
   });
 
   const [actorInput, setActorInput] = useState("");
+  const [genresList, setGenresList] = useState<{ id: number; name: string }[]>([]);
+
+  React.useEffect(() => {
+    api.get("/genre").then((res) => setGenresList(res.data)).catch(console.error);
+  }, []);
 
   const updateField = (field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -66,15 +71,11 @@ export default function AddMoviePage() {
     formData.append("file", file);
 
     try {
-      const res = await api.post("/upload/poster", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const res = await api.post("/upload/poster", formData);
       updateField(field, res.data.url);
-    } catch (err) {
+    } catch (err: any) {
       console.error(`Gagal upload ${field}:`, err);
-      alert(`Gagal mengunggah gambar. Pastikan formatnya jpg/png/webp dan ukuran maks 5MB.`);
+      alert(err.response?.data?.message || `Gagal mengunggah gambar. Pastikan formatnya jpg/png/webp dan ukuran maks 5MB.`);
     }
   };
 
@@ -88,8 +89,8 @@ export default function AddMoviePage() {
         description: formData.description || undefined,
         director: formData.director || undefined,
         producer: formData.producer || undefined,
-        actors: formData.actors.length > 0 ? formData.actors : undefined,
-        genre: formData.genre || undefined,
+        actorNames: formData.actors.length > 0 ? formData.actors : undefined,
+        genreIds: formData.genre ? [parseInt(formData.genre)] : undefined,
         release_year: formData.release_year ? parseInt(formData.release_year) : undefined,
         video_id: formData.video_id || undefined,
         trailer_url: formData.trailer_url || undefined,
@@ -235,9 +236,9 @@ export default function AddMoviePage() {
                       <option value="" disabled>
                         Pilih Genre
                       </option>
-                      {GENRES.map((g) => (
-                        <option key={g.title} value={g.title} className="bg-card text-foreground">
-                          {g.title}
+                      {genresList.map((g) => (
+                        <option key={g.id} value={g.id.toString()} className="bg-card text-foreground">
+                          {g.name}
                         </option>
                       ))}
                     </select>
@@ -398,7 +399,7 @@ export default function AddMoviePage() {
                       { label: "Sutradara", value: formData.director },
                       { label: "Produser", value: formData.producer },
                       { label: "Aktor", value: formData.actors.length > 0 ? formData.actors.join(", ") : "" },
-                      { label: "Genre", value: formData.genre },
+                      { label: "Genre", value: genresList.find(g => g.id.toString() === formData.genre)?.name || formData.genre },
                       { label: "Tahun Rilis", value: formData.release_year },
                       { label: "Video ID", value: formData.video_id },
                       { label: "Trailer ID", value: formData.trailer_url },

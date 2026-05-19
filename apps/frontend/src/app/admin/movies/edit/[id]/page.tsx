@@ -88,15 +88,11 @@ export default function EditMoviePage() {
     formData.append("file", file);
 
     try {
-      const res = await api.post("/upload/poster", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const res = await api.post("/upload/poster", formData);
       updateField(field, res.data.url);
-    } catch (err) {
+    } catch (err: any) {
       console.error(`Gagal upload ${field}:`, err);
-      alert(`Gagal mengunggah gambar. Pastikan formatnya jpg/png/webp dan ukuran maks 5MB.`);
+      alert(err.response?.data?.message || `Gagal mengunggah gambar. Pastikan formatnya jpg/png/webp dan ukuran maks 5MB.`);
     }
   };
 

@@ -19,7 +19,31 @@ const nextConfig = {
         protocol: "https",
         hostname: "commondatastorage.googleapis.com",
       },
+      {
+        protocol: "http",
+        hostname: "localhost",
+      },
+      {
+        protocol: "https",
+        hostname: "sinea.id",
+      },
+      {
+        protocol: "https",
+        hostname: "api.sinea.id",
+      },
     ],
+  },
+  async rewrites() {
+    return [
+      {
+        source: "/superadmin",
+        destination: "/admin",
+      },
+      {
+        source: "/superadmin/:path*",
+        destination: "/admin/:path*",
+      },
+    ];
   },
 };
 

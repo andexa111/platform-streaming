@@ -45,7 +45,11 @@ export class UploadController {
       new ParseFilePipe({
         validators: [
           new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }), // 5MB
-          new FileTypeValidator({ fileType: /image\/(jpg|jpeg|png|webp|x-icon|vnd\.microsoft\.icon)/ }), // +ico support
+          new FileTypeValidator({ 
+            fileType: /image\/(jpg|jpeg|png|webp|x-icon|vnd\.microsoft\.icon)/,
+            skipMagicNumbersValidation: true,
+            fallbackToMimetype: true,
+          }), // +ico support
         ],
       }),
     )
@@ -77,7 +81,11 @@ export class UploadController {
       new ParseFilePipe({
         validators: [
           new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }), // 5MB
-          new FileTypeValidator({ fileType: /image\/(jpg|jpeg|png|webp|x-icon|vnd\.microsoft\.icon)/ }),
+          new FileTypeValidator({ 
+            fileType: /image\/(jpg|jpeg|png|webp|x-icon|vnd\.microsoft\.icon)/,
+            skipMagicNumbersValidation: true,
+            fallbackToMimetype: true,
+          }),
         ],
       }),
     )
@@ -98,7 +106,11 @@ export class UploadController {
       new ParseFilePipe({
         validators: [
           new MaxFileSizeValidator({ maxSize: 100 * 1024 * 1024 }), // 100MB
-          new FileTypeValidator({ fileType: /video\/(mp4|webm|quicktime)/ }),
+          new FileTypeValidator({ 
+            fileType: /video\/(mp4|webm|quicktime)/,
+            skipMagicNumbersValidation: true,
+            fallbackToMimetype: true,
+          }),
         ],
       }),
     )

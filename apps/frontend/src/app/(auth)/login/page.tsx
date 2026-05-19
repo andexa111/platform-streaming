@@ -37,9 +37,14 @@ export default function LoginPage() {
       // Save token to store and cookie
       setAuth(response.data.user, response.data.access_token);
 
-      // Redirect using Next.js router
-      router.push("/home");
-      router.refresh();
+      // Redirect using window.location.href for guaranteed navigation and clean hydration
+      if (response.data.user.role === 'superadmin') {
+        window.location.href = "/superadmin";
+      } else if (response.data.user.role === 'admin') {
+        window.location.href = "/admin";
+      } else {
+        window.location.href = "/home";
+      }
 
     } catch (err: any) {
       setError(err.response?.data?.message || "Login gagal. Periksa kembali email dan password Anda.");
@@ -77,7 +82,7 @@ export default function LoginPage() {
           <div className="space-y-3">
             <div className="flex items-center justify-between ml-1">
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Kata Sandi</label>
-              <Link href="#" className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors">
+              <Link href="/forgot-password" className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors">
                 Lupa kata sandi?
               </Link>
             </div>

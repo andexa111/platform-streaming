@@ -6,8 +6,17 @@ import { Icon } from "@/components/ui/Icon";
 import { VideoSection } from "@/components/video/VideoSection";
 import { MovieBanner } from "@/components/home/MovieBanner";
 import { ALL_MOVIES, GENRES } from "@/constants/video-data";
+import { api } from "@/lib/api";
 
 export default function MemberHomePage() {
+  const [plans, setPlans] = React.useState<any[]>([]);
+  
+  React.useEffect(() => {
+    api.get("/membership-plans")
+      .then(res => setPlans(res.data.slice(0, 3))) // take top 3 or maybe all 4? Let's just use 3 for the home page design, or all if we can.
+      .catch(console.error);
+  }, []);
+
   return (
     <main className="min-h-screen bg-background text-foreground font-sans selection:bg-brand/30">
       {/* Dynamic Movie Banner - Featured Content */}
@@ -65,92 +74,45 @@ export default function MemberHomePage() {
               <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-brand">Tingkatkan Pengalaman Anda</h2>
               <p className="text-muted-foreground max-w-2xl mx-auto text-lg">Anda saat ini dalam masa uji coba. Berlangganan sekarang untuk membuka ribuan film premium tanpa iklan.</p>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-8 max-w-5xl mx-auto">
-              {/* Basic Plan */}
-              <div className="group relative p-4 md:p-8 rounded-2xl md:rounded-3xl border border-border bg-card shadow-sm hover:shadow-md transition-all duration-500 hover:-translate-y-2 flex flex-col col-span-1 overflow-hidden">
-                <div className="relative z-10 mb-6 md:mb-8">
-                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-muted border border-border flex items-center justify-center mb-4 md:mb-6 mr-auto group-hover:scale-110 transition-transform">
-                    <Icon name="chess-rook" className="w-5 h-5 md:w-6 md:h-6 text-[#CD7F32]" />
-                  </div>
-                  <h3 className="text-base md:text-2xl font-black mb-1 md:mb-2 text-foreground">Basic</h3>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-xl md:text-4xl font-black text-foreground">Rp 49rb</span>
-                    <span className="text-xs md:text-sm text-muted-foreground">/bln</span>
-                  </div>
-                </div>
-                <ul className="relative z-10 space-y-3 md:space-y-4 mb-6 md:mb-8 flex-1 text-muted-foreground">
-                  <li className="flex items-center gap-2 md:gap-3 text-xs md:text-base">
-                    <Icon name="check" className="w-4 h-4 md:w-5 md:h-5 text-[#CD7F32]" /> <span className="line-clamp-1">1 perangkat</span>
-                  </li>
-                  <li className="flex items-center gap-2 md:gap-3 text-xs md:text-base">
-                    <Icon name="check" className="w-4 h-4 md:w-5 md:h-5 text-[#CD7F32]" /> <span className="line-clamp-1">SD (720p)</span>
-                  </li>
-                </ul>
-                <Link
-                  href="/membership"
-                  className="flex items-center justify-center relative z-10 w-full py-3 md:py-4 rounded-xl text-xs md:text-base font-bold bg-secondary hover:bg-secondary/80 border border-border text-foreground transition-all"
-                >
-                  Pilih Paket
-                </Link>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 max-w-7xl mx-auto">
+              {plans.map((plan, index) => {
+                const icons = ["chess-pawn", "chess-rook", "chess-knight", "chess-queen"];
+                const colors = ["text-[#CD7F32]", "text-brand", "text-[#FFD700]", "text-purple-500"];
+                const borderColors = ["border-[#CD7F32]/50", "border-brand/50", "border-[#FFD700]/50", "border-purple-500/50"];
+                const isPopular = index === 2; // e.g. Paket 3
 
-              {/* Standard Plan */}
-              <div className="group relative p-4 md:p-8 rounded-2xl md:rounded-3xl border border-brand/50 bg-card shadow-[0_20px_50px_rgba(2,77,148,0.1)] hover:shadow-[0_30px_70px_rgba(2,77,148,0.2)] transform hover:-translate-y-2 transition-all duration-500 flex flex-col col-span-1">
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand text-white px-3 md:px-4 py-1 rounded-full text-[9px] md:text-xs font-black tracking-widest uppercase shadow-lg z-20">Terpopuler</div>
-                <div className="relative z-10 mb-6 md:mb-8 mt-1 md:mt-2">
-                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-brand/10 flex items-center justify-center mb-4 md:mb-6 mr-auto group-hover:scale-110 transition-transform shadow-inner border border-brand/20">
-                    <Icon name="chess-knight" className="w-5 h-5 md:w-6 md:h-6 text-brand" />
+                return (
+                  <div key={plan.id} className={`group relative p-4 md:p-8 rounded-2xl md:rounded-3xl border ${isPopular ? borderColors[index] + ' bg-card shadow-[0_20px_50px_rgba(2,77,148,0.1)] hover:-translate-y-2' : 'border-border bg-card shadow-sm hover:shadow-md hover:-translate-y-1'} transition-all duration-500 flex flex-col col-span-1 overflow-hidden`}>
+                    {isPopular && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand text-white px-3 md:px-4 py-1 rounded-full text-[9px] md:text-xs font-black tracking-widest uppercase shadow-lg z-20">Terpopuler</div>
+                    )}
+                    <div className="relative z-10 mb-6 md:mb-8 mt-1 md:mt-2">
+                      <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-muted border border-border flex items-center justify-center mb-4 md:mb-6 mr-auto group-hover:scale-110 transition-transform">
+                        <Icon name={icons[index % icons.length] as any} className={`w-5 h-5 md:w-6 md:h-6 ${colors[index % colors.length]}`} />
+                      </div>
+                      <h3 className="text-base md:text-2xl font-black mb-1 md:mb-2 text-foreground">{plan.name}</h3>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-xl md:text-3xl font-black text-foreground">Rp {(plan.discounted_price || plan.price) / 1000}rb</span>
+                        <span className="text-xs md:text-sm text-muted-foreground">/ {plan.duration_months} bln</span>
+                      </div>
+                    </div>
+                    <ul className="relative z-10 space-y-3 md:space-y-4 mb-6 md:mb-8 flex-1 text-muted-foreground">
+                      <li className="flex items-center gap-2 md:gap-3 text-xs md:text-base">
+                        <Icon name="check" className={`w-4 h-4 md:w-5 md:h-5 ${colors[index % colors.length]}`} /> <span className="line-clamp-1">{plan.max_devices} perangkat</span>
+                      </li>
+                      <li className="flex items-center gap-2 md:gap-3 text-xs md:text-base">
+                        <Icon name="check" className={`w-4 h-4 md:w-5 md:h-5 ${colors[index % colors.length]}`} /> <span className="line-clamp-1">{plan.quality}</span>
+                      </li>
+                    </ul>
+                    <Link
+                      href="/membership"
+                      className={`flex items-center justify-center relative z-10 w-full py-3 md:py-4 rounded-xl text-xs md:text-base font-bold transition-all ${isPopular ? 'bg-brand text-white hover:bg-brand/90 shadow-md' : 'bg-secondary hover:bg-secondary/80 border border-border text-foreground'}`}
+                    >
+                      Pilih Paket
+                    </Link>
                   </div>
-                  <h3 className="text-base md:text-2xl font-black mb-1 md:mb-2 text-foreground">Standard</h3>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-xl md:text-4xl font-black text-foreground">Rp 99rb</span>
-                    <span className="text-xs md:text-sm text-muted-foreground">/bln</span>
-                  </div>
-                </div>
-                <ul className="relative z-10 space-y-3 md:space-y-4 mb-6 md:mb-8 flex-1 text-foreground">
-                  <li className="flex items-center gap-2 md:gap-3 text-xs md:text-base">
-                    <Icon name="check" className="w-4 h-4 md:w-5 md:h-5 text-brand" /> <span className="line-clamp-1 font-medium">2 perangkat</span>
-                  </li>
-                  <li className="flex items-center gap-2 md:gap-3 text-xs md:text-base">
-                    <Icon name="check" className="w-4 h-4 md:w-5 md:h-5 text-brand" /> <span className="line-clamp-1 font-medium">FHD (1080p)</span>
-                  </li>
-                </ul>
-                <Link
-                  href="/membership"
-                  className="flex items-center justify-center relative z-10 w-full py-3 md:py-4 rounded-xl text-xs md:text-base font-black bg-brand text-white hover:bg-brand/90 transition-all shadow-md"
-                >
-                  Upgrade Sekarang
-                </Link>
-              </div>
-
-              {/* Premium Plan */}
-              <div className="group relative p-4 md:p-8 rounded-2xl md:rounded-3xl border border-[#FFD700]/50 bg-card shadow-[0_8px_30px_rgba(255,215,0,0.06)] hover:shadow-[0_30px_70px_rgba(255,215,0,0.15)] transition-all duration-500 hover:-translate-y-2 flex flex-col col-span-2 md:col-span-1 max-w-[calc(50%-6px)] md:max-w-none mx-auto w-full overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-[#FFD700]/5 to-transparent opacity-30 pointer-events-none" />
-                <div className="relative z-10 mb-6 md:mb-8">
-                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-yellow-500/10 flex items-center justify-center mb-4 md:mb-6 mr-auto group-hover:scale-110 transition-transform shadow-inner border border-yellow-500/20">
-                    <Icon name="chess-queen" className="w-5 h-5 md:w-6 md:h-6 text-[#FFD700]" />
-                  </div>
-                  <h3 className="text-base md:text-2xl font-black mb-1 md:mb-2 text-foreground">Premium</h3>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-xl md:text-4xl font-black text-foreground">Rp 149rb</span>
-                    <span className="text-xs md:text-sm text-muted-foreground">/bln</span>
-                  </div>
-                </div>
-                <ul className="relative z-10 space-y-3 md:space-y-4 mb-6 md:mb-8 flex-1 text-foreground">
-                  <li className="flex items-center gap-2 md:gap-3 text-xs md:text-base">
-                    <Icon name="check" className="w-4 h-4 md:w-5 md:h-5 text-[#FFD700]" /> <span className="line-clamp-1 font-semibold">4 perangkat</span>
-                  </li>
-                  <li className="flex items-center gap-2 md:gap-3 text-xs md:text-base">
-                    <Icon name="check" className="w-4 h-4 md:w-5 md:h-5 text-[#FFD700]" /> <span className="line-clamp-1 font-semibold">4K & HDR</span>
-                  </li>
-                </ul>
-                <Link
-                  href="/membership"
-                  className="flex items-center justify-center relative z-10 w-full py-3 md:py-4 rounded-xl text-xs md:text-base font-black bg-foreground text-background hover:opacity-90 transition-all shadow-md"
-                >
-                  Ambil Premium
-                </Link>
-              </div>
+                )
+              })}
             </div>
           </div>
         </section>
