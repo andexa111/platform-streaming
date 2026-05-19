@@ -17,6 +17,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import * as fs from 'fs';
+import * as path from 'path';
+import { exec } from 'child_process';
 
 @Controller('upload')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -135,7 +137,7 @@ export class UploadController {
     @UploadedFile(
       new ParseFilePipe({
         validators: [
-          new MaxFileSizeValidator({ maxSize: 100 * 1024 * 1024 }), // 100MB
+          new MaxFileSizeValidator({ maxSize: 500 * 1024 * 1024 }), // 500MB
           new FileTypeValidator({ 
             fileType: /video\/(mp4|webm|quicktime|x-matroska|avi)/,
             skipMagicNumbersValidation: true,
@@ -147,6 +149,53 @@ export class UploadController {
     file: Express.Multer.File,
   ) {
     const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/uploads/trailers/${file.filename}`;
+    
+    // Trigger background compression
+    compressVideoInBackground(file.path);
+
     return { url, fileName: file.filename };
   }
+}
+
+// Background helper for FFmpeg video compression (CRF 24, AAC audio)
+function compressVideoInBackground(filePath: string) {
+  const absoluteFilePath = path.resolve(filePath);
+
+  exec('ffmpeg -version', (err) => {
+    if (err) {
+      console.warn('⚠️ FFmpeg tidak terdeteksi pada sistem. File video disimpan tanpa kompresi.');
+      return;
+    }
+
+    const dir = path.dirname(absoluteFilePath);
+    const ext = path.extname(absoluteFilePath);
+    const base = path.basename(absoluteFilePath, ext);
+    const tempPath = path.join(dir, `${base}-temp.mp4`);
+
+    console.log(`🎬 Mulai kompresi video di background: ${absoluteFilePath} -> ${tempPath}`);
+
+    // Compress with x264, preset fast, CRF 24 (high quality, low size), AAC 128k audio
+    const cmd = `ffmpeg -y -i "${absoluteFilePath}" -vcodec libx264 -crf 24 -preset fast -acodec aac -b:a 128k "${tempPath}"`;
+
+    exec(cmd, (execErr) => {
+      if (execErr) {
+        console.error('❌ Gagal melakukan kompresi video:', execErr);
+        if (fs.existsSync(tempPath)) {
+          fs.unlinkSync(tempPath);
+        }
+        return;
+      }
+
+      console.log('✅ Kompresi video selesai. Menggantikan file asli...');
+      try {
+        fs.renameSync(tempPath, absoluteFilePath);
+        console.log('🎉 Sukses menggantikan file asli dengan file terkompresi.');
+      } catch (renameErr) {
+        console.error('❌ Gagal mengganti file asli:', renameErr);
+        if (fs.existsSync(tempPath)) {
+          fs.unlinkSync(tempPath);
+        }
+      }
+    });
+  });
 }

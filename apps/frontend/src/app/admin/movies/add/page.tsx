@@ -91,7 +91,7 @@ export default function AddMoviePage() {
       updateField("trailer_url", res.data.url);
     } catch (err: any) {
       console.error("Gagal upload trailer:", err);
-      alert(err.response?.data?.message || "Gagal mengunggah trailer. Pastikan formatnya video (mp4/webm) dan ukuran maks 100MB.");
+      alert(err.response?.data?.message || "Gagal mengunggah trailer. Pastikan formatnya video (mp4/webm) dan ukuran maks 500MB.");
     } finally {
       setUploadingTrailer(false);
     }
