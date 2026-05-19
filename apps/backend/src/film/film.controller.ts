@@ -154,7 +154,7 @@ export class FilmController {
    * User harus login, film harus punya video_id
    */
   @Get(':id/stream')
-  async getStreamUrl(@Param('id', ParseIntPipe) id: number) {
+  async getStreamUrl(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
     const film = await this.filmService.findOne(id);
 
     if (!film.video_id) {
@@ -178,7 +178,9 @@ export class FilmController {
       expiresAt: now + 30 * 1000,
     });
 
-    const dynamicUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/films/stream/play/${token}`;
+    const host = req.get('host') || 'localhost:3001';
+    const protocol = host.includes('localhost') ? 'http' : 'https';
+    const dynamicUrl = `${protocol}://${host}/films/stream/play/${token}`;
 
     return {
       filmId: film.id,
