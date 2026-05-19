@@ -11,7 +11,10 @@ import {
   ParseIntPipe,
   BadRequestException,
   Req,
+  Res,
 } from '@nestjs/common';
+import * as express from 'express';
+import { v4 as uuidv4 } from 'uuid';
 import { FilmService } from './film.service';
 import { CreateFilmDto } from './dto/create-film.dto';
 import { UpdateFilmDto } from './dto/update-film.dto';
@@ -19,6 +22,9 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { BunnyService } from '../bunny/bunny.service';
+
+// Short-lived stream tokens (in-memory)
+const streamSessions = new Map<string, { url: string; expiresAt: number }>();
 
 @Controller('films')
 export class FilmController {
@@ -90,6 +96,30 @@ export class FilmController {
   // ==================== USER ENDPOINTS ====================
 
   /**
+   * GET /films/stream/play/:token
+   * One-time-use dynamic redirect to Bunny Stream URL.
+   * Invalidates immediately upon fetch to block external downloads and copy-pasting.
+   */
+  @Get('stream/play/:token')
+  playStream(@Param('token') token: string, @Res() res: express.Response) {
+    const session = streamSessions.get(token);
+    if (!session) {
+      return res.status(403).send('Akses ditolak: Token tidak valid atau sudah kedaluwarsa');
+    }
+
+    if (Date.now() > session.expiresAt) {
+      streamSessions.delete(token);
+      return res.status(403).send('Akses ditolak: Sesi streaming telah kedaluwarsa');
+    }
+
+    // INVALIDATE IMMEDIATELY (one-time use)
+    streamSessions.delete(token);
+
+    // Redirect browser to the signed stream URL
+    return res.redirect(session.url);
+  }
+
+  /**
    * GET /films
    * Daftar film yang sudah published — PUBLIC (Guest bisa akses)
    * Query: ?search=judul&genre=comedy&page=1&limit=10
@@ -131,12 +161,29 @@ export class FilmController {
       throw new BadRequestException('Film ini belum memiliki video');
     }
 
-    const streamUrl = this.bunnyService.generateSignedStreamUrl(film.video_id);
+    const realStreamUrl = this.bunnyService.generateSignedStreamUrl(film.video_id);
+
+    // Clean up expired tokens to prevent leaks
+    const now = Date.now();
+    for (const [key, val] of streamSessions.entries()) {
+      if (now > val.expiresAt) {
+        streamSessions.delete(key);
+      }
+    }
+
+    // Generate random short-lived token (valid for 30s to initiate player load)
+    const token = uuidv4();
+    streamSessions.set(token, {
+      url: realStreamUrl,
+      expiresAt: now + 30 * 1000,
+    });
+
+    const dynamicUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/films/stream/play/${token}`;
 
     return {
       filmId: film.id,
       title: film.title,
-      stream_url: streamUrl,
+      stream_url: dynamicUrl,
     };
   }
 
