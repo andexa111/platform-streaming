@@ -123,7 +123,6 @@ export class FilmController {
    * Generate signed URL untuk streaming video film
    * User harus login, film harus punya video_id
    */
-  @UseGuards(JwtAuthGuard)
   @Get(':id/stream')
   async getStreamUrl(@Param('id', ParseIntPipe) id: number) {
     const film = await this.filmService.findOne(id);
