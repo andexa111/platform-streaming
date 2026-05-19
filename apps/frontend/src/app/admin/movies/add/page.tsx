@@ -67,6 +67,7 @@ export default function AddMoviePage() {
   const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
 
   const [uploadingTrailer, setUploadingTrailer] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const handleImageUpload = async (file: File, field: "poster_url" | "production_house_logo") => {
     const formData = new FormData();
@@ -83,11 +84,19 @@ export default function AddMoviePage() {
 
   const handleTrailerUpload = async (file: File) => {
     setUploadingTrailer(true);
+    setUploadProgress(0);
     const formData = new FormData();
     formData.append("file", file);
 
     try {
-      const res = await api.post("/upload/trailer", formData);
+      const res = await api.post("/upload/trailer", formData, {
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(percentCompleted);
+          }
+        }
+      });
       updateField("trailer_url", res.data.url);
     } catch (err: any) {
       console.error("Gagal upload trailer:", err);
@@ -379,15 +388,22 @@ export default function AddMoviePage() {
                   <label className="text-xs font-black uppercase text-foreground">Video Trailer Film (Local MP4/WebM)</label>
                   <div className="flex flex-col gap-3">
                     <label className="block cursor-pointer">
-                      <div className="w-full px-5 py-3.5 bg-secondary border border-border border-dashed rounded-2xl flex items-center gap-3 hover:border-brand transition-all">
-                        {uploadingTrailer ? (
-                          <div className="w-5 h-5 border-2 border-brand border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                          <Icon name="film" className="w-5 h-5 text-muted-foreground" />
+                      <div className="w-full px-5 py-3.5 bg-secondary border border-border border-dashed rounded-2xl flex flex-col gap-2 hover:border-brand transition-all">
+                        <div className="flex items-center gap-3">
+                          {uploadingTrailer ? (
+                            <div className="w-5 h-5 border-2 border-brand border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <Icon name="film" className="w-5 h-5 text-muted-foreground" />
+                          )}
+                          <span className="text-sm text-muted-foreground">
+                            {uploadingTrailer ? `Sedang mengunggah (${uploadProgress}%)...` : formData.trailer_url ? "Ganti Trailer Video" : "Klik untuk upload trailer..."}
+                          </span>
+                        </div>
+                        {uploadingTrailer && (
+                          <div className="w-full h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full overflow-hidden mt-1">
+                            <div className="h-full bg-brand transition-all duration-300" style={{ width: `${uploadProgress}%` }} />
+                          </div>
                         )}
-                        <span className="text-sm text-muted-foreground">
-                          {uploadingTrailer ? "Sedang mengunggah..." : formData.trailer_url ? "Ganti Trailer Video" : "Klik untuk upload trailer..."}
-                        </span>
                       </div>
                       <input
                         type="file"
