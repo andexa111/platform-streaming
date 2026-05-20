@@ -25,7 +25,7 @@ interface Film {
   scheduled_at?: string;
   createdAt: string;
   updatedAt: string;
-  genres: { id: number; title: string; slug: string }[];
+  genres: { id: number; name: string; slug: string }[];
   actors: { id: number; name: string }[];
 }
 
@@ -291,7 +291,7 @@ export default function AdminMoviesPage() {
                         <div className="flex flex-wrap gap-1">
                           {film.genres.length > 0 ? film.genres.map(g => (
                             <span key={g.id} className="text-[10px] font-black uppercase text-muted-foreground tracking-widest whitespace-nowrap">
-                              {g.title}
+                              {g.name}
                             </span>
                           )) : (
                             <span className="text-xs text-neutral-300">—</span>

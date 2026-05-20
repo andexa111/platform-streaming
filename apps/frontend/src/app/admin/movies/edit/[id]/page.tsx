@@ -20,7 +20,7 @@ interface Film {
   video_id?: string;
   is_published: boolean;
   is_deleted: boolean;
-  genres: { id: number; title: string }[];
+  genres: { id: number; name: string }[];
   actors: { id: number; name: string }[];
 }
 
