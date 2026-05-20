@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
 import { ALL_MOVIES } from "@/constants/video-data";
@@ -8,11 +8,63 @@ import { VideoCard } from "@/components/video/VideoCard";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
+import { useAuthStore } from "@/lib/auth-store";
 
 export default function WatchPage() {
   const { id } = useParams();
   const router = useRouter();
   const movieId = parseInt(id as string);
+  const { user } = useAuthStore();
+
+  // Anti-Screenshot & Screen Recording States
+  const [isTabActive, setIsTabActive] = useState(true);
+  const [watermarkPos, setWatermarkPos] = useState({ top: "20%", left: "20%" });
+
+  // Floating Watermark Position Randomizer
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const randomTop = Math.floor(Math.random() * 70) + 15;
+      const randomLeft = Math.floor(Math.random() * 60) + 20;
+      setWatermarkPos({ top: `${randomTop}%`, left: `${randomLeft}%` });
+    }, 7000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Tab active/focus listener
+  useEffect(() => {
+    const handleBlur = () => setIsTabActive(false);
+    const handleFocus = () => setIsTabActive(true);
+
+    window.addEventListener("blur", handleBlur);
+    window.addEventListener("focus", handleFocus);
+    return () => {
+      window.removeEventListener("blur", handleBlur);
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, []);
+
+  // Keyboard shortcut blockers
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "PrintScreen") {
+        e.preventDefault();
+        try {
+          navigator.clipboard.writeText("");
+        } catch (_) {}
+        alert("Pengambilan gambar layar (screenshot) tidak diperbolehkan demi melindungi hak cipta.");
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === "p") {
+        e.preventDefault();
+        alert("Pencetakan halaman dilindungi.");
+      }
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "S" || e.key === "s")) {
+        e.preventDefault();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const movie = ALL_MOVIES.find((m) => m.id === movieId) || ALL_MOVIES[0];
   const relatedMovies = ALL_MOVIES.filter((m) => m.id !== movie.id).slice(0, 6);
@@ -37,7 +89,35 @@ export default function WatchPage() {
         {/* Main Player Section */}
         <div className="xl:col-span-3 space-y-8">
           {/* Simulated Video Player */}
-          <div className="group relative aspect-video bg-black rounded-[2rem] overflow-hidden border border-white/5 shadow-2xl shadow-brand/10">
+          <div 
+            className="group relative aspect-video bg-black rounded-[2rem] overflow-hidden border border-white/5 shadow-2xl shadow-brand/10"
+            onContextMenu={(e) => e.preventDefault()}
+          >
+            {/* Floating Dynamic Watermark */}
+            <div 
+              className="absolute pointer-events-none select-none z-50 text-[10px] md:text-[12px] font-mono font-black text-white/10 uppercase tracking-widest transition-all duration-1000 ease-in-out whitespace-nowrap bg-black/5 px-3 py-1.5 rounded-lg border border-white/5"
+              style={{ 
+                top: watermarkPos.top, 
+                left: watermarkPos.left,
+                transform: "translate(-50%, -50%)",
+                textShadow: "1px 1px 0px rgba(0,0,0,0.5)"
+              }}
+            >
+              {user ? `${user.email} | Sinea Protected Session` : "Protected Guest Session | Sinea.id"}
+            </div>
+
+            {/* Blur Overlay when Tab is Unfocused */}
+            {!isTabActive && (
+              <div className="absolute inset-0 bg-neutral-950/95 backdrop-blur-md z-50 flex flex-col items-center justify-center text-center p-6 space-y-4 select-none">
+                <div className="w-14 h-14 bg-brand/10 border border-brand/20 rounded-full flex items-center justify-center text-brand animate-pulse">
+                  <Icon name="eye-off" className="w-7 h-7" />
+                </div>
+                <h3 className="text-lg font-bold text-white uppercase tracking-wider">Layar Dilindungi</h3>
+                <p className="text-xs text-neutral-400 max-w-sm">
+                  Pemutaran video dijeda secara otomatis karena jendela browser kehilangan fokus.
+                </p>
+              </div>
+            )}
             {/* Mock Video Content */}
             <div className="absolute inset-0 z-0">
               {movie.thumbnail && <Image src={movie.thumbnail} alt="Backdrop" fill className="object-cover opacity-20 blur-xl scale-110" />}
