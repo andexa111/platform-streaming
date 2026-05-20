@@ -6,7 +6,7 @@ import { Icon } from "@/components/ui/Icon";
 import { VideoCard } from "@/components/video/VideoCard";
 import { MovieBanner } from "@/components/home/MovieBanner";
 import { GENRES as GENRE_LIST } from "@/constants/video-data";
-import { api } from "@/lib/api";
+import { api, getMediaUrl } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { Video } from "@/types/video";
 
@@ -37,8 +37,8 @@ function SecretCatalogContent() {
     return {
       id: f.id,
       title: f.title,
-      thumbnail: f.poster_url || "",
-      backdrop: f.poster_url || "",
+      thumbnail: getMediaUrl(f.poster_url) || "",
+      backdrop: getMediaUrl(f.poster_url) || "",
       genre: f.genres && f.genres.length > 0 ? f.genres[0].name : "",
       rating: "4.5",
       quality: "4K UHD",

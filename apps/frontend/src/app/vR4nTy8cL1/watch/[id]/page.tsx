@@ -285,7 +285,7 @@ export default function SecretWatchPage() {
                 {movie?.production_house_logo && (
                   <div className="w-10 h-10 rounded-xl bg-white border border-neutral-800 p-1.5 flex items-center justify-center overflow-hidden flex-shrink-0">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={movie.production_house_logo} alt="Studio Logo" className="w-full h-full object-contain" />
+                    <img src={getMediaUrl(movie.production_house_logo)} alt="Studio Logo" className="w-full h-full object-contain" />
                   </div>
                 )}
                 <p className="font-bold text-sm md:text-base text-neutral-200">{movie?.production_house || "Lalakon Originals"}</p>
@@ -341,7 +341,7 @@ export default function SecretWatchPage() {
               <div className="relative aspect-[2/3] w-full bg-neutral-800 overflow-hidden">
                 {m.poster_url ? (
                   <Image 
-                    src={m.poster_url} 
+                    src={getMediaUrl(m.poster_url)} 
                     alt={m.title} 
                     fill 
                     className="object-cover group-hover:scale-105 transition-transform duration-500" 
