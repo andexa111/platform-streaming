@@ -439,7 +439,7 @@ export default function EditMoviePage() {
             {formData.poster_url ? (
               <div className="aspect-[2/3] w-full rounded-2xl overflow-hidden border border-neutral-200 shadow-sm">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={formData.poster_url} alt="Poster" className="w-full h-full object-cover" />
+                <img src={getMediaUrl(formData.poster_url)} alt="Poster" className="w-full h-full object-cover" />
               </div>
             ) : (
               <div className="aspect-[2/3] w-full rounded-2xl bg-neutral-100 border-2 border-dashed border-neutral-200 flex items-center justify-center">

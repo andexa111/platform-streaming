@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
 import { ButtonAction } from "@/components/ui/ButtonAction";
 import { cn } from "@/lib/utils";
-import { api } from "@/lib/api";
+import { api, getMediaUrl } from "@/lib/api";
 
 interface Film {
   id: number;
@@ -275,7 +275,7 @@ export default function AdminMoviesPage() {
                           {/* Mini Thumbnail */}
                           <div className="w-10 h-14 rounded-md bg-neutral-200 overflow-hidden relative shadow-sm group-hover:shadow-md transition-all flex-shrink-0">
                             {film.poster_url ? (
-                              <Image src={film.poster_url} alt={film.title} fill className="object-cover" />
+                              <Image src={getMediaUrl(film.poster_url)} alt={film.title} fill className="object-cover" />
                             ) : (
                               <div className="w-full h-full bg-neutral-100 flex items-center justify-center">
                                 <Icon name="image" className="w-4 h-4 text-neutral-300" />

@@ -482,7 +482,7 @@ export default function AddMoviePage() {
                     <p className="text-[10px] font-black uppercase text-foreground tracking-widest mb-3">Poster</p>
                     <div className="w-24 h-36 rounded-lg overflow-hidden border border-border">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={formData.poster_url} alt="Poster" className="w-full h-full object-cover" />
+                      <img src={getMediaUrl(formData.poster_url)} alt="Poster" className="w-full h-full object-cover" />
                     </div>
                   </div>
                 )}
