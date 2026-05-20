@@ -112,12 +112,44 @@ export default function BannersPage() {
         clip_start: Number(clipStart),
         clip_end: Number(clipEnd),
       });
+
+      // Update local featured state so user doesn't lose unsaved banner list
+      setFeatured((prev) =>
+        prev.map((item) => {
+          if (item.filmId === editingClipFilmId) {
+            return {
+              ...item,
+              film: {
+                ...item.film,
+                clip_start: Number(clipStart),
+                clip_end: Number(clipEnd),
+              },
+            };
+          }
+          return item;
+        })
+      );
+
+      // Update local allFilms list
+      setAllFilms((prev) =>
+        prev.map((f) => {
+          if (f.id === editingClipFilmId) {
+            return {
+              ...f,
+              clip_start: Number(clipStart),
+              clip_end: Number(clipEnd),
+            };
+          }
+          return f;
+        })
+      );
+
       setEditingClipFilmId(null);
       setClipStart("");
       setClipEnd("");
-      fetchData();
     } catch (err) {
       console.error("Failed to save clip", err);
+      alert("Gagal menyimpan clip highlight");
     }
   };
 
