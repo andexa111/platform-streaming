@@ -1,12 +1,25 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Icon } from "@/components/ui/Icon";
 import { ButtonAction } from "@/components/ui/ButtonAction";
-import { GENRES as INITIAL_GENRES } from "@/constants/video-data";
 import { cn } from "@/lib/utils";
+import { api } from "@/lib/api";
 
-// --- Components ---
+const colors = [
+  "from-emerald-500/20 to-teal-500/20",
+  "from-rose-500/20 to-pink-500/20",
+  "from-blue-500/20 to-indigo-500/20",
+  "from-amber-500/20 to-orange-500/20",
+  "from-purple-500/20 to-fuchsia-500/20",
+  "from-violet-500/20 to-purple-500/20",
+  "from-cyan-500/20 to-blue-500/20",
+  "from-neutral-500/20 to-slate-500/20"
+];
+
+const getGenreColor = (id: number) => {
+  return colors[id % colors.length];
+};
 
 const Modal = ({ isOpen, onClose, title, children }: any) => {
   if (!isOpen) return null;
@@ -27,33 +40,51 @@ const Modal = ({ isOpen, onClose, title, children }: any) => {
 };
 
 export default function AdminGenresPage() {
-  const [genres, setGenres] = useState(INITIAL_GENRES);
+  const [genres, setGenres] = useState<{ id: number; name: string; slug: string }[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingGenre, setEditingGenre] = useState<any>(null);
   const [genreName, setGenreName] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
+  const fetchGenres = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get("/genre");
+      setGenres(res.data || []);
+    } catch (err) {
+      console.error("Gagal mengambil data genre:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchGenres();
+  }, []);
+
   const filteredGenres = useMemo(() => {
-    return genres.filter(g => g.title.toLowerCase().includes(searchQuery.toLowerCase()));
+    return genres.filter(g => g.name.toLowerCase().includes(searchQuery.toLowerCase()));
   }, [genres, searchQuery]);
 
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!genreName.trim()) return;
 
-    const newGenre = { 
-      title: genreName, 
-      emoji: "",
-      color: "from-neutral-600/20" 
-    };
+    const slug = genreName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
-    if (editingGenre) {
-      setGenres(genres.map(g => g.title === editingGenre.title ? newGenre : g));
-    } else {
-      setGenres([...genres, newGenre]);
+    try {
+      if (editingGenre) {
+        await api.patch(`/genre/${editingGenre.id}`, { name: genreName, slug });
+      } else {
+        await api.post("/genre", { name: genreName, slug });
+      }
+      fetchGenres();
+      setIsModalOpen(false);
+    } catch (err: any) {
+      console.error("Gagal menyimpan genre:", err);
+      alert(err.response?.data?.message || "Gagal menyimpan genre");
     }
-    setIsModalOpen(false);
   };
 
   const handleOpenAdd = () => {
@@ -64,13 +95,19 @@ export default function AdminGenresPage() {
 
   const handleOpenEdit = (genre: any) => {
     setEditingGenre(genre);
-    setGenreName(genre.title);
+    setGenreName(genre.name);
     setIsModalOpen(true);
   };
 
-  const handleDelete = (title: string) => {
-    if (confirm(`Apakah Anda yakin ingin menghapus genre "${title}"?`)) {
-      setGenres(genres.filter(g => g.title !== title));
+  const handleDelete = async (genre: any) => {
+    if (confirm(`Apakah Anda yakin ingin menghapus genre "${genre.name}"?`)) {
+      try {
+        await api.delete(`/genre/${genre.id}`);
+        fetchGenres();
+      } catch (err: any) {
+        console.error("Gagal menghapus genre:", err);
+        alert(err.response?.data?.message || "Gagal menghapus genre");
+      }
     }
   };
 
@@ -80,13 +117,13 @@ export default function AdminGenresPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-1">
           <h1 className="text-3xl font-black text-foreground tracking-tight uppercase italic">Kelola Genre</h1>
-          <p className="text-muted-foreground text-sm font-medium">Tambah kategori film dengan mudah menggunakan Emoji sebagai icon.</p>
+          <p className="text-muted-foreground text-sm font-medium">Tambah kategori film dengan mudah.</p>
         </div>
         <button 
           onClick={handleOpenAdd}
           className="flex items-center justify-center gap-2 px-6 py-3 bg-brand text-white rounded-xl font-bold hover:bg-brand-dark transition-all shadow-lg shadow-brand/20 active:scale-95 whitespace-nowrap"
         >
-          <Icon name="user-plus" className="w-4 h-4" />
+          <Icon name="tag" className="w-4 h-4" />
           <span className="uppercase tracking-widest text-xs font-black">Tambah Genre</span>
         </button>
       </div>
@@ -116,53 +153,60 @@ export default function AdminGenresPage() {
           <span className="font-black uppercase tracking-widest text-[10px]">Add New Genre</span>
         </button>
 
-        {filteredGenres.map((genre) => (
-          <div 
-            key={genre.title}
-            className="group bg-card rounded-[2rem] border border-border p-8 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all relative overflow-hidden"
-          >
-            {/* Visual Accent */}
-            <div className={cn("absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r", genre.color || "from-neutral-200")} />
-            
-            <div className="flex flex-col gap-6">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="bg-secondary w-14 h-14 rounded-2xl flex items-center justify-center border border-border shadow-inner">
-                    <Icon name="tag" className="w-6 h-6 text-muted-foreground" />
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className={cn(
-                      "font-black text-foreground group-hover:text-brand transition-all uppercase line-clamp-1",
-                      genre.title.length > 12 ? "text-sm" : 
-                      genre.title.length > 8 ? "text-base" : 
-                      "text-xl"
-                    )}>
-                      {genre.title}
-                    </h3>
-                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
-                      Kategori Aktif
-                    </p>
+        {loading ? (
+          <div className="col-span-full py-12 flex flex-col items-center justify-center">
+            <div className="w-8 h-8 rounded-full border-4 border-brand/30 border-t-brand animate-spin" />
+            <p className="text-xs text-muted-foreground mt-2">Memuat data genre...</p>
+          </div>
+        ) : (
+          filteredGenres.map((genre) => (
+            <div 
+              key={genre.id}
+              className="group bg-card rounded-[2rem] border border-border p-8 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all relative overflow-hidden"
+            >
+              {/* Visual Accent */}
+              <div className={cn("absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r", getGenreColor(genre.id))} />
+              
+              <div className="flex flex-col gap-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="bg-secondary w-14 h-14 rounded-2xl flex items-center justify-center border border-border shadow-inner">
+                      <Icon name="tag" className="w-6 h-6 text-muted-foreground" />
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className={cn(
+                        "font-black text-foreground group-hover:text-brand transition-all uppercase line-clamp-1",
+                        genre.name.length > 12 ? "text-sm" : 
+                        genre.name.length > 8 ? "text-base" : 
+                        "text-xl"
+                      )}>
+                        {genre.name}
+                      </h3>
+                      <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                        Kategori Aktif
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="pt-2">
-                <ButtonAction 
-                  onEdit={() => handleOpenEdit(genre)}
-                  onDelete={() => handleDelete(genre.title)}
-                  className="justify-between"
-                />
+                <div className="pt-2">
+                  <ButtonAction 
+                    onEdit={() => handleOpenEdit(genre)}
+                    onDelete={() => handleDelete(genre)}
+                    className="justify-between"
+                  />
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
 
       {/* Modal CRUD */}
       <Modal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)}
-        title={editingGenre ? `Edit Genre: ${editingGenre.title}` : "Tambah Genre Baru"}
+        title={editingGenre ? `Edit Genre: ${editingGenre.name}` : "Tambah Genre Baru"}
       >
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
