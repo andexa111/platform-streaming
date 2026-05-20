@@ -251,7 +251,6 @@ export default function AdminMoviesPage() {
                   </th>
                   <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest">Film</th>
                   <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-center">Genre</th>
-                  <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-center">Durasi</th>
                   <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-center">Video</th>
                   <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-center">Status</th>
                   <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-right">Aksi</th>
@@ -298,11 +297,6 @@ export default function AdminMoviesPage() {
                             <span className="text-xs text-neutral-300">—</span>
                           )}
                         </div>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
-                          {film.duration ? `${film.duration} min` : "—"}
-                        </span>
                       </td>
                       <td className="px-6 py-4">
                         {film.video_id ? (

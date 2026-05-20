@@ -39,7 +39,7 @@ export default function EditMoviePage() {
     description: "",
     director: "",
     producer: "",
-    duration: "",
+    genre: "",
     release_year: "",
     video_id: "",
     trailer_url: "",
@@ -47,7 +47,18 @@ export default function EditMoviePage() {
     production_house_logo: "",
     poster_url: "",
     is_published: false,
+    actors: [] as string[],
   });
+
+  const [genresList, setGenresList] = useState<{ id: number; name: string }[]>([]);
+  const [actorInput, setActorInput] = useState("");
+
+  // Fetch genres
+  useEffect(() => {
+    api.get("/genre")
+      .then((res) => setGenresList(res.data))
+      .catch(console.error);
+  }, []);
 
   // Fetch film data
   useEffect(() => {
@@ -60,7 +71,7 @@ export default function EditMoviePage() {
           description: film.description || "",
           director: film.director || "",
           producer: film.producer || "",
-          duration: film.duration?.toString() || "",
+          genre: film.genres && film.genres.length > 0 ? film.genres[0].id.toString() : "",
           release_year: film.release_year?.toString() || "",
           video_id: film.video_id || "",
           trailer_url: film.trailer_url || "",
@@ -68,6 +79,7 @@ export default function EditMoviePage() {
           production_house: (film as any).production_house || "",
           production_house_logo: (film as any).production_house_logo || "",
           is_published: film.is_published,
+          actors: film.actors ? film.actors.map((a) => a.name) : [],
         });
       } catch (err) {
         console.error("Gagal memuat data film:", err);
@@ -79,8 +91,23 @@ export default function EditMoviePage() {
     fetchFilm();
   }, [filmId]);
 
-  const updateField = (field: string, value: string | boolean) => {
+  const updateField = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleAddActor = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const newActor = actorInput.trim();
+      if (newActor && !formData.actors.includes(newActor)) {
+        updateField("actors", [...formData.actors, newActor]);
+      }
+      setActorInput("");
+    }
+  };
+
+  const handleRemoveActor = (actorToRemove: string) => {
+    updateField("actors", formData.actors.filter(a => a !== actorToRemove));
   };
 
   const [uploadingTrailer, setUploadingTrailer] = useState(false);
@@ -134,7 +161,6 @@ export default function EditMoviePage() {
         description: formData.description || undefined,
         director: formData.director || undefined,
         producer: formData.producer || undefined,
-        duration: formData.duration ? parseInt(formData.duration) : undefined,
         release_year: formData.release_year ? parseInt(formData.release_year) : undefined,
         video_id: formData.video_id || undefined,
         trailer_url: formData.trailer_url || undefined,
@@ -142,6 +168,8 @@ export default function EditMoviePage() {
         production_house: formData.production_house || undefined,
         production_house_logo: formData.production_house_logo || undefined,
         is_published: formData.is_published,
+        genreIds: formData.genre ? [parseInt(formData.genre)] : undefined,
+        actorNames: formData.actors.length > 0 ? formData.actors : undefined,
       };
 
       await api.patch(`/films/${filmId}`, payload);
@@ -250,14 +278,29 @@ export default function EditMoviePage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase text-neutral-400">Durasi (menit)</label>
-              <input 
-                type="number" 
-                placeholder="90"
-                className="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm"
-                value={formData.duration}
-                onChange={(e) => updateField("duration", e.target.value)}
-              />
+              <label className="text-xs font-black uppercase text-neutral-400">Genre</label>
+              <div className="relative">
+                <select
+                  className={cn(
+                    "w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm appearance-none pr-12 text-neutral-900",
+                    !formData.genre ? "opacity-50" : "opacity-100",
+                  )}
+                  value={formData.genre}
+                  onChange={(e) => updateField("genre", e.target.value)}
+                >
+                  <option value="" disabled>
+                    Pilih Genre
+                  </option>
+                  {genresList.map((g) => (
+                    <option key={g.id} value={g.id.toString()} className="bg-white text-neutral-900">
+                      {g.name}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-neutral-400">
+                  <Icon name="chevron-down" className="w-5 h-5" />
+                </div>
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -269,6 +312,32 @@ export default function EditMoviePage() {
                 value={formData.release_year}
                 onChange={(e) => updateField("release_year", e.target.value)}
               />
+            </div>
+
+            <div className="space-y-2 md:col-span-2">
+              <label className="text-xs font-black uppercase text-neutral-400">Aktor</label>
+              <div className="p-3 bg-neutral-50 border border-neutral-200 rounded-2xl focus-within:border-brand transition-all">
+                {formData.actors.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {formData.actors.map((actor) => (
+                      <span key={actor} className="inline-flex items-center gap-1 px-3 py-1.5 bg-brand text-white rounded-xl text-xs font-bold">
+                        {actor}
+                        <button type="button" onClick={() => handleRemoveActor(actor)} className="hover:text-red-400 ml-1 transition-colors">
+                          <Icon name="x" className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <input
+                  type="text"
+                  placeholder={formData.actors.length === 0 ? "Ketik nama aktor lalu tekan Enter..." : "Tambah aktor lain..."}
+                  className="w-full bg-transparent focus:outline-none text-sm px-2 py-1.5 text-neutral-900 placeholder:text-neutral-400"
+                  value={actorInput}
+                  onChange={(e) => setActorInput(e.target.value)}
+                  onKeyDown={handleAddActor}
+                />
+              </div>
             </div>
 
             <div className="space-y-2 md:col-span-2">
