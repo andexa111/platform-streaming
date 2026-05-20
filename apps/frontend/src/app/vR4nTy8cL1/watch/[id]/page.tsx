@@ -79,19 +79,19 @@ export default function SecretWatchPage() {
   const isTrailerLocal = movie?.trailer_url?.startsWith("http") || movie?.trailer_url?.includes("/uploads");
 
   return (
-    <main className="min-h-screen bg-neutral-950 text-white selection:bg-brand/30 pb-24 font-sans">
+    <main className="min-h-screen bg-background text-foreground selection:bg-brand/30 pb-24 font-sans transition-colors duration-300">
       {/* Top Navigation Bar */}
-      <div className="bg-neutral-900/80 backdrop-blur-md border-b border-neutral-800/60 sticky top-0 z-50">
+      <div className="bg-card/80 backdrop-blur-md border-b border-border sticky top-0 z-50">
         <div className="max-w-[1600px] mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button 
               onClick={() => router.push("/vR4nTy8cL1")} 
-              className="p-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 transition-all text-white flex items-center gap-2 text-xs font-bold pr-4 group"
+              className="p-2 rounded-xl bg-muted hover:bg-muted/80 transition-all text-foreground flex items-center gap-2 text-xs font-bold pr-4 group border border-border"
             >
               <Icon name="arrow-right" className="w-4 h-4 rotate-180 group-hover:-translate-x-1 transition-transform" />
               Secret Dashboard
             </button>
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-neutral-500">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
               <Icon name="chevron-right" className="w-3 h-3" />
               <span className="text-brand line-clamp-1">{movie?.title}</span>
             </div>
@@ -115,14 +115,14 @@ export default function SecretWatchPage() {
 
       {/* Hero Media Section (Backdrop / Video Player) */}
       <div className="relative">
-        <section className="relative w-full h-[60vh] md:h-[80vh] overflow-hidden bg-black border-b border-neutral-800/40">
+        <section className="relative w-full h-[60vh] md:h-[80vh] overflow-hidden bg-black border-b border-border">
           {playMode === "none" ? (
             <>
               {/* Backdrop Poster Image with Gradients */}
               <div className="absolute inset-0 z-0 animate-in fade-in zoom-in-105 duration-1000">
-                <div className="absolute inset-0 bg-gradient-to-r from-neutral-950 via-neutral-950/40 to-transparent z-10" />
-                <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-transparent to-transparent z-10" />
-                <div className="absolute inset-0 bg-neutral-950/30 z-10" />
+                <div className="absolute inset-0 bg-gradient-to-r from-background via-background/40 to-transparent z-10" />
+                <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent z-10" />
+                <div className="absolute inset-0 bg-background/30 z-10" />
 
                 {movie?.poster_url ? (
                   <Image
@@ -133,7 +133,7 @@ export default function SecretWatchPage() {
                     className="object-cover object-center opacity-85"
                   />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-neutral-900 via-neutral-950 to-brand/10" />
+                  <div className="w-full h-full bg-gradient-to-br from-muted via-background to-brand/10" />
                 )}
               </div>
 
@@ -145,16 +145,16 @@ export default function SecretWatchPage() {
                     <span className="px-3 py-1 rounded bg-brand/90 text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-brand/20">
                       {movie?.quality || "4K UHD"}
                     </span>
-                    <span className="text-neutral-400 text-xs font-bold">
+                    <span className="text-muted-foreground text-xs font-bold">
                       {movie?.release_year || "2026"}
                     </span>
                     {movie?.duration && (
-                      <span className="text-neutral-400 text-xs font-bold flex items-center gap-1">
+                      <span className="text-muted-foreground text-xs font-bold flex items-center gap-1">
                         <Icon name="clock" className="w-3.5 h-3.5" />
                         {movie.duration} Menit
                       </span>
                     )}
-                    <div className="w-1.5 h-1.5 rounded-full bg-neutral-700" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-border" />
                     <div className="flex gap-2">
                       {movie?.genres?.map((g: any) => (
                         <span key={g.id} className="text-brand text-xs font-black uppercase tracking-wider">
@@ -165,12 +165,12 @@ export default function SecretWatchPage() {
                   </div>
 
                   {/* Movie Title */}
-                  <h1 className="text-4xl md:text-7xl font-black tracking-tight leading-tight uppercase italic text-transparent bg-clip-text bg-gradient-to-b from-white to-neutral-300">
+                  <h1 className="text-4xl md:text-7xl font-black tracking-tight leading-tight uppercase italic text-transparent bg-clip-text bg-gradient-to-b from-foreground to-foreground/75">
                     {movie?.title}
                   </h1>
 
                   {/* Synopsis snippet */}
-                  <p className="text-neutral-300 text-sm md:text-base leading-relaxed line-clamp-3 font-medium max-w-3xl">
+                  <p className="text-muted-foreground text-sm md:text-base leading-relaxed line-clamp-3 font-medium max-w-3xl">
                     {movie?.description || "Tidak ada deskripsi yang tersedia untuk film ini."}
                   </p>
 
@@ -186,7 +186,7 @@ export default function SecretWatchPage() {
                     {movie?.trailer_url && (
                       <button
                         onClick={() => setPlayMode("trailer")}
-                        className="flex items-center justify-center gap-3 px-8 py-4 bg-neutral-900/60 hover:bg-neutral-800/80 backdrop-blur-md border border-neutral-700/80 text-white rounded-full font-black text-sm uppercase tracking-widest transition-all hover:scale-105 active:scale-95"
+                        className="flex items-center justify-center gap-3 px-8 py-4 bg-muted/60 hover:bg-muted/80 backdrop-blur-md border border-border text-foreground rounded-full font-black text-sm uppercase tracking-widest transition-all hover:scale-105 active:scale-95"
                       >
                         <Icon name="film" className="w-4 h-4" />
                         Lihat Trailer
@@ -221,7 +221,7 @@ export default function SecretWatchPage() {
                     <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center justify-center text-red-500">
                       <Icon name="film" className="w-8 h-8" />
                     </div>
-                    <h3 className="text-xl font-bold">Stream Tidak Tersedia</h3>
+                    <h3 className="text-xl font-bold text-white">Stream Tidak Tersedia</h3>
                     <p className="text-sm text-neutral-400 max-w-md leading-relaxed">
                       Video asli belum ditautkan ke film ini di BunnyCDN, atau sesi otentikasi Anda telah berakhir.
                     </p>
@@ -261,46 +261,46 @@ export default function SecretWatchPage() {
         {/* Left columns: Synopsis & Details */}
         <div className="xl:col-span-3 space-y-12">
           <div className="space-y-6">
-            <h2 className="text-2xl font-black uppercase italic tracking-wider flex items-center gap-3 text-white">
+            <h2 className="text-2xl font-black uppercase italic tracking-wider flex items-center gap-3 text-foreground">
               <div className="w-1.5 h-6 bg-brand rounded-full" />
               Sinopsis Film
             </h2>
-            <p className="text-neutral-400 text-base md:text-lg leading-relaxed font-light">
+            <p className="text-muted-foreground text-base md:text-lg leading-relaxed font-light">
               {movie?.description || "Tidak ada deskripsi/sinopsis yang tersedia untuk film ini."}
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 pt-8 border-t border-neutral-800/80">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 pt-8 border-t border-border">
             <div className="space-y-2">
-              <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Sutradara</span>
-              <p className="font-bold text-sm md:text-base text-neutral-200">{movie?.director || "—"}</p>
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Sutradara</span>
+              <p className="font-bold text-sm md:text-base text-foreground">{movie?.director || "—"}</p>
             </div>
             <div className="space-y-2">
-              <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Produser</span>
-              <p className="font-bold text-sm md:text-base text-neutral-200">{movie?.producer || "—"}</p>
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Produser</span>
+              <p className="font-bold text-sm md:text-base text-foreground">{movie?.producer || "—"}</p>
             </div>
             <div className="space-y-2">
-              <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Rumah Produksi</span>
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Rumah Produksi</span>
               <div className="flex items-center gap-3">
                 {movie?.production_house_logo && (
-                  <div className="w-10 h-10 rounded-xl bg-white border border-neutral-800 p-1.5 flex items-center justify-center overflow-hidden flex-shrink-0">
+                  <div className="w-10 h-10 rounded-xl bg-card border border-border p-1.5 flex items-center justify-center overflow-hidden flex-shrink-0">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={getMediaUrl(movie.production_house_logo)} alt="Studio Logo" className="w-full h-full object-contain" />
                   </div>
                 )}
-                <p className="font-bold text-sm md:text-base text-neutral-200">{movie?.production_house || "Lalakon Originals"}</p>
+                <p className="font-bold text-sm md:text-base text-foreground">{movie?.producer || "Lalakon Originals"}</p>
               </div>
             </div>
             <div className="space-y-2">
-              <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Tahun Rilis</span>
-              <p className="font-bold text-sm md:text-base text-neutral-200">{movie?.release_year || "—"}</p>
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Tahun Rilis</span>
+              <p className="font-bold text-sm md:text-base text-foreground">{movie?.release_year || "—"}</p>
             </div>
           </div>
         </div>
 
         {/* Right column: Pemeran Utama / Cast */}
-        <div className="space-y-8 bg-neutral-900/40 p-8 rounded-3xl border border-neutral-800/60 backdrop-blur-sm h-fit">
-          <h3 className="text-lg font-black uppercase italic tracking-wider border-b border-neutral-800/80 pb-4 text-white">
+        <div className="space-y-8 bg-card/40 p-8 rounded-3xl border border-border backdrop-blur-sm h-fit">
+          <h3 className="text-lg font-black uppercase italic tracking-wider border-b border-border pb-4 text-foreground">
             Pemeran Utama
           </h3>
           <div className="space-y-6">
@@ -308,15 +308,15 @@ export default function SecretWatchPage() {
               movie.actors.map((actor: any) => (
                 <div key={actor.id} className="group">
                   <div className="space-y-1">
-                    <p className="text-sm font-bold text-neutral-200 group-hover:text-brand transition-colors">
+                    <p className="text-sm font-bold text-foreground group-hover:text-brand transition-colors">
                       {actor.name}
                     </p>
-                    <p className="text-[9px] text-neutral-500 uppercase tracking-widest font-black">Aktor / Aktris</p>
+                    <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-black">Aktor / Aktris</p>
                   </div>
                 </div>
               ))
             ) : (
-              <p className="text-xs text-neutral-500 italic">Tidak ada daftar pemeran.</p>
+              <p className="text-xs text-muted-foreground italic">Tidak ada daftar pemeran.</p>
             )}
           </div>
         </div>
@@ -324,8 +324,8 @@ export default function SecretWatchPage() {
 
       {/* Related Content / Film Serupa */}
       <section className="max-w-[1600px] mx-auto px-6 mt-20 space-y-8">
-        <div className="flex items-center justify-between border-b border-neutral-800/60 pb-4">
-          <h2 className="text-xl font-black tracking-wider uppercase italic flex items-center gap-3 text-white">
+        <div className="flex items-center justify-between border-b border-border pb-4">
+          <h2 className="text-xl font-black tracking-wider uppercase italic flex items-center gap-3 text-foreground">
             <div className="w-1.5 h-6 bg-brand rounded-full" />
             Film Serupa
           </h2>
@@ -336,9 +336,9 @@ export default function SecretWatchPage() {
             <Link 
               key={m.id} 
               href={`/vR4nTy8cL1/watch/${m.id}`} 
-              className="group flex flex-col bg-neutral-900 border border-neutral-800/60 hover:border-brand/40 transition-all rounded-2xl overflow-hidden cursor-pointer shadow-sm block"
+              className="group flex flex-col bg-card border border-border hover:border-brand/40 transition-all rounded-2xl overflow-hidden cursor-pointer shadow-sm block"
             >
-              <div className="relative aspect-[2/3] w-full bg-neutral-800 overflow-hidden">
+              <div className="relative aspect-[2/3] w-full bg-muted overflow-hidden">
                 {m.poster_url ? (
                   <Image 
                     src={getMediaUrl(m.poster_url)} 
@@ -347,7 +347,7 @@ export default function SecretWatchPage() {
                     className="object-cover group-hover:scale-105 transition-transform duration-500" 
                   />
                 ) : (
-                  <div className="absolute inset-0 flex items-center justify-center text-neutral-600 font-bold text-xs">
+                  <div className="absolute inset-0 flex items-center justify-center text-muted-foreground font-bold text-xs">
                     ?
                   </div>
                 )}
@@ -357,10 +357,10 @@ export default function SecretWatchPage() {
                 </div>
               </div>
               <div className="p-4 flex flex-col gap-1.5">
-                <h3 className="text-sm font-bold text-white line-clamp-1 group-hover:text-brand transition-colors uppercase tracking-tight">
+                <h3 className="text-sm font-bold text-foreground line-clamp-1 group-hover:text-brand transition-colors uppercase tracking-tight">
                   {m.title}
                 </h3>
-                <div className="flex items-center justify-between text-[10px] text-neutral-500 font-bold">
+                <div className="flex items-center justify-between text-[10px] text-muted-foreground font-bold">
                   <span>{m.release_year || "—"}</span>
                   {m.genres && m.genres.length > 0 && (
                     <span className="text-brand/80">{m.genres[0].name}</span>
