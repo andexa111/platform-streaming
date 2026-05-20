@@ -15,4 +15,6 @@ export interface Video {
   producer?: string;
   releaseYear?: string | number;
   actors?: string[];
+  clipStart?: number;
+  clipEnd?: number;
 }

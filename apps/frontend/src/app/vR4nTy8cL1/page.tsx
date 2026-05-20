@@ -37,6 +37,8 @@ export default function SecretUserHomePage() {
       productionHouse: f.production_house || "LALAKON",
       productionHouseLogo: getMediaUrl(f.production_house_logo) || undefined,
       trailerUrl: getMediaUrl(f.trailer_url) || undefined,
+      clipStart: f.clip_start || undefined,
+      clipEnd: f.clip_end || undefined,
     };
   };
 

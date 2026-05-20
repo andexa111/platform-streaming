@@ -31,12 +31,20 @@ export function MovieBanner({ movies, autoPlayInterval = 5000, basePath = "/watc
     setTimeout(() => setIsAnimating(false), 500);
   };
 
-  // Manage auto-slide interval and limit video to 10s
+  // Manage auto-slide interval and limit video to 10s or custom clip duration
   useEffect(() => {
     if (!movies || movies.length === 0) return;
     const currentMovie = movies[currentIndex];
-    // If it has a trailer, set timeout to 10 seconds. Else use autoPlayInterval (5s)
-    const delay = currentMovie?.trailerUrl ? 10000 : autoPlayInterval;
+    
+    let delay = autoPlayInterval;
+    if (currentMovie?.trailerUrl) {
+      if (currentMovie.clipStart !== undefined && currentMovie.clipEnd !== undefined) {
+        delay = (currentMovie.clipEnd - currentMovie.clipStart) * 1000;
+        if (delay <= 0) delay = 10000;
+      } else {
+        delay = 10000;
+      }
+    }
     
     const timer = setTimeout(nextSlide, delay);
     return () => clearTimeout(timer);
@@ -44,10 +52,11 @@ export function MovieBanner({ movies, autoPlayInterval = 5000, basePath = "/watc
 
   // Manage video playing state
   useEffect(() => {
+    const currentMovie = movies[currentIndex];
     videoRefs.current.forEach((video, idx) => {
       if (video) {
         if (idx === currentIndex) {
-          video.currentTime = 0;
+          video.currentTime = currentMovie?.clipStart || 0;
           video.play().catch(() => {});
         } else {
           // Pause after 1s to allow the fade transition to complete smoothly
@@ -57,7 +66,7 @@ export function MovieBanner({ movies, autoPlayInterval = 5000, basePath = "/watc
         }
       }
     });
-  }, [currentIndex]);
+  }, [currentIndex, movies]);
 
   const truncateDescription = (text: string, wordLimit: number) => {
     if (!text) return "";
@@ -90,6 +99,12 @@ export function MovieBanner({ movies, autoPlayInterval = 5000, basePath = "/watc
               src={movie.trailerUrl}
               muted
               playsInline
+              onTimeUpdate={(e) => {
+                const video = e.currentTarget;
+                if (movie.clipEnd && video.currentTime >= movie.clipEnd) {
+                  video.currentTime = movie.clipStart || 0;
+                }
+              }}
               onEnded={nextSlide}
               className="w-full h-full object-cover object-center"
             />
