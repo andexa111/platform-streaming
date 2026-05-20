@@ -7,10 +7,10 @@ import { cn } from "@/lib/utils";
 
 // --- Mock Data ---
 const INITIAL_USERS = [
-  { id: 1, name: "Andi Wijaya", email: "andi@lalakon.id", role: "Super Admin", status: "Active", plan: "Free", joined: "2024-01-12" },
+  { id: 1, name: "Andi Wijaya", email: "andi@sinea.id", role: "Super Admin", status: "Active", plan: "Free", joined: "2024-01-12" },
   { id: 2, name: "Siti Rahma", email: "siti@gmail.com", role: "Admin", status: "Active", plan: "Silver", joined: "2024-02-15" },
   { id: 3, name: "Budi Santoso", email: "budi.s@yahoo.com", role: "User", status: "Suspended", plan: "Gold", joined: "2024-03-01" },
-  { id: 4, name: "Dewi Lestari", email: "dewi@lalakon.id", role: "Admin", status: "Active", plan: "Free", joined: "2024-03-10" },
+  { id: 4, name: "Dewi Lestari", email: "dewi@sinea.id", role: "Admin", status: "Active", plan: "Free", joined: "2024-03-10" },
   { id: 5, name: "Rian Pratama", email: "rian.p@outlook.com", role: "User", status: "Active", plan: "Bronze", joined: "2024-04-05" },
 ];
 
@@ -314,10 +314,10 @@ export default function UsersManagementPage() {
           </div>
           <div className="p-4 bg-secondary rounded-2xl border border-border">
             <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Generated Password</p>
-            <p className="text-xl font-black text-emerald-500 tracking-widest">LALAKON123!</p>
+            <p className="text-xl font-black text-emerald-500 tracking-widest">SINEA123!</p>
           </div>
           <button 
-            onClick={() => { alert("Password telah di-reset ke: LALAKON123!"); setIsResetOpen(false); }}
+            onClick={() => { alert("Password telah di-reset ke: SINEA123!"); setIsResetOpen(false); }}
             className="w-full py-4 bg-foreground text-background rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all hover:opacity-90"
           >
             Konfirmasi & Kirim Email

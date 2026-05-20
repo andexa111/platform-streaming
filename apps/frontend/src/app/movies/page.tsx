@@ -58,7 +58,7 @@ function CatalogContent() {
               <div className="flex flex-col items-center">
                 <img
                   src="/SINEA - Logo Horisontal.webp"
-                  alt="LALAKON"
+                  alt="Sinea"
                   className="h-20 md:h-32 w-auto object-contain dark:brightness-[1.6] brightness-[1.1] contrast-[1.2] drop-shadow-[0_0_15px_rgba(0,0,0,0.1)] dark:drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]"
                 />
               </div>

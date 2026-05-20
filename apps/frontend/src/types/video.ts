@@ -8,6 +8,10 @@ export interface Video {
   year?: string | number;
   description?: string;
   backdrop?: string;
+  director?: string;
+  producer?: string;
+  actors?: string[];
+  releaseYear?: string | number;
   trailerUrl?: string;
   productionHouse?: string;
   productionHouseLogo?: string;

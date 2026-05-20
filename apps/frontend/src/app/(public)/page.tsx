@@ -27,8 +27,64 @@
 import { Icon } from "@/components/ui/Icon";
 import Link from "next/link";
 import { VideoSection } from "@/components/video/VideoSection";
+import { cn } from "@/lib/utils";
 
 import { ALL_MOVIES, GENRES } from "@/constants/video-data";
+
+const PLANS = [
+  {
+    name: "1 Bulan",
+    price: "50K",
+    period: "",
+    icon: "chess-pawn",
+    color: "text-brand",
+    borderColor: "border-brand/30",
+    bgColor: "bg-brand/5",
+    features: ["Akses Semua Film & Series", "Kualitas Full HD", "Tanpa Iklan", "Download untuk Offline"],
+    buttonText: "Pilih Paket",
+    popular: false,
+    buttonClass: "bg-brand/10 text-brand dark:text-white border border-brand/20 hover:bg-brand hover:text-white hover:border-brand shadow-brand/10",
+  },
+  {
+    name: "3 Bulan",
+    price: "150K",
+    period: "",
+    icon: "chess-rook",
+    color: "text-[#CD7F32]",
+    borderColor: "border-[#CD7F32]/30",
+    bgColor: "bg-[#CD7F32]/5",
+    features: ["Akses Semua Film & Series", "Kualitas Full HD", "Tanpa Iklan", "Download untuk Offline"],
+    buttonText: "Pilih Paket",
+    popular: false,
+    buttonClass: "bg-[#CD7F32]/10 text-[#CD7F32] dark:text-white border border-[#CD7F32]/20 hover:bg-[#CD7F32] hover:text-white hover:border-[#CD7F32] shadow-[#CD7F32]/10",
+  },
+  {
+    name: "6 Bulan",
+    price: "300K",
+    period: "",
+    icon: "chess-knight",
+    color: "text-neutral-400 dark:text-white",
+    borderColor: "border-neutral-300/80 dark:border-white/20",
+    bgColor: "bg-neutral-200/20 dark:bg-white/5",
+    features: ["Akses Semua Film & Series", "Kualitas Full HD", "Tanpa Iklan", "Download untuk Offline"],
+    buttonText: "Pilih Paket",
+    popular: true,
+    buttonClass: "bg-neutral-200/50 dark:bg-white/10 text-neutral-700 dark:text-white border border-neutral-300 dark:border-white/20 hover:bg-neutral-900 hover:text-white dark:hover:bg-white dark:hover:text-neutral-950 hover:border-neutral-900 dark:hover:border-white shadow-sm dark:shadow-white/5",
+  },
+  {
+    name: "1 Tahun",
+    price: "600K",
+    period: "",
+    icon: "chess-queen",
+    color: "text-[#FFD700]",
+    borderColor: "border-[#FFD700]/40 dark:border-[#FFD700]/30",
+    bgColor: "bg-[#FFD700]/5",
+    features: ["Akses Semua Film & Series", "Kualitas Full HD", "Tanpa Iklan", "Download untuk Offline"],
+    buttonText: "Pilih Paket",
+    popular: false,
+    buttonClass: "bg-[#FFD700]/10 text-[#B8860B] dark:text-white border border-[#FFD700]/20 dark:border-[#FFD700]/20 hover:bg-[#FFD700] hover:text-neutral-950 hover:border-[#FFD700] shadow-[#FFD700]/10",
+  },
+];
 
 export default function Home() {
   return (
@@ -139,91 +195,64 @@ export default function Home() {
             <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-foreground"> Pilih Paket Menontonmu</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto text-lg">Akses karya film eksklusif dari kreator independen. Pilih paket yang sesuai dan mulai menikmati tanpa batas.</p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-8 max-w-5xl mx-auto">
-            {/* Basic Plan */}
-            <div className="group relative p-4 md:p-8 rounded-2xl md:rounded-3xl border border-border bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)] transition-all duration-500 hover:-translate-y-2 flex flex-col col-span-1 overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-brand/5 to-transparent opacity-30 pointer-events-none" />
-              <div className="relative z-10 mb-6 md:mb-8">
-                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-secondary border border-border flex items-center justify-center mb-4 md:mb-6 mr-auto group-hover:scale-110 transition-transform shadow-inner">
-                  <Icon name="chess-rook" className="w-5 h-5 md:w-6 md:h-6 text-[#CD7F32]" />
-                </div>
-                <h3 className="text-base md:text-2xl font-black mb-1 md:mb-2 text-foreground">Basic</h3>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-xl md:text-4xl font-black text-foreground">Rp 49K</span>
-                  <span className="text-xs md:text-sm text-muted-foreground">/mo</span>
-                </div>
-              </div>
-              <ul className="relative z-10 space-y-3 md:space-y-4 mb-6 md:mb-8 flex-1 text-muted-foreground">
-                <li className="flex items-center gap-2 md:gap-3 text-xs md:text-base">
-                  <Icon name="check" className="w-4 h-4 md:w-5 md:h-5 text-[#CD7F32]" /> <span className="line-clamp-1">1 device</span>
-                </li>
-                <li className="flex items-center gap-2 md:gap-3 text-xs md:text-base">
-                  <Icon name="check" className="w-4 h-4 md:w-5 md:h-5 text-[#CD7F32]" /> <span className="line-clamp-1">SD (720p)</span>
-                </li>
-              </ul>
-              <Link
-                href="/membership"
-                className="flex items-center justify-center relative z-10 w-full py-3 md:py-4 rounded-xl text-xs md:text-base font-bold bg-secondary hover:bg-secondary/80 border border-border text-foreground transition-all"
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 max-w-7xl mx-auto">
+            {PLANS.map((plan) => (
+              <div
+                key={plan.name}
+                className={cn(
+                  "group relative p-6 md:p-8 rounded-[2.5rem] border transition-all duration-700 hover:-translate-y-4 flex flex-col overflow-hidden",
+                  plan.borderColor,
+                  "bg-neutral-50 dark:bg-neutral-900/80 hover:bg-neutral-100/60 dark:hover:bg-neutral-900/60 shadow-2xl shadow-neutral-950/5 dark:shadow-white/5",
+                )}
               >
-                Pre-order
-              </Link>
-            </div>
-            {/* Standard Plan */}
-            <div className="group relative p-4 md:p-8 rounded-2xl md:rounded-3xl border border-brand/50 bg-card shadow-[0_20px_50px_rgba(2,77,148,0.1)] hover:shadow-[0_30px_70px_rgba(2,77,148,0.2)] transform hover:-translate-y-2 transition-all duration-500 flex flex-col col-span-1">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand text-white px-3 md:px-4 py-1 rounded-full text-[9px] md:text-xs font-black tracking-widest uppercase shadow-lg z-20">Popular</div>
-              <div className="relative z-10 mb-6 md:mb-8 mt-1 md:mt-2">
-                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-brand/10 flex items-center justify-center mb-4 md:mb-6 mr-auto group-hover:scale-110 transition-transform shadow-inner border border-brand/20">
-                  <Icon name="chess-knight" className="w-5 h-5 md:w-6 md:h-6 text-brand" />
+                {/* Card Decoration */}
+                <div className="absolute -right-6 -top-6 opacity-[0.03] group-hover:opacity-[0.08] transition-all duration-700 rotate-12">
+                  <Icon name={plan.icon as any} className="w-32 h-32 md:w-40 md:h-40" />
                 </div>
-                <h3 className="text-base md:text-2xl font-black mb-1 md:mb-2 text-foreground">Standard</h3>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-xl md:text-4xl font-black text-foreground">Rp 99K</span>
-                  <span className="text-xs md:text-sm text-muted-foreground">/mo</span>
+
+                <div className="relative z-10 space-y-6 flex-1">
+                  {/* Header */}
+                  <div className="space-y-4">
+                    <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center border border-white/5 shadow-inner", plan.bgColor)}>
+                      <Icon name={plan.icon as any} className={cn("w-6 h-6", plan.color)} />
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className="text-xl md:text-2xl font-black uppercase italic tracking-tight">{plan.name}</h3>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-3xl md:text-4xl font-black text-neutral-900 dark:text-white">Rp {plan.price}</span>
+                        {plan.period && <span className="text-neutral-500 font-bold">{plan.period}</span>}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Features */}
+                  <div className="space-y-4">
+                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-neutral-500">Apa yang didapat:</p>
+                    <ul className="space-y-3">
+                      {plan.features.map((feature, i) => (
+                        <li key={i} className="flex items-start gap-3 group/item">
+                          <div className={cn("mt-0.5 w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 border border-neutral-200 dark:border-white/10 group-hover/item:border-brand transition-colors", plan.bgColor)}>
+                            <Icon name="check" className={cn("w-2.5 h-2.5", plan.color)} />
+                          </div>
+                          <span className="text-xs md:text-sm text-neutral-600 dark:text-neutral-300 font-medium group-hover/item:text-neutral-900 dark:group-hover/item:text-white transition-colors">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
+
+                {/* Action Link */}
+                <Link
+                  href="/membership"
+                  className={cn(
+                    "mt-8 w-full py-4 rounded-xl font-black uppercase tracking-widest text-[10px] md:text-xs transition-all active:scale-95 shadow-xl relative z-10 flex items-center justify-center text-center",
+                    plan.buttonClass,
+                  )}
+                >
+                  {plan.buttonText}
+                </Link>
               </div>
-              <ul className="relative z-10 space-y-3 md:space-y-4 mb-6 md:mb-8 flex-1 text-foreground">
-                <li className="flex items-center gap-2 md:gap-3 text-xs md:text-base">
-                  <Icon name="check" className="w-4 h-4 md:w-5 md:h-5 text-brand" /> <span className="line-clamp-1 font-medium">2 devices</span>
-                </li>
-                <li className="flex items-center gap-2 md:gap-3 text-xs md:text-base">
-                  <Icon name="check" className="w-4 h-4 md:w-5 md:h-5 text-brand" /> <span className="line-clamp-1 font-medium">FHD (1080p)</span>
-                </li>
-              </ul>
-              <Link
-                href="/membership"
-                className="flex items-center justify-center relative z-10 w-full py-3 md:py-4 rounded-xl text-xs md:text-base font-black bg-brand text-white hover:bg-brand/90 transition-all shadow-md"
-              >
-                Pre-order
-              </Link>
-            </div>
-            {/* Premium Plan */}
-            <div className="group relative p-4 md:p-8 rounded-2xl md:rounded-3xl border border-[#FFD700]/50 bg-card shadow-[0_8px_30px_rgba(255,215,0,0.06)] hover:shadow-[0_30px_70px_rgba(255,215,0,0.15)] transition-all duration-500 hover:-translate-y-2 flex flex-col col-span-2 md:col-span-1 max-w-[calc(50%-6px)] md:max-w-none mx-auto w-full overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-[#FFD700]/5 to-transparent opacity-30 pointer-events-none" />
-              <div className="relative z-10 mb-6 md:mb-8">
-                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-yellow-500/10 flex items-center justify-center mb-4 md:mb-6 mr-auto group-hover:scale-110 transition-transform shadow-inner border border-yellow-500/20">
-                  <Icon name="chess-queen" className="w-5 h-5 md:w-6 md:h-6 text-[#FFD700]" />
-                </div>
-                <h3 className="text-base md:text-2xl font-black mb-1 md:mb-2 text-foreground">Premium</h3>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-xl md:text-4xl font-black text-foreground">Rp 149K</span>
-                  <span className="text-xs md:text-sm text-muted-foreground">/mo</span>
-                </div>
-              </div>
-              <ul className="relative z-10 space-y-3 md:space-y-4 mb-6 md:mb-8 flex-1 text-foreground">
-                <li className="flex items-center gap-2 md:gap-3 text-xs md:text-base">
-                  <Icon name="check" className="w-4 h-4 md:w-5 md:h-5 text-[#FFD700]" /> <span className="line-clamp-1 font-semibold">4 devices</span>
-                </li>
-                <li className="flex items-center gap-2 md:gap-3 text-xs md:text-base">
-                  <Icon name="check" className="w-4 h-4 md:w-5 md:h-5 text-[#FFD700]" /> <span className="line-clamp-1 font-semibold">4K & HDR</span>
-                </li>
-              </ul>
-              <Link
-                href="/membership"
-                className="flex items-center justify-center relative z-10 w-full py-3 md:py-4 rounded-xl text-xs md:text-base font-black bg-foreground text-background hover:opacity-90 transition-all shadow-md"
-              >
-                Pre-order
-              </Link>
-            </div>
+            ))}
           </div>
         </div>
       </section>

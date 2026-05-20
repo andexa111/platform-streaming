@@ -7,17 +7,58 @@ import { cn } from "@/lib/utils";
 // --- Mock Data ---
 
 const INITIAL_PLANS = [
-  { id: "bronze", name: "Bronze", price: 29000, description: "Kualitas HD, 1 Perangkat", color: "from-orange-500/10 to-transparent", border: "border-orange-500/30" },
-  { id: "silver", name: "Silver", price: 59000, description: "Kualitas Full HD, 2 Perangkat", color: "from-neutral-400/10 to-transparent", border: "border-neutral-400/40" },
-  { id: "gold", name: "Gold", price: 99000, description: "Kualitas 4K + HDR, 4 Perangkat", color: "from-amber-400/10 to-transparent", border: "border-amber-500/40" },
+  {
+    id: "1-bulan",
+    name: "1 Bulan",
+    price: 50000,
+    icon: "chess-pawn",
+    color: "text-brand",
+    borderColor: "border-brand/30",
+    bgColor: "bg-brand/5",
+    features: ["Akses Semua Film & Series", "Kualitas Full HD", "Tanpa Iklan", "Download untuk Offline"],
+    buttonClass: "bg-brand/10 text-brand dark:text-white border border-brand/20 hover:bg-brand hover:text-white hover:border-brand shadow-brand/10",
+  },
+  {
+    id: "3-bulan",
+    name: "3 Bulan",
+    price: 150000,
+    icon: "chess-rook",
+    color: "text-[#CD7F32]",
+    borderColor: "border-[#CD7F32]/30",
+    bgColor: "bg-[#CD7F32]/5",
+    features: ["Akses Semua Film & Series", "Kualitas Full HD", "Tanpa Iklan", "Download untuk Offline"],
+    buttonClass: "bg-[#CD7F32]/10 text-[#CD7F32] dark:text-white border border-[#CD7F32]/20 hover:bg-[#CD7F32] hover:text-white hover:border-[#CD7F32] shadow-[#CD7F32]/10",
+  },
+  {
+    id: "6-bulan",
+    name: "6 Bulan",
+    price: 300000,
+    icon: "chess-knight",
+    color: "text-neutral-400 dark:text-white",
+    borderColor: "border-neutral-300/80 dark:border-white/20",
+    bgColor: "bg-neutral-200/20 dark:bg-white/5",
+    features: ["Akses Semua Film & Series", "Kualitas Full HD", "Tanpa Iklan", "Download untuk Offline"],
+    buttonClass: "bg-neutral-200/50 dark:bg-white/10 text-neutral-700 dark:text-white border border-neutral-300 dark:border-white/20 hover:bg-neutral-900 hover:text-white dark:hover:bg-white dark:hover:text-neutral-950 hover:border-neutral-900 dark:hover:border-white shadow-sm dark:shadow-white/5",
+  },
+  {
+    id: "1-tahun",
+    name: "1 Tahun",
+    price: 600000,
+    icon: "chess-queen",
+    color: "text-[#FFD700]",
+    borderColor: "border-[#FFD700]/40 dark:border-[#FFD700]/30",
+    bgColor: "bg-[#FFD700]/5",
+    features: ["Akses Semua Film & Series", "Kualitas Full HD", "Tanpa Iklan", "Download untuk Offline"],
+    buttonClass: "bg-[#FFD700]/10 text-[#B8860B] dark:text-white border border-[#FFD700]/20 dark:border-[#FFD700]/20 hover:bg-[#FFD700] hover:text-neutral-950 hover:border-[#FFD700] shadow-[#FFD700]/10",
+  },
 ];
 
 const TRANSACTIONS = [
-  { id: "TRXV7102", user: "andi@gmail.com", plan: "Gold", amount: 99000, status: "Success", date: "2024-05-12 14:20", method: "GOPAY" },
-  { id: "TRXV7103", user: "siti.rahma@yahoo.com", plan: "Silver", amount: 59000, status: "Pending", date: "2024-05-12 15:45", method: "VA BCA" },
-  { id: "TRXV7104", user: "budi.santoso@outlook.com", plan: "Bronze", amount: 29000, status: "Success", date: "2024-05-12 16:10", method: "OVO" },
-  { id: "TRXV7105", user: "rara.anita@gmail.com", plan: "Gold", amount: 99000, status: "Failed", date: "2024-05-11 09:30", method: "DANA" },
-  { id: "TRXV7106", user: "agus88@gmail.com", plan: "Silver", amount: 59000, status: "Success", date: "2024-05-11 11:15", method: "GOPAY" },
+  { id: "TRXV7102", user: "andi@gmail.com", plan: "1 Tahun", amount: 600000, status: "Success", date: "2024-05-12 14:20", method: "GOPAY" },
+  { id: "TRXV7103", user: "siti.rahma@yahoo.com", plan: "6 Bulan", amount: 300000, status: "Pending", date: "2024-05-12 15:45", method: "VA BCA" },
+  { id: "TRXV7104", user: "budi.santoso@outlook.com", plan: "3 Bulan", amount: 150000, status: "Success", date: "2024-05-12 16:10", method: "OVO" },
+  { id: "TRXV7105", user: "rara.anita@gmail.com", plan: "1 Tahun", amount: 600000, status: "Failed", date: "2024-05-11 09:30", method: "DANA" },
+  { id: "TRXV7106", user: "agus88@gmail.com", plan: "6 Bulan", amount: 300000, status: "Success", date: "2024-05-11 11:15", method: "GOPAY" },
 ];
 
 // --- Sub-components ---
@@ -84,40 +125,63 @@ export default function SubscriptionsDashboard() {
 
       {/* Main Content Areas */}
       {activeTab === "plans" ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in slide-in-from-bottom-4 duration-500">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 animate-in slide-in-from-bottom-4 duration-500">
           {plans.map((plan) => (
-            <div key={plan.id} className={cn("bg-card rounded-[2.5rem] border p-10 flex flex-col justify-between shadow-sm hover:shadow-xl transition-all relative overflow-hidden group", plan.border)}>
-              {/* Visual Decorative */}
-              <div className={cn("absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl blur-[40px] opacity-60", plan.color)} />
+            <div
+              key={plan.id}
+              className={cn(
+                "group relative p-6 md:p-8 rounded-[2.5rem] border transition-all duration-700 hover:-translate-y-4 flex flex-col overflow-hidden",
+                plan.borderColor,
+                plan.popular 
+                  ? "bg-neutral-50 dark:bg-neutral-900/80 z-20 shadow-2xl shadow-neutral-950/5 dark:shadow-white/5 border-neutral-300 dark:border-neutral-800" 
+                  : "bg-neutral-50/40 hover:bg-neutral-100/60 dark:bg-neutral-900/40 dark:hover:bg-neutral-900/60 border-neutral-200/80 dark:border-neutral-800/30",
+              )}
+            >
+              {/* Card Decoration */}
+              <div className="absolute -right-6 -top-6 opacity-[0.03] group-hover:opacity-[0.08] transition-all duration-700 rotate-12">
+                <Icon name={plan.icon as any} className="w-32 h-32 md:w-40 md:h-40" />
+              </div>
 
-              <div className="space-y-8 relative z-10">
-                <div className="space-y-2">
-                  <h4 className="text-4xl font-black text-foreground italic tracking-tighter uppercase">{plan.name}</h4>
-                  {/* <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest">{plan.description}</p> */}
-                </div>
-
-                <div className="flex items-baseline gap-1">
-                  <span className="text-xl font-bold text-muted-foreground italic">Rp</span>
-                  <p className="text-5xl font-black text-foreground italic tracking-tighter">{plan.price.toLocaleString("id-ID")}</p>
-                  <span className="text-sm font-bold text-muted-foreground uppercase tracking-widest">/mo</span>
-                </div>
-
-                <div className="space-y-3 pt-4">
-                  {[...Array(4)].map((_, i) => (
-                    <div key={i} className="flex items-center gap-2 opacity-60">
-                      <Icon name="chevron-right" className="w-3 h-3 text-brand" />
-                      <span className="text-xs font-bold text-muted-foreground">Feature Benefit #0{i + 1}</span>
+              <div className="relative z-10 space-y-6 flex-1">
+                {/* Header */}
+                <div className="space-y-4">
+                  <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center border border-white/5 shadow-inner", plan.bgColor)}>
+                    <Icon name={plan.icon as any} className={cn("w-6 h-6", plan.color)} />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-xl md:text-2xl font-black uppercase italic tracking-tight">{plan.name}</h3>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-3xl md:text-4xl font-black text-neutral-900 dark:text-white">Rp {plan.price.toLocaleString("id-ID")}</span>
                     </div>
-                  ))}
+                  </div>
+                </div>
+
+                {/* Features */}
+                <div className="space-y-4">
+                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-neutral-500">Apa yang didapat:</p>
+                  <ul className="space-y-3">
+                    {plan.features.map((feature: string, i: number) => (
+                      <li key={i} className="flex items-start gap-3 group/item">
+                        <div className={cn("mt-0.5 w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 border border-neutral-200 dark:border-white/10 group-hover/item:border-brand transition-colors", plan.bgColor)}>
+                          <Icon name="check" className={cn("w-2.5 h-2.5", plan.color)} />
+                        </div>
+                        <span className="text-xs md:text-sm text-neutral-600 dark:text-neutral-300 font-medium group-hover/item:text-neutral-900 dark:group-hover/item:text-white transition-colors">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
 
-              {/* <button
+              {/* Action Button */}
+              <button
                 onClick={() => setEditingPlan(plan)}
-                className="mt-10 w-full py-4 bg-neutral-950 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-neutral-800 transition-all shadow-xl shadow-neutral-200 group-hover:bg-brand group-hover:shadow-brand/20 active:scale-95"
+                className={cn(
+                  "mt-8 w-full py-4 rounded-xl font-black uppercase tracking-widest text-[10px] md:text-xs transition-all active:scale-95 shadow-xl relative z-10 text-center",
+                  plan.buttonClass,
+                )}
               >
                 Atur Harga
-              </button> */}
+              </button>
             </div>
           ))}
         </div>

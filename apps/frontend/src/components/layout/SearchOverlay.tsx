@@ -68,7 +68,6 @@ export function SearchOverlay({ isOpen, onClose, query, setQuery }: SearchOverla
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search movies, series, or actors..."
               className="flex-1 bg-transparent border-none outline-none text-lg text-white placeholder:text-neutral-500"
             />
 
@@ -105,12 +104,12 @@ export function SearchOverlay({ isOpen, onClose, query, setQuery }: SearchOverla
           </div>
         </div>
 
-        {/* Decorative close on top right for mobile */}
+        {/* Close button for mobile */}
         <button 
           onClick={onClose}
-          className="absolute top-8 right-8 p-3 bg-neutral-900/50 rounded-full border border-white/10 text-neutral-400 hover:text-white md:hidden"
+          className="absolute top-4 right-4 p-2 bg-neutral-900/50 rounded-full border border-white/10 text-neutral-400 hover:text-white transition-all md:hidden"
         >
-          <Icon name="x" className="w-6 h-6" />
+          <Icon name="x" className="w-4 h-4" />
         </button>
       </div>
     </div>

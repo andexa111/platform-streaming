@@ -38,7 +38,7 @@ async function seedGenres() {
 async function seedSuperAdmin() {
   console.log('👤 Seeding super admin...');
 
-  const email = process.env.ADMIN_EMAIL || 'admin@lalakon.id';
+  const email = process.env.ADMIN_EMAIL || 'admin@sinea.id';
   const password = process.env.ADMIN_PASSWORD || 'admin12345';
 
   const hashedPassword = await bcrypt.hash(password, 10);

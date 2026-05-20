@@ -102,7 +102,7 @@ export default function BannersPage() {
                     <div className="relative w-32 h-20 rounded-xl overflow-hidden bg-secondary border border-border shadow-sm group/thumb">
                       {movie ? (
                         <>
-                          <Image src={movie.backdrop} alt={movie.title} fill className="object-cover group-hover/thumb:scale-110 transition-transform duration-500" />
+                          <Image src={movie.backdrop || movie.thumbnail} alt={movie.title} fill className="object-cover group-hover/thumb:scale-110 transition-transform duration-500" />
                           <button
                             onClick={() => setPlayingSlot(playingSlot === index ? null : index)}
                             className="absolute inset-0 z-10 bg-black/40 opacity-0 group-hover/thumb:opacity-100 flex items-center justify-center transition-opacity"
@@ -195,7 +195,7 @@ export default function BannersPage() {
                           {filteredMovies.map((movie) => (
                             <button key={movie.id} onClick={() => handleSelectMovie(movie)} className="w-full flex items-center gap-4 p-4 hover:bg-secondary transition-colors text-left group border-b border-border last:border-none">
                               <div className="relative w-12 h-8 rounded bg-secondary overflow-hidden">
-                                <Image src={movie.backdrop} alt={movie.title} fill className="object-cover" />
+                                <Image src={movie.backdrop || movie.thumbnail} alt={movie.title} fill className="object-cover" />
                               </div>
                               <div>
                                 <p className="text-sm font-black text-foreground group-hover:text-brand transition-colors">{movie.title}</p>
@@ -219,7 +219,7 @@ export default function BannersPage() {
                     {tempSelectedMovie.trailerUrl ? (
                       <video key={tempSelectedMovie.id} src={tempSelectedMovie.trailerUrl} autoPlay muted loop className="w-full h-full object-cover" />
                     ) : (
-                      <Image src={tempSelectedMovie.backdrop} alt={tempSelectedMovie.title} fill className="object-cover opacity-50" />
+                      <Image src={tempSelectedMovie.backdrop || tempSelectedMovie.thumbnail} alt={tempSelectedMovie.title} fill className="object-cover opacity-50" />
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
                     <div className="absolute bottom-4 left-4">

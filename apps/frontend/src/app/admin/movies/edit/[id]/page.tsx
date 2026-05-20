@@ -43,6 +43,7 @@ export default function EditMoviePage() {
     release_year: "",
     video_id: "",
     trailer_url: "",
+    poster_url: "",
     production_house: "",
     production_house_logo: "",
     is_published: false,

@@ -1,4 +1,4 @@
-// Prisma Schema — Lalakon Streaming Platform
+// Prisma Schema — Sinea Streaming Platform
 // Database: PostgreSQL
 
 generator client {

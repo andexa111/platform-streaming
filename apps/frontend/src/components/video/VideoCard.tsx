@@ -39,12 +39,7 @@ export function VideoCard({ video, priority = false, isFirst, isLast }: VideoCar
           </div>
         )}
 
-        {/* Quality Badge */}
-        {video.quality && (
-          <div className="absolute top-2 right-2 bg-brand/90 backdrop-blur-md text-white text-[7px] md:text-[9px] font-black px-1.5 py-0.5 rounded md:rounded-md tracking-wider pointer-events-none transform translate-y-0 group-hover:-translate-y-1 transition-transform z-10">
-            {video.quality}
-          </div>
-        )}
+
 
         {/* Play Icon on Hover */}
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
@@ -64,12 +59,6 @@ export function VideoCard({ video, priority = false, isFirst, isLast }: VideoCar
         <h3 className="text-[11px] md:text-sm font-bold text-foreground line-clamp-1 group-hover:text-brand transition-colors">
           {video.title}
         </h3>
-        <div className="flex items-center gap-1 mt-0.5">
-          <div className="flex items-center gap-1 text-muted-foreground">
-            <Icon name="star" className="w-2 h-2 md:w-2.5 md:h-2.5 text-yellow-500 fill-yellow-500" />
-            <span className="text-[9px] md:text-xs font-medium">{video.rating || "N/A"}</span>
-          </div>
-        </div>
       </div>
     </Link>
   );

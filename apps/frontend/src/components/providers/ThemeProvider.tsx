@@ -7,5 +7,6 @@ export function ThemeProvider({
   children, 
   ...props 
 }: any) {
-  return <NextThemesProvider {...props}>{children}</NextThemesProvider>
+  const Provider = NextThemesProvider as any;
+  return <Provider {...props}>{children}</Provider>;
 }

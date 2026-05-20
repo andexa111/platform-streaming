@@ -17,7 +17,7 @@ import AuthLayout from "@/components/layout/AuthLayout";
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const router = useRouter();
   const setAuth = useAuthStore((state) => state.setAuth);
 
@@ -33,14 +33,13 @@ export default function LoginPage() {
     try {
       setError(null);
       const response = await api.post("/auth/login", data);
-      
+
       // Save token to store and cookie
       setAuth(response.data.user, response.data.access_token);
-      
+
       // Redirect using Next.js router
       router.push("/home");
       router.refresh();
-      
     } catch (err: any) {
       setError(err.response?.data?.message || "Login gagal. Periksa kembali email dan password Anda.");
     }
@@ -55,22 +54,13 @@ export default function LoginPage() {
           <p className="text-sm text-muted-foreground">Kami merindukan Anda. Lanjutkan menonton dari tempat terakhir Anda berhenti.</p>
         </div>
 
-        {error && (
-          <div className="p-3 mb-6 bg-red-500/10 text-red-500 rounded-xl text-xs font-medium border border-red-500/20">
-            {error}
-          </div>
-        )}
+        {error && <div className="p-3 mb-6 bg-red-500/10 text-red-500 rounded-xl text-xs font-medium border border-red-500/20">{error}</div>}
 
         {/* Login Form */}
         <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
           <div className="space-y-3">
             <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Alamat Email</label>
-            <Input
-              type="email"
-              placeholder="name@example.com"
-              className="bg-muted/50 border-border text-foreground focus:bg-muted/70 placeholder:text-muted-foreground/50 h-12"
-              {...register("email")}
-            />
+            <Input type="email" placeholder="name@example.com" className="bg-muted/50 border-border text-foreground focus:bg-muted/70 placeholder:text-muted-foreground/50 h-12" {...register("email")} />
             {errors.email && <p className="text-[10px] text-red-500 ml-1">{errors.email.message}</p>}
           </div>
 
@@ -88,18 +78,14 @@ export default function LoginPage() {
                 className="bg-muted/50 border-border text-foreground focus:bg-muted/70 placeholder:text-muted-foreground/50 h-12 pr-12"
                 {...register("password")}
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-              >
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
                 <Icon name={showPassword ? "eye-off" : "eye"} className="w-4 h-4" />
               </button>
             </div>
             {errors.password && <p className="text-[10px] text-red-500 ml-1">{errors.password.message}</p>}
           </div>
 
-          <Button 
+          <Button
             disabled={isSubmitting}
             className="w-full h-12 rounded-xl bg-brand hover:brightness-110 text-white font-bold text-base mt-4 transition-all border-0 ring-0 hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed"
           >
@@ -122,7 +108,7 @@ export default function LoginPage() {
           type="button"
           variant="outline"
           className="w-full h-12 rounded-xl border-border bg-muted/50 text-foreground hover:bg-muted/70 hover:text-brand hover:border-border/80 gap-3 font-semibold transition-all hover:scale-[1.02]"
-          onClick={() => window.location.href = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/auth/google`}
+          onClick={() => (window.location.href = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/auth/google`)}
         >
           <svg width="20" height="20" viewBox="0 0 24 24">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -135,7 +121,7 @@ export default function LoginPage() {
 
         {/* Switch to Register */}
         <p className="text-center text-sm text-muted-foreground mt-8">
-          Baru di LALAKON?{" "}
+          Baru di Sinea?{" "}
           <Link href="/register" className="font-semibold text-brand hover:brightness-125 transition-colors">
             Buat akun baru
           </Link>
