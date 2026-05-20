@@ -43,3 +43,11 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+export const getMediaUrl = (url: string | null | undefined): string => {
+  if (!url) return '';
+  if (url.includes('localhost:3001')) {
+    return url.replace('http://localhost:3001', API_URL);
+  }
+  return url;
+};

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { api } from "@/lib/api";
+import { api, getMediaUrl } from "@/lib/api";
 import { Icon } from "@/components/ui/Icon";
 import Image from "next/image";
 import Link from "next/link";
@@ -126,7 +126,7 @@ export default function SecretWatchPage() {
 
                 {movie?.poster_url ? (
                   <Image
-                    src={movie.poster_url}
+                    src={getMediaUrl(movie.poster_url)}
                     alt={movie.title}
                     fill
                     priority
@@ -232,7 +232,7 @@ export default function SecretWatchPage() {
                 movie?.trailer_url ? (
                   isTrailerLocal ? (
                     <video 
-                      src={movie.trailer_url} 
+                      src={getMediaUrl(movie.trailer_url)} 
                       controls 
                       autoPlay 
                       className="w-full h-full object-contain absolute inset-0 bg-black" 

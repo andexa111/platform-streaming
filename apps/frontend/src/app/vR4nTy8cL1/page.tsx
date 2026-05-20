@@ -6,7 +6,7 @@ import { Icon } from "@/components/ui/Icon";
 import { VideoSection } from "@/components/video/VideoSection";
 import { MovieBanner } from "@/components/home/MovieBanner";
 import { GENRES } from "@/constants/video-data";
-import { api } from "@/lib/api";
+import { api, getMediaUrl } from "@/lib/api";
 import { Video } from "@/types/video";
 
 /**
@@ -25,8 +25,8 @@ export default function SecretUserHomePage() {
     return {
       id: f.id,
       title: f.title,
-      thumbnail: f.poster_url || "",
-      backdrop: f.poster_url || "", // Fallback to poster for now
+      thumbnail: getMediaUrl(f.poster_url) || "",
+      backdrop: getMediaUrl(f.poster_url) || "",
       genre: f.genres && f.genres.length > 0 ? f.genres[0].name : "",
       rating: "4.5", // Mock rating as DB doesn't have it yet
       quality: "4K UHD", // Mock quality
@@ -34,7 +34,9 @@ export default function SecretUserHomePage() {
       description: f.description,
       director: f.director,
       producer: f.producer,
-      productionHouse: "LALAKON",
+      productionHouse: f.producer || "LALAKON",
+      productionHouseLogo: getMediaUrl(f.production_house_logo) || undefined,
+      trailerUrl: getMediaUrl(f.trailer_url) || undefined,
     };
   };
 

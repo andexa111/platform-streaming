@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
 import { cn } from "@/lib/utils";
-import { api } from "@/lib/api";
+import { api, getMediaUrl } from "@/lib/api";
 
 interface Film {
   id: number;
@@ -393,9 +393,9 @@ export default function EditMoviePage() {
                   <div className="p-4 bg-neutral-50 border border-neutral-200 rounded-2xl">
                     <p className="text-[10px] font-black uppercase text-neutral-400 mb-2">Trailer Terunggah</p>
                     <div className="flex items-center gap-2 text-xs text-neutral-600 font-mono break-all bg-white p-2 rounded border border-neutral-100">
-                      <span className="truncate flex-1">{formData.trailer_url}</span>
+                      <span className="truncate flex-1">{getMediaUrl(formData.trailer_url)}</span>
                     </div>
-                    <video src={formData.trailer_url} controls className="w-full max-h-48 rounded-lg mt-3 bg-black" />
+                    <video src={getMediaUrl(formData.trailer_url)} controls className="w-full max-h-48 rounded-lg mt-3 bg-black" />
                   </div>
                 )}
               </div>

@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { Icon } from "@/components/ui/Icon";
 import { cn } from "@/lib/utils";
-import { api } from "@/lib/api";
+import { api, getMediaUrl } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { GENRES } from "@/constants/video-data";
 
@@ -420,9 +420,9 @@ export default function AddMoviePage() {
                       <div className="p-4 bg-secondary border border-border rounded-2xl">
                         <p className="text-[10px] font-black uppercase text-foreground mb-2">Trailer Terunggah</p>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground font-mono break-all bg-card p-2 rounded border border-border">
-                          <span className="truncate flex-1">{formData.trailer_url}</span>
+                          <span className="truncate flex-1">{getMediaUrl(formData.trailer_url)}</span>
                         </div>
-                        <video src={formData.trailer_url} controls className="w-full max-h-48 rounded-lg mt-3 bg-black" />
+                        <video src={getMediaUrl(formData.trailer_url)} controls className="w-full max-h-48 rounded-lg mt-3 bg-black" />
                       </div>
                     )}
                   </div>
