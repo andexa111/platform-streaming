@@ -122,6 +122,8 @@ export default function AddMoviePage() {
         video_id: formData.video_id || undefined,
         trailer_url: formData.trailer_url || undefined,
         poster_url: formData.poster_url || undefined,
+        production_house: formData.production_house || undefined,
+        production_house_logo: formData.production_house_logo || undefined,
         is_published: formData.is_published,
       };
 

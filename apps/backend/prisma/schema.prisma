@@ -69,10 +69,12 @@ model Film {
   video_id     String?   // Bunny Stream video ID
   clip_start   Int?      // detik mulai highlight trailer
   clip_end     Int?      // detik akhir highlight trailer
-  is_published Boolean   @default(false)
-  is_deleted   Boolean   @default(false)
-  scheduled_at DateTime?
-  createdAt    DateTime  @default(now())
+  is_published          Boolean   @default(false)
+  is_deleted            Boolean   @default(false)
+  scheduled_at          DateTime?
+  production_house      String?
+  production_house_logo String?
+  createdAt             DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
   genres         Genre[]        @relation("FilmGenres")

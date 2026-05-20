@@ -46,7 +46,8 @@ function SecretCatalogContent() {
       description: f.description,
       director: f.director,
       producer: f.producer,
-      productionHouse: "LALAKON",
+      productionHouse: f.production_house || "LALAKON",
+      productionHouseLogo: getMediaUrl(f.production_house_logo) || undefined,
     };
   };
 
