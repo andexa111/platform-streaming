@@ -24,33 +24,7 @@ export default function SecretWatchPage() {
   // playMode can be: "none" | "movie" | "trailer"
   const [playMode, setPlayMode] = useState<"none" | "movie" | "trailer">("none");
 
-  // Anti-Screenshot & Screen Recording States
-  const [isTabActive, setIsTabActive] = useState(true);
-  const [watermarkPos, setWatermarkPos] = useState({ top: "20%", left: "20%" });
 
-  // Floating Watermark Position Randomizer
-  useEffect(() => {
-    if (playMode === "none") return;
-    const interval = setInterval(() => {
-      const randomTop = Math.floor(Math.random() * 70) + 15; // 15% to 85%
-      const randomLeft = Math.floor(Math.random() * 60) + 20; // 20% to 80%
-      setWatermarkPos({ top: `${randomTop}%`, left: `${randomLeft}%` });
-    }, 7000);
-    return () => clearInterval(interval);
-  }, [playMode]);
-
-  // Tab active/focus listener (blur screen if devtools/recording tool takes focus)
-  useEffect(() => {
-    const handleBlur = () => setIsTabActive(false);
-    const handleFocus = () => setIsTabActive(true);
-
-    window.addEventListener("blur", handleBlur);
-    window.addEventListener("focus", handleFocus);
-    return () => {
-      window.removeEventListener("blur", handleBlur);
-      window.removeEventListener("focus", handleFocus);
-    };
-  }, []);
 
   // Keyboard shortcut blockers (PrintScreen, Ctrl+P, Ctrl+Shift+S)
   useEffect(() => {
@@ -253,31 +227,6 @@ export default function SecretWatchPage() {
               className="absolute inset-0 z-40 bg-black animate-in fade-in duration-500 overflow-hidden"
               onContextMenu={(e) => e.preventDefault()}
             >
-              {/* Floating Dynamic Watermark */}
-              <div 
-                className="absolute pointer-events-none select-none z-50 text-[10px] md:text-[12px] font-mono font-black text-white/10 uppercase tracking-widest transition-all duration-1000 ease-in-out whitespace-nowrap bg-black/5 px-3 py-1.5 rounded-lg border border-white/5"
-                style={{ 
-                  top: watermarkPos.top, 
-                  left: watermarkPos.left,
-                  transform: "translate(-50%, -50%)",
-                  textShadow: "1px 1px 0px rgba(0,0,0,0.5)"
-                }}
-              >
-                {user ? `${user.email} | Sinea Protected Session` : "Protected Guest Session | Sinea.id"}
-              </div>
-
-              {/* Blur Overlay when Tab is Unfocused */}
-              {!isTabActive && (
-                <div className="absolute inset-0 bg-neutral-950/95 backdrop-blur-md z-50 flex flex-col items-center justify-center text-center p-6 space-y-4 select-none">
-                  <div className="w-14 h-14 bg-brand/10 border border-brand/20 rounded-full flex items-center justify-center text-brand animate-pulse">
-                    <Icon name="eye-off" className="w-7 h-7" />
-                  </div>
-                  <h3 className="text-lg font-bold text-white uppercase tracking-wider">Layar Dilindungi</h3>
-                  <p className="text-xs text-neutral-400 max-w-sm">
-                    Pemutaran video dijeda secara otomatis karena jendela browser kehilangan fokus.
-                  </p>
-                </div>
-              )}
 
               {/* Back to details button */}
               <button
