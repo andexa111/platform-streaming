@@ -46,6 +46,10 @@ api.interceptors.response.use(
 
 export const getMediaUrl = (url: string | null | undefined): string => {
   if (!url) return '';
+  if (url.startsWith('/') || url.startsWith('uploads/')) {
+    const cleanUrl = url.startsWith('/') ? url : `/${url}`;
+    return `${API_URL}${cleanUrl}`;
+  }
   if (url.includes('localhost:3001')) {
     return url.replace('http://localhost:3001', API_URL);
   }

@@ -3,13 +3,13 @@ export const NAV_LINKS = {
     { name: "Home", href: "/", icon: "" },
     { name: "Movies & Shows", href: "/movies", icon: "" },
     { name: "Genres", href: "/genres", icon: "" },
-    { name: "Membership", href: "/membership", icon: "" },
+    // { name: "Membership", href: "/membership", icon: "" },
   ],
   member: [
     { name: "Home", href: "/home", icon: "" },
     { name: "Movies & Shows", href: "/movies", icon: "" },
     { name: "Genres", href: "/genres", icon: "" },
-    { name: "Membership", href: "/membership", icon: "" },
+    // { name: "Membership", href: "/membership", icon: "" },
   ],
 
   // Menu untuk admin biasa

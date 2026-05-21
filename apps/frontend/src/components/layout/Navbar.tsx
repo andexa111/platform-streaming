@@ -73,12 +73,10 @@ function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
 
   const links = NAV_LINKS[variant];
 
-  // Dynamic membership tier based on user role
+  // Dynamic membership tier based on user role (set to PREMIUM for all users during free launch)
   const membershipTier: MembershipTier = useMemo(() => {
     if (!user) return "NONE";
-    if (user.role === "subscriber") return "PREMIUM";
-    if (user.role === "admin" || user.role === "superadmin") return "PREMIUM";
-    return "NONE"; // Default for trial/new users
+    return "PREMIUM";
   }, [user]);
 
   const currentTier = TIER_CONFIG[membershipTier];
@@ -171,7 +169,17 @@ function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
           <div className="flex items-center gap-4 flex-1 justify-end">
             {variant === "public" ? (
               <div className="flex items-center gap-4">
-                <ThemeToggle />
+                <div className="flex"><ThemeToggle /></div>
+                
+                {/* Search Trigger */}
+                <button
+                  onClick={() => setIsSearchOpen(true)}
+                  className="w-10 h-10 rounded-full bg-muted/50 border border-border/50 flex items-center justify-center hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-all hover:scale-105 active:scale-95"
+                  aria-label="Search"
+                >
+                  <Icon name="search" className="w-5 h-5" />
+                </button>
+
                 <div className="hidden md:flex items-center gap-4 border-l border-border pl-4">
                   <Link href="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
                     Login
@@ -183,7 +191,7 @@ function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
               </div>
             ) : (
               <div className="flex items-center gap-4">
-                <ThemeToggle />
+                <div className="hidden md:flex"><ThemeToggle /></div>
 
                 {/* Search Trigger */}
                 <button
@@ -213,11 +221,11 @@ function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
                     <div className="space-y-4">
                       {/* Membership Status Section */}
                       <div className="space-y-2.5">
-                        <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest pl-1">Status Membership</label>
+                        <label className="text-[10px] font-bold text-neutral-800 dark:text-neutral-500 uppercase tracking-widest pl-1">Status Membership</label>
 
                         {membershipTier === "NONE" ? (
                           <div className="p-4 rounded-xl bg-brand/10 border border-brand/20 space-y-3">
-                            <p className="text-xs text-neutral-300 leading-relaxed font-medium">Nikmati akses tak terbatas ke semua konten premium kami.</p>
+                            <p className="text-xs text-neutral-700 dark:text-neutral-300 leading-relaxed font-medium">Nikmati akses tak terbatas ke semua konten premium kami.</p>
                             <Link href="/membership" className="flex items-center justify-center gap-2 w-full py-2.5 bg-brand text-white text-xs font-bold rounded-lg hover:bg-brand-dark transition-all shadow-lg shadow-brand/20">
                               Langganan Sekarang
                               <Icon name="arrow-right" className="w-3.5 h-3.5" />
@@ -240,13 +248,30 @@ function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
                         )}
                       </div>
 
+                      {/* Theme Toggle in Profile Dropdown (Mobile Only) */}
+                      <div className="md:hidden flex items-center justify-between px-3 py-2 bg-muted/30 rounded-xl">
+                        <span className="text-sm font-medium text-black dark:text-neutral-300">Tema</span>
+                        <ThemeToggle />
+                      </div>
+
                       <div className="h-px bg-border mx-1" />
 
                       {/* Utility Links */}
                       <div className="space-y-1">
+                        {(user?.role === "admin" || user?.role === "superadmin") && (
+                          <Link
+                            href={user.role === "superadmin" ? "/superadmin" : "/admin"}
+                            className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-xl transition-all"
+                            onClick={() => setIsProfileOpen(false)}
+                          >
+                            <Icon name="dashboard" className="w-4 h-4" />
+                            Dashboard Admin
+                          </Link>
+                        )}
+
                         <Link
                           href="/profile"
-                          className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-xl transition-all"
+                          className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-black dark:text-neutral-300 hover:text-brand hover:bg-muted/50 rounded-xl transition-all"
                           onClick={() => setIsProfileOpen(false)}
                         >
                           <Icon name="user" className="w-4 h-4" />
@@ -286,7 +311,7 @@ function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
               );
             })}
 
-            {variant === "public" && (
+            {variant === "public" ? (
               <div className="flex flex-col gap-2 mt-2 px-2">
                 <Link href="/login" className="flex items-center justify-center gap-2 py-3 text-sm font-bold text-white border border-white/20 hover:bg-white/10 rounded-xl transition-all" onClick={() => setIsMobileMenuOpen(false)}>
                   Login
@@ -299,7 +324,7 @@ function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
                   Sign Up
                 </Link>
               </div>
-            )}
+            ) : null}
           </div>
         )}
       </nav>

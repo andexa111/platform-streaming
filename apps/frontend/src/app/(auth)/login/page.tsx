@@ -38,13 +38,7 @@ export default function LoginPage() {
       setAuth(response.data.user, response.data.access_token);
 
       // Redirect using window.location.href for guaranteed navigation and clean hydration
-      if (response.data.user.role === 'superadmin') {
-        window.location.href = "/superadmin";
-      } else if (response.data.user.role === 'admin') {
-        window.location.href = "/admin";
-      } else {
-        window.location.href = "/home";
-      }
+      window.location.href = "/home";
 
     } catch (err: any) {
       setError(err.response?.data?.message || "Login gagal. Periksa kembali email dan password Anda.");

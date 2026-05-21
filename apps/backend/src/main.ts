@@ -22,8 +22,8 @@ async function bootstrap() {
 
   const port = process.env.PORT ?? 3001;
   const server = app.getHttpServer();
-  // Set timeout to 10 minutes (600,000 ms) for large video uploads
-  server.setTimeout(10 * 60 * 1000);
+  // Set timeout to 30 minutes (1,800,000 ms) for large video uploads (up to 5GB)
+  server.setTimeout(30 * 60 * 1000);
   
   await app.listen(port);
   Logger.log(`🚀 Backend running on: http://localhost:${port}`, 'Bootstrap');

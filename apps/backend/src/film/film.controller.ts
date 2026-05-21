@@ -222,4 +222,46 @@ export class FilmController {
     }
     return this.filmService.recordView(id, req.user.id, watched_seconds);
   }
+
+  /**
+   * GET /films/trailer-stream/:filename
+   * Stream trailer file dynamically as application/octet-stream to prevent IDM sniffing.
+   * Path does not end with .mp4 or any video extension.
+   */
+  @Get('trailer-stream/:filename')
+  streamTrailer(
+    @Param('filename') filename: string,
+    @Res() res: express.Response,
+  ) {
+    const path = require('path');
+    const fs = require('fs');
+
+    const cleanFilename = path.basename(filename);
+    const dirPath = './public/uploads/trailers';
+    let targetPath = path.join(dirPath, cleanFilename);
+
+    if (!fs.existsSync(targetPath)) {
+      const files = fs.existsSync(dirPath) ? fs.readdirSync(dirPath) : [];
+      const found = files.find(
+        (f: string) => path.basename(f, path.extname(f)) === cleanFilename,
+      );
+      if (found) {
+        targetPath = path.join(dirPath, found);
+      } else {
+        return res.status(404).send('Trailer tidak ditemukan');
+      }
+    }
+
+    res.setHeader('Content-Type', 'application/octet-stream');
+    res.setHeader('Content-Disposition', 'inline');
+
+    const fileStream = fs.createReadStream(targetPath);
+    fileStream.on('error', (err: any) => {
+      console.error('Error streaming trailer file:', err);
+      if (!res.headersSent) {
+        res.status(500).send('Error streaming file');
+      }
+    });
+    fileStream.pipe(res);
+  }
 }

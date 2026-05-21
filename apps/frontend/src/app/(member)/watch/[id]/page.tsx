@@ -3,12 +3,12 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
-import { ALL_MOVIES } from "@/constants/video-data";
-import { VideoCard } from "@/components/video/VideoCard";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
 import { useAuthStore } from "@/lib/auth-store";
+import { api, getMediaUrl } from "@/lib/api";
+import { Video } from "@/types/video";
 
 export default function WatchPage() {
   const { id } = useParams();
@@ -16,9 +16,13 @@ export default function WatchPage() {
   const movieId = parseInt(id as string);
   const { user } = useAuthStore();
 
+  const [movie, setMovie] = useState<any>(null);
+  const [streamUrl, setStreamUrl] = useState<string | null>(null);
+  const [relatedMovies, setRelatedMovies] = useState<Video[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-
-  // Keyboard shortcut blockers
+  // Keyboard shortcut blockers (PrintScreen, Ctrl+P, Ctrl+Shift+S)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "PrintScreen") {
@@ -41,14 +45,79 @@ export default function WatchPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const movie = ALL_MOVIES.find((m) => m.id === movieId) || ALL_MOVIES[0];
-  const relatedMovies = ALL_MOVIES.filter((m) => m.id !== movie.id).slice(0, 6);
+  useEffect(() => {
+    if (!movieId) return;
+    setLoading(true);
+    setError(null);
+
+    Promise.all([
+      api.get(`/films/${movieId}`).catch((err) => {
+        throw new Error(err.response?.data?.message || "Film tidak ditemukan");
+      }),
+      api.get(`/films/${movieId}/stream`).catch((err) => {
+        console.warn("Stream URL fetch failed", err);
+        return { data: { stream_url: null, error: err.response?.data?.message || "Gagal memuat stream" } };
+      }),
+      api.get("/films?limit=10").catch(() => ({ data: { data: [] } })),
+    ])
+      .then(([movieRes, streamRes, relatedRes]) => {
+        setMovie(movieRes.data);
+        setStreamUrl(streamRes.data?.stream_url || null);
+        
+        const all = relatedRes.data?.data || [];
+        const mapped = all
+          .filter((m: any) => m.id !== movieId)
+          .slice(0, 6)
+          .map((film: any): Video => ({
+            id: film.id,
+            title: film.title,
+            genre: film.genres && film.genres.length > 0 ? film.genres[0].name : "Other",
+            rating: "4.8",
+            quality: "4K UHD",
+            thumbnail: film.poster_url ? getMediaUrl(film.poster_url) : "",
+            backdrop: film.poster_url ? getMediaUrl(film.poster_url) : "",
+            description: film.description || "",
+            trailerUrl: film.trailer_url ? getMediaUrl(film.trailer_url) : "",
+            productionHouse: film.production_house || "",
+            productionHouseLogo: film.production_house_logo ? getMediaUrl(film.production_house_logo) : "",
+          }));
+        setRelatedMovies(mapped);
+      })
+      .catch((err) => {
+        setError(err.message);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [movieId]);
+
+  if (loading) {
+    return (
+      <div className="bg-background min-h-screen flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-brand border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (error || !movie) {
+    return (
+      <div className="bg-background min-h-screen flex flex-col items-center justify-center text-center p-6 space-y-4">
+        <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center justify-center text-red-500">
+          <Icon name="x" className="w-8 h-8" />
+        </div>
+        <h2 className="text-2xl font-black">{error || "Film tidak ditemukan"}</h2>
+        <button onClick={() => router.push("/movies")} className="px-6 py-3 bg-neutral-900 hover:bg-neutral-800 rounded-xl font-bold text-sm transition-all border border-neutral-850">
+          Kembali ke Katalog
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-background min-h-screen text-foreground selection:bg-brand/30 pb-20 font-sans transition-colors duration-500">
       {/* Breadcrumb / Back Navigation */}
       <div className="max-w-[1600px] mx-auto px-6 pt-6 flex items-center gap-4">
-        <button onClick={() => router.back()} className="p-2 rounded-full bg-muted border border-border hover:bg-muted/80 transition-all group">
+        <button onClick={() => router.push(`/movies/${movieId}`)} className="p-2 rounded-full bg-muted border border-border hover:bg-muted/80 transition-all group">
           <Icon name="arrow-right" className="w-5 h-5 rotate-180 group-hover:-translate-x-1 transition-transform text-foreground" />
         </button>
         <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
@@ -63,60 +132,29 @@ export default function WatchPage() {
       <div className="max-w-[1600px] mx-auto px-6 mt-6 grid grid-cols-1 xl:grid-cols-4 gap-8">
         {/* Main Player Section */}
         <div className="xl:col-span-3 space-y-8">
-          {/* Simulated Video Player */}
+          {/* Active Video Player */}
           <div 
             className="group relative aspect-video bg-black rounded-[2rem] overflow-hidden border border-white/5 shadow-2xl shadow-brand/10"
             onContextMenu={(e) => e.preventDefault()}
           >
-
-            {/* Mock Video Content */}
-            <div className="absolute inset-0 z-0">
-              {movie.thumbnail && <Image src={movie.thumbnail} alt="Backdrop" fill className="object-cover opacity-20 blur-xl scale-110" />}
-              <div className="absolute inset-0 bg-neutral-950/40" />
-            </div>
-
-            {/* Central Play Indicator */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
-              <div className="w-24 h-24 rounded-full bg-brand/90 flex items-center justify-center shadow-[0_0_50px_rgba(2,77,148,0.5)] cursor-pointer hover:scale-110 transition-transform active:scale-95 group/play">
-                <Icon name="play" className="w-10 h-10 fill-current ml-1" />
-              </div>
-            </div>
-
-            {/* Player Controls Bar */}
-            <div className="absolute bottom-0 left-0 w-full p-8 z-20 translate-y-4 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-500 bg-gradient-to-t from-black via-black/60 to-transparent">
-              <div className="space-y-6">
-                {/* Progress Bar */}
-                <div className="relative w-full h-1.5 bg-white/20 rounded-full cursor-pointer overflow-hidden group/bar">
-                  <div className="absolute inset-0 bg-brand w-[35%] rounded-full shadow-[0_0_15px_rgba(2,77,148,1)]" />
-                  <div className="absolute left-[35%] top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full opacity-0 group-hover/bar:opacity-100 transition-opacity" />
+            {streamUrl ? (
+              <iframe
+                src={streamUrl}
+                loading="lazy"
+                allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen"
+                className="w-full h-full border-none absolute inset-0"
+              />
+            ) : (
+              <div className="w-full h-full flex flex-col items-center justify-center text-center p-6 space-y-4">
+                <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center justify-center text-red-500">
+                  <Icon name="film" className="w-8 h-8" />
                 </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-8">
-                    <Icon name="play" className="w-6 h-6 fill-current cursor-pointer hover:text-brand transition-colors" />
-                    <div className="flex items-center gap-4 text-xs font-mono font-bold">
-                      <span className="text-white">00:45:12</span>
-                      <span className="text-neutral-600">/</span>
-                      <span className="text-neutral-400">02:15:30</span>
-                    </div>
-                    <div className="flex items-center gap-3 group/vol">
-                      <Icon name="volume-2" className="w-5 h-5 text-neutral-400 group-hover/vol:text-white transition-colors" />
-                      <div className="w-20 h-1 bg-white/20 rounded-full overflow-hidden">
-                        <div className="h-full bg-white w-[70%]" />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-8">
-                    <button className="flex items-center gap-2 px-3 py-1 bg-white/5 hover:bg-white/10 rounded-lg border border-white/5 transition-all">
-                      <div className="w-1.5 h-1.5 rounded-full bg-brand animate-pulse" />
-                      <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">4K Ultra HD</span>
-                    </button>
-                    <Icon name="settings" className="w-6 h-6 text-neutral-400 hover:text-white hover:rotate-90 transition-all cursor-pointer" />
-                    <Icon name="maximize" className="w-6 h-6 text-neutral-400 hover:text-white hover:scale-110 transition-all cursor-pointer" />
-                  </div>
-                </div>
+                <h3 className="text-xl font-bold text-white">Stream Tidak Tersedia</h3>
+                <p className="text-sm text-neutral-400 max-w-md leading-relaxed">
+                  Video asli belum ditautkan ke film ini di BunnyCDN, atau sesi otentikasi Anda telah berakhir.
+                </p>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Movie Info */}
@@ -125,24 +163,39 @@ export default function WatchPage() {
               <h1 className="text-4xl md:text-5xl font-black tracking-tight">{movie.title}</h1>
               <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-brand/10 border border-brand/20">
                 <Icon name="star" className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                <span className="text-sm font-bold">{movie.rating}</span>
+                <span className="text-sm font-bold">4.8</span>
               </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-6 text-muted-foreground">
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Genre</span>
-                <span className="text-sm font-bold text-foreground/80">{movie.genre}</span>
+                <span className="text-sm font-bold text-foreground/80">
+                  {movie.genres && movie.genres.length > 0 ? movie.genres[0].name : "Other"}
+                </span>
               </div>
               <div className="w-1.5 h-1.5 rounded-full bg-border" />
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Rilis</span>
-                <span className="text-sm font-bold text-foreground/80">2024</span>
-              </div>
-              <div className="w-1.5 h-1.5 rounded-full bg-border" />
+              {movie.release_year && (
+                <>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Rilis</span>
+                    <span className="text-sm font-bold text-foreground/80">{movie.release_year}</span>
+                  </div>
+                  <div className="w-1.5 h-1.5 rounded-full bg-border" />
+                </>
+              )}
+              {movie.duration && (
+                <>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Durasi</span>
+                    <span className="text-sm font-bold text-foreground/80">{movie.duration} Menit</span>
+                  </div>
+                  <div className="w-1.5 h-1.5 rounded-full bg-border" />
+                </>
+              )}
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Kualitas</span>
-                <span className="text-sm font-bold text-brand">{movie.quality}</span>
+                <span className="text-sm font-bold text-brand">4K UHD</span>
               </div>
             </div>
 
@@ -183,21 +236,6 @@ export default function WatchPage() {
                 </div>
               </div>
             ))}
-          </div>
-
-          {/* Upsell Banner for Sidebar */}
-          <div className="p-6 rounded-[2rem] bg-gradient-to-br from-brand/10 to-background border border-brand/20 space-y-4 shadow-sm">
-            <Icon name="crown" className="w-8 h-8 text-brand" />
-            <div className="space-y-1">
-              <h4 className="font-bold text-sm text-foreground">Ingin nonton tanpa iklan?</h4>
-              <p className="text-xs text-muted-foreground">Upgrade ke Premium untuk kualitas 4K tanpa hambatan.</p>
-            </div>
-            <Link 
-              href="/membership"
-              className="flex items-center justify-center w-full py-3 bg-brand hover:bg-brand-dark text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all"
-            >
-              Berlangganan
-            </Link>
           </div>
         </div>
       </div>

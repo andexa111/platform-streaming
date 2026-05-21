@@ -1,20 +1,19 @@
 "use client";
 
 import React, { useState, useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
 import { VideoCard } from "@/components/video/VideoCard";
 import { MovieBanner } from "@/components/home/MovieBanner";
-import { ALL_MOVIES, GENRES as GENRE_LIST } from "@/constants/video-data";
 import { useAuthStore } from "@/lib/auth-store";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-
-const GENRES = ["All Genres", ...GENRE_LIST.map((g) => g.title)];
+import { api, getMediaUrl } from "@/lib/api";
+import { Video } from "@/types/video";
 
 export default function CatalogPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-background" />}>
+    <Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center"><div className="w-12 h-12 border-4 border-brand border-t-transparent rounded-full animate-spin" /></div>}>
       <CatalogContent />
     </Suspense>
   );
@@ -23,32 +22,127 @@ export default function CatalogPage() {
 function CatalogContent() {
   const { user, isAuthenticated } = useAuthStore();
   const [mounted, setMounted] = useState(false);
+  const [movies, setMovies] = useState<Video[]>([]);
+  const [genres, setGenres] = useState<string[]>(["All Genres"]);
   const [selectedGenre, setSelectedGenre] = useState("All Genres");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [loading, setLoading] = useState(true);
   const searchParams = useSearchParams();
+  const router = useRouter();
+
+  // Read search query parameter
+  const searchVal = searchParams.get("search") || "";
+  const [searchInput, setSearchInput] = useState(searchVal);
 
   useEffect(() => {
     setMounted(true);
+    setLoading(true);
+
+    Promise.all([
+      api.get("/genre").catch(() => ({ data: [] })),
+      api.get("/films?limit=100").catch(() => ({ data: { data: [] } })),
+    ])
+      .then(([genreRes, filmsRes]) => {
+        // Parse Genres
+        const dbGenres = genreRes.data || [];
+        setGenres(["All Genres", ...dbGenres.map((g: any) => g.name)]);
+
+        // Parse Films
+        const dbFilms = filmsRes.data?.data || [];
+        const mapped = dbFilms.map((film: any): Video => ({
+          id: film.id,
+          title: film.title,
+          genre: film.genres && film.genres.length > 0 ? film.genres[0].name : "Other",
+          rating: "4.8",
+          quality: "4K UHD",
+          thumbnail: film.poster_url ? getMediaUrl(film.poster_url) : "",
+          backdrop: film.poster_url ? getMediaUrl(film.poster_url) : "",
+          description: film.description || "",
+          trailerUrl: film.trailer_url ? getMediaUrl(film.trailer_url) : "",
+          productionHouse: film.production_house || "",
+          productionHouseLogo: film.production_house_logo ? getMediaUrl(film.production_house_logo) : "",
+          director: film.director || "",
+          producer: film.producer || "",
+          actors: film.actors ? film.actors.map((a: any) => a.name) : [],
+        }));
+        setMovies(mapped);
+      })
+      .catch((err) => {
+        console.error("Failed to load catalog data", err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
+
+  // Update selected genre from search params if any
+  useEffect(() => {
     const genreParam = searchParams.get("genre");
-    if (genreParam && GENRES.includes(genreParam)) {
+    if (genreParam && genres.includes(genreParam)) {
       setSelectedGenre(genreParam);
     }
-  }, [searchParams]);
+  }, [searchParams, genres]);
 
-  const filteredMovies = selectedGenre === "All Genres" ? ALL_MOVIES : ALL_MOVIES.filter((m) => m.genre === selectedGenre);
+  // Sync search input from URL params
+  useEffect(() => {
+    setSearchInput(searchVal);
+  }, [searchVal]);
+
+  // Handle inline search
+  const handleInlineSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const params = new URLSearchParams(searchParams.toString());
+    if (searchInput.trim()) {
+      params.set("search", searchInput.trim());
+    } else {
+      params.delete("search");
+    }
+    router.push(`/movies?${params.toString()}`);
+  };
+
+  const clearSearch = () => {
+    setSearchInput("");
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("search");
+    router.push(`/movies?${params.toString()}`);
+  };
+
+  // Filter movies based on selectedGenre and searchVal
+  const filteredMovies = movies.filter((m) => {
+    const matchesGenre = selectedGenre === "All Genres" || (m.genre || "").toLowerCase() === selectedGenre.toLowerCase();
+    const searchLower = searchVal.toLowerCase();
+    const matchesSearch = !searchVal || 
+      m.title.toLowerCase().includes(searchLower) || 
+      (m.description || "").toLowerCase().includes(searchLower) ||
+      (m.genre || "").toLowerCase().includes(searchLower) ||
+      (m.director || "").toLowerCase().includes(searchLower) ||
+      (m.producer || "").toLowerCase().includes(searchLower) ||
+      (m.productionHouse || "").toLowerCase().includes(searchLower) ||
+      (m.actors || []).some(actor => actor.toLowerCase().includes(searchLower));
+    return matchesGenre && matchesSearch;
+  });
+
   const displayedMovies = isExpanded ? filteredMovies : filteredMovies.slice(0, 6);
   const hasMore = filteredMovies.length > 6;
 
   // Check if user is a subscriber
-  const isSubscriber = user?.role === "subscriber" || user?.role === "admin" || user?.role === "superadmin";
+  const isSubscriber = user?.role === "subscriber" || user?.role === "admin" || user?.role === "superadmin" || !!user;
+
+  if (loading) {
+    return (
+      <div className="bg-background min-h-screen flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-brand border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-background text-foreground font-sans selection:bg-brand/30">
       {/* Dynamic Header Section */}
       {mounted &&
         (isAuthenticated ? (
-          <MovieBanner movies={ALL_MOVIES.slice(0, 10)} />
+          <MovieBanner movies={movies.slice(0, 10)} />
         ) : (
           <section className="relative pt-32 pb-16 overflow-hidden flex flex-col items-center justify-center min-h-[40vh]">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-brand/10 via-background to-background -z-10" />
@@ -69,25 +163,62 @@ function CatalogContent() {
       {/* Grid Content Section */}
       <section className={cn("pb-24 px-6 max-w-7xl mx-auto space-y-10", isAuthenticated ? "py-20" : "pt-10")}>
         {/* Navigation & Filter Row */}
-        <div className="flex items-center justify-between border-b border-border pb-6">
-          <div className="flex items-center gap-3">
-            <span className="text-[10px] md:text-xs font-black tracking-widest text-brand uppercase">{isAuthenticated ? "Catalog" : "Movies"}</span>
-            <div className="w-1 h-1 rounded-full bg-muted" />
-            <span className="text-[10px] md:text-xs font-medium text-muted-foreground uppercase">{filteredMovies.length} Judul Ditemukan</span>
-          </div>
+        <div className="space-y-6 border-b border-border pb-6">
+          {/* Search Bar */}
+          <form onSubmit={handleInlineSearch} className="relative">
+            <div className="flex items-center bg-card border border-border rounded-2xl px-4 py-3 focus-within:border-brand/50 transition-all">
+              <Icon name="search" className="w-5 h-5 text-muted-foreground mr-3 flex-shrink-0" />
+              <input
+                type="text"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Cari film, genre, sutradara..."
+                className="flex-1 bg-transparent border-none outline-none text-sm text-foreground placeholder:text-muted-foreground"
+              />
+              {searchInput && (
+                <button
+                  type="button"
+                  onClick={clearSearch}
+                  className="p-1 hover:bg-muted rounded-full transition-colors mr-2"
+                >
+                  <Icon name="x" className="w-4 h-4 text-muted-foreground" />
+                </button>
+              )}
+              <button
+                type="submit"
+                className="px-4 py-1.5 bg-brand hover:bg-brand-dark text-white rounded-full text-xs font-bold transition-all"
+              >
+                Cari
+              </button>
+            </div>
+          </form>
 
-          <div className="relative">
-            <button onClick={() => setIsFilterOpen(!isFilterOpen)} className="group flex items-center gap-2 px-4 py-2 rounded-full bg-card border border-border hover:border-brand/50 transition-all text-xs font-semibold">
-              <Icon name="sliders-horizontal" className="w-3.5 h-3.5 text-muted-foreground group-hover:text-brand" />
-              <span>{selectedGenre}</span>
-              <Icon name="chevron-down" className={`w-3 h-3 text-muted-foreground transition-transform duration-300 ${isFilterOpen ? "rotate-180" : ""}`} />
-            </button>
+          {/* Filter Info Row */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-[10px] md:text-xs font-black tracking-widest text-brand uppercase">{isAuthenticated ? "Katalog" : "Film"}</span>
+              <div className="w-1 h-1 rounded-full bg-muted" />
+              <span className="text-[10px] md:text-xs font-medium text-muted-foreground uppercase">{filteredMovies.length} Judul Ditemukan</span>
+              {searchVal && (
+                <>
+                  <div className="w-1 h-1 rounded-full bg-muted" />
+                  <span className="text-[10px] md:text-xs font-medium text-brand uppercase">Pencarian: "{searchVal}"</span>
+                </>
+              )}
+            </div>
+
+            <div className="relative">
+              <button onClick={() => setIsFilterOpen(!isFilterOpen)} className="group flex items-center gap-2 px-4 py-2 rounded-full bg-card border border-border hover:border-brand/50 transition-all text-xs font-semibold">
+                <Icon name="sliders-horizontal" className="w-3.5 h-3.5 text-muted-foreground group-hover:text-brand" />
+                <span>{selectedGenre}</span>
+                <Icon name="chevron-down" className={`w-3 h-3 text-muted-foreground transition-transform duration-300 ${isFilterOpen ? "rotate-180" : ""}`} />
+              </button>
 
             {isFilterOpen && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setIsFilterOpen(false)} />
                 <div className="absolute right-0 mt-2 w-48 bg-card border border-border rounded-2xl shadow-2xl py-2 z-50 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-200">
-                  {GENRES.map((genre) => (
+                  {genres.map((genre) => (
                     <button
                       key={genre}
                       onClick={() => {
@@ -102,6 +233,7 @@ function CatalogContent() {
                 </div>
               </>
             )}
+            </div>
           </div>
         </div>
 
@@ -109,7 +241,7 @@ function CatalogContent() {
         <div className="relative">
           <div className={cn("grid grid-cols-3 md:grid-cols-5 xl:grid-cols-6 gap-x-3 md:gap-x-4 gap-y-10 transition-all duration-700 ease-in-out", !isExpanded && "max-h-[800px] overflow-hidden")}>
             {displayedMovies.map((movie, index) => (
-              <div key={movie.id} className={cn("w-full animate-in fade-in slide-in-from-bottom-4 duration-500", isExpanded && index >= 6 ? "fill-mode-backwards" : "")} style={{ animationDelay: `${(index % 6) * 100}ms` }}>
+              <div key={movie.id} className={cn("w-full animate-in fade-in slide-in-from-bottom-4 duration-500")} style={{ animationDelay: `${(index % 6) * 100}ms` }}>
                 <VideoCard video={movie} />
               </div>
             ))}
@@ -139,38 +271,12 @@ function CatalogContent() {
         {filteredMovies.length === 0 && (
           <div className="py-32 text-center space-y-4">
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto border border-border">
-              <Icon name="search-x" className="w-8 h-8 text-muted-foreground" />
+              <Icon name="search" className="w-8 h-8 text-muted-foreground" />
             </div>
-            <p className="text-muted-foreground font-medium">No results found.</p>
+            <p className="text-muted-foreground font-medium">Film tidak ditemukan.</p>
           </div>
         )}
       </section>
-
-      {/* Mini Pricing Section - Encouraging full conversion for non-subscribers */}
-      {mounted && isAuthenticated && !isSubscriber && (
-        <section className="py-24 px-6 bg-muted/20 border-t border-border font-sans">
-          <div className="max-w-4xl mx-auto text-center space-y-8">
-            <div className="space-y-4">
-              <h2 className="text-2xl md:text-4xl font-bold uppercase tracking-tight">Buka Potensi Hiburan Sepenuhnya</h2>
-              <p className="text-muted-foreground font-body text-lg">Nikmati streaming kualitas 4K dan akses di banyak perangkat dengan paket premium kami.</p>
-            </div>
-            <div className="flex flex-wrap items-center justify-center gap-4">
-              <div className="px-6 py-4 rounded-2xl bg-card border border-border flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-brand/10 flex items-center justify-center">
-                  <Icon name="crown" className="w-5 h-5 text-brand" />
-                </div>
-                <div className="text-left font-body">
-                  <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Premium</p>
-                  <p className="font-bold">Mulai dari Rp 49rb</p>
-                </div>
-              </div>
-              <Link href="/membership" className="px-8 py-4 bg-brand hover:bg-brand-dark text-white rounded-2xl font-bold transition-all hover:scale-105 active:scale-95 shadow-xl shadow-brand/20">
-                Lihat Semua Paket
-              </Link>
-            </div>
-          </div>
-        </section>
-      )}
     </main>
   );
 }

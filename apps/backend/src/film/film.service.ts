@@ -237,6 +237,7 @@ export class FilmService {
       },
     });
 
+    // Log update operation completion
     this.logger.log(`Film updated: ${film.title} (ID: ${film.id})`);
     return film;
   }

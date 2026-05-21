@@ -3,6 +3,7 @@ import {
   ConflictException,
   UnauthorizedException,
   BadRequestException,
+  ForbiddenException,
   Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -26,6 +27,12 @@ export class AuthService {
   // ==================== REGISTER ====================
 
   async register(dto: RegisterDto) {
+    if (process.env.BETA_TEST_MODE === 'true') {
+      throw new ForbiddenException(
+        'Registrasi dinonaktifkan sementara selama masa uji coba beta.',
+      );
+    }
+
     // 1. Cek apakah email sudah terdaftar
     const existingUser = await this.prisma.user.findUnique({
       where: { email: dto.email },
@@ -79,6 +86,17 @@ export class AuthService {
 
     if (!isPasswordValid) {
       throw new UnauthorizedException('Email atau password salah');
+    }
+
+    // 3. Beta Test Mode login restriction
+    if (process.env.BETA_TEST_MODE === 'true') {
+      const isUser = user.role !== 'admin' && user.role !== 'superadmin';
+      const isBetaEmail = user.email.toLowerCase() === (process.env.BETA_TEST_EMAIL || '').toLowerCase();
+      if (isUser && !isBetaEmail) {
+        throw new ForbiddenException(
+          'Akses masuk dibatasi selama masa uji coba beta.',
+        );
+      }
     }
 
 
@@ -137,6 +155,18 @@ export class AuthService {
       let user = await this.prisma.user.findUnique({
         where: { email: profile.email },
       });
+
+      // Beta Test Mode OAuth restriction
+      if (process.env.BETA_TEST_MODE === 'true') {
+        const existingRole = user?.role || 'user';
+        const isUser = existingRole !== 'admin' && existingRole !== 'superadmin';
+        const isBetaEmail = profile.email.toLowerCase() === (process.env.BETA_TEST_EMAIL || '').toLowerCase();
+        if (isUser && !isBetaEmail) {
+          throw new ForbiddenException(
+            'Akses masuk dibatasi selama masa uji coba beta.',
+          );
+        }
+      }
 
       if (!user) {
         // Buat user baru, langsung aktif sbg 'user' biasa

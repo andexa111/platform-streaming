@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
 
 interface SearchOverlayProps {
@@ -11,18 +12,19 @@ interface SearchOverlayProps {
 }
 
 const TRENDING_SEARCHES = [
-  "One Piece",
-  "Harry Potter",
-  "Climax",
-  "The Boys",
-  "Bloodhounds",
-  "Avatar",
-  "High Potential",
+  "Comedy",
+  "Drama",
+  "Historical",
+  "Action",
+  "Horror",
+  "Romance",
+  "Thriller",
 ];
 
 export function SearchOverlay({ isOpen, onClose, query, setQuery }: SearchOverlayProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   useEffect(() => {
     if (isOpen) {
@@ -44,6 +46,20 @@ export function SearchOverlay({ isOpen, onClose, query, setQuery }: SearchOverla
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (query.trim()) {
+      onClose();
+      router.push(`/movies?search=${encodeURIComponent(query.trim())}`);
+    }
+  };
+
+  const handleTrendingClick = (tag: string) => {
+    setQuery(tag);
+    onClose();
+    router.push(`/movies?search=${encodeURIComponent(tag)}`);
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -63,17 +79,20 @@ export function SearchOverlay({ isOpen, onClose, query, setQuery }: SearchOverla
           <div className="relative flex items-center bg-neutral-900/50 border border-white/10 group-focus-within:border-brand/50 rounded-2xl px-5 py-4 shadow-2xl transition-all">
             <Icon name="search" className="w-5 h-5 text-neutral-500 group-focus-within:text-brand transition-colors mr-4" />
             
-            <input
-              ref={inputRef}
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search movies, series, or actors..."
-              className="flex-1 bg-transparent border-none outline-none text-lg text-white placeholder:text-neutral-500"
-            />
+            <form onSubmit={handleSearchSubmit} className="flex-1 flex items-center">
+              <input
+                ref={inputRef}
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Cari film, genre, atau produser..."
+                className="flex-1 bg-transparent border-none outline-none text-lg text-white placeholder:text-neutral-500"
+              />
+            </form>
 
             {query && (
               <button 
+                type="button"
                 onClick={() => setQuery("")}
                 className="p-1 hover:bg-white/10 rounded-full transition-colors mr-2"
               >
@@ -90,16 +109,16 @@ export function SearchOverlay({ isOpen, onClose, query, setQuery }: SearchOverla
         {/* Trending Tags */}
         <div className="mt-10 space-y-4">
           <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-neutral-500 ml-1">
-            Top Searches Now
+            Paling Sering Dicari
           </h3>
           <div className="flex flex-wrap gap-2">
             {TRENDING_SEARCHES.map((tag) => (
               <button
                 key={tag}
-                onClick={() => setQuery(tag)}
+                onClick={() => handleTrendingClick(tag)}
                 className="px-4 py-2 rounded-full bg-neutral-900 border border-white/5 text-xs font-semibold text-neutral-400 hover:text-white hover:border-brand/40 hover:bg-brand/5 transition-all"
               >
-                {tag.toLowerCase()}
+                {tag}
               </button>
             ))}
           </div>

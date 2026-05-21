@@ -32,13 +32,7 @@ function CallbackContent() {
         setAuth(res.data, token);
         setState("success");
         setTimeout(() => {
-          if (res.data.role === 'superadmin') {
-            window.location.href = "/superadmin";
-          } else if (res.data.role === 'admin') {
-            window.location.href = "/admin";
-          } else {
-            window.location.href = "/home";
-          }
+          window.location.href = "/home";
         }, 1500);
       } catch {
         setState("error");

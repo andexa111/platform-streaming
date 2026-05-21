@@ -78,7 +78,7 @@ export default function AddMoviePage() {
       updateField(field, res.data.url);
     } catch (err: any) {
       console.error(`Gagal upload ${field}:`, err);
-      alert(err.response?.data?.message || `Gagal mengunggah gambar. Pastikan formatnya jpg/png/webp dan ukuran maks 5MB.`);
+      alert(err.response?.data?.message || `Gagal mengunggah gambar. Pastikan formatnya jpg/png/webp dan ukuran maks 100MB.`);
     }
   };
 
@@ -100,7 +100,7 @@ export default function AddMoviePage() {
       updateField("trailer_url", res.data.url);
     } catch (err: any) {
       console.error("Gagal upload trailer:", err);
-      alert(err.response?.data?.message || "Gagal mengunggah trailer. Pastikan formatnya video (mp4/webm) dan ukuran maks 500MB.");
+      alert(err.response?.data?.message || "Gagal mengunggah trailer. Pastikan formatnya video (mp4/webm) dan ukuran maks 5GB.");
     } finally {
       setUploadingTrailer(false);
     }
@@ -307,7 +307,7 @@ export default function AddMoviePage() {
                         <div className="w-full h-[54px] bg-secondary border border-border rounded-2xl flex items-center px-5 gap-3 group-hover:border-brand transition-all border-dashed">
                           <Icon name="image" className="w-5 h-5 text-muted-foreground group-hover:text-brand transition-colors" />
                           <span className="text-sm text-muted-foreground group-hover:text-foreground">
-                            {formData.production_house_logo ? "Ganti Logo" : "Klik untuk upload logo..."}
+                            {formData.production_house_logo ? "Ganti Logo" : "Klik untuk upload logo (maks. 100MB)..."}
                           </span>
                         </div>
                         <input
@@ -371,7 +371,7 @@ export default function AddMoviePage() {
                       }}
                     />
                   </label>
-                  <p className="text-xs text-muted-foreground">Upload poster film (rekomendasi portrait 2:3)</p>
+                  <p className="text-xs text-muted-foreground">Upload poster film (rekomendasi portrait 2:3) · <span className="font-semibold">Maks. 100MB</span></p>
                 </div>
 
                 <div className="space-y-2">
@@ -398,7 +398,7 @@ export default function AddMoviePage() {
                             <Icon name="film" className="w-5 h-5 text-muted-foreground" />
                           )}
                           <span className="text-sm text-muted-foreground">
-                            {uploadingTrailer ? `Sedang mengunggah (${uploadProgress}%)...` : formData.trailer_url ? "Ganti Trailer Video" : "Klik untuk upload trailer..."}
+                            {uploadingTrailer ? `Sedang mengunggah (${uploadProgress}%)...` : formData.trailer_url ? "Ganti Trailer Video" : "Klik untuk upload trailer (maks. 5GB)..."}
                           </span>
                         </div>
                         {uploadingTrailer && (

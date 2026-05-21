@@ -25,7 +25,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   isLoading: true, // Initially loading until checkAuth completes
 
   setAuth: (user, token) => {
-    Cookies.set('token', token, { expires: 7 }); // Expires in 7 days
+    Cookies.set('token', token); // Session cookie (removed when browser is closed)
     set({ user, isAuthenticated: true, isLoading: false });
   },
 

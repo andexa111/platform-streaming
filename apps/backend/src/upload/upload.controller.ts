@@ -53,7 +53,7 @@ export class UploadController {
     @UploadedFile(
       new ParseFilePipe({
         validators: [
-          new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }), // 5MB
+          new MaxFileSizeValidator({ maxSize: 100 * 1024 * 1024 }), // 100MB
           new FileTypeValidator({ 
             fileType: /image\/(jpg|jpeg|png|webp|x-icon|vnd\.microsoft\.icon)/,
             skipMagicNumbersValidation: true,
@@ -95,7 +95,7 @@ export class UploadController {
     @UploadedFile(
       new ParseFilePipe({
         validators: [
-          new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }), // 5MB
+          new MaxFileSizeValidator({ maxSize: 100 * 1024 * 1024 }), // 100MB
           new FileTypeValidator({ 
             fileType: /image\/(jpg|jpeg|png|webp|x-icon|vnd\.microsoft\.icon)/,
             skipMagicNumbersValidation: true,
@@ -137,7 +137,7 @@ export class UploadController {
     @UploadedFile(
       new ParseFilePipe({
         validators: [
-          new MaxFileSizeValidator({ maxSize: 500 * 1024 * 1024 }), // 500MB
+          new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 * 1024 }), // 5GB
           new FileTypeValidator({ 
             fileType: /video\/(mp4|webm|quicktime|x-matroska|avi)/,
             skipMagicNumbersValidation: true,

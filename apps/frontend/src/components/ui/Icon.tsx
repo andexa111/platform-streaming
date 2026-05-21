@@ -4,6 +4,8 @@ import {
   Sparkles, 
   Play, 
   ArrowRight, 
+  Calendar, 
+  Clock,
   Star, 
   Compass, 
   ChevronRight, 
@@ -41,6 +43,7 @@ import {
   Megaphone,
   Users,
   ChevronDown,
+  ChevronUp,
   SlidersHorizontal,
   SearchX,
   Maximize,
@@ -55,18 +58,15 @@ import {
   CircleDashed,
   Pencil,
   ChevronLeft,
-  AlertTriangle,
-  Calendar,
-  Smartphone,
-  Download,
-  ShieldCheck,
-  Clock
+  AlertTriangle
 } from "lucide-react";
 
 const ICON_MAP = {
   sparkles: Sparkles,
   play: Play,
   "arrow-right": ArrowRight,
+  calendar: Calendar,
+  clock: Clock,
   star: Star,
   compass: Compass,
   "chevron-right": ChevronRight,
@@ -104,6 +104,7 @@ const ICON_MAP = {
   ads: Megaphone,
   users: Users,
   "chevron-down": ChevronDown,
+  "chevron-up": ChevronUp,
   "sliders-horizontal": SlidersHorizontal,
   "search-x": SearchX,
   maximize: Maximize,
@@ -120,11 +121,6 @@ const ICON_MAP = {
   "circle-dashed": CircleDashed,
   "chevron-left": ChevronLeft,
   warning: AlertTriangle,
-  calendar: Calendar,
-  smartphone: Smartphone,
-  download: Download,
-  "shield-check": ShieldCheck,
-  clock: Clock,
 };
 
 interface IconProps extends LucideProps {

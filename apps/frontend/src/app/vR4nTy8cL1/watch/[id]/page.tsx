@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api, getMediaUrl } from "@/lib/api";
 import { Icon } from "@/components/ui/Icon";
+import { ProtectedVideo } from "@/components/video/ProtectedVideo";
 import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -260,7 +261,7 @@ export default function SecretWatchPage() {
                 /* Trailer playback mode */
                 movie?.trailer_url ? (
                   isTrailerLocal ? (
-                    <video 
+                    <ProtectedVideo 
                       src={getMediaUrl(movie.trailer_url)} 
                       controls 
                       autoPlay 
