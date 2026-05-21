@@ -7,6 +7,7 @@ import { VideoSection } from "@/components/video/VideoSection";
 import { MovieBanner } from "@/components/home/MovieBanner";
 import { ALL_MOVIES, GENRES } from "@/constants/video-data";
 import { cn } from "@/lib/utils";
+import { Ads } from "@/components/home/Ads";
 
 const PLANS = [
   {
@@ -70,11 +71,14 @@ export default function MemberHomePage() {
       <MovieBanner movies={ALL_MOVIES.slice(0, 10)} />
 
       {/* Content Sections */}
-      <div className="space-y-4 md:space-y-8 pb-20">
+      <div className="pb-20">
         <VideoSection title="Sedang Ditonton" subtitle="Lanjutkan menonton film favorit Anda" videos={ALL_MOVIES} viewAllHref="/movies" />
 
         <VideoSection title="Segera Hadir" subtitle="Film original eksklusif yang akan tayang bulan ini" videos={[...ALL_MOVIES].reverse()} viewAllHref="/movies" className="bg-muted/30" />
 
+        {/* Ads Section */}
+        <Ads />
+        
         {/* Genres Section */}
         <section className="py-24 px-6 bg-background relative border-t border-border overflow-hidden">
           <div className="absolute -left-1/4 top-0 w-[500px] h-[500px] bg-brand/10 blur-[120px] rounded-full mix-blend-screen pointer-events-none" />

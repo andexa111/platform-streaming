@@ -30,6 +30,7 @@ import { VideoSection } from "@/components/video/VideoSection";
 import { cn } from "@/lib/utils";
 
 import { ALL_MOVIES, GENRES } from "@/constants/video-data";
+import { Ads } from "@/components/home/Ads";
 
 const PLANS = [
   {
@@ -127,6 +128,8 @@ export default function Home() {
       </section>
       <VideoSection title="Sedang Tayang" videos={ALL_MOVIES} viewAllHref="/movies" />
       <VideoSection title="Segera Hadir" videos={[...ALL_MOVIES].reverse()} viewAllHref="/movies" className="bg-secondary/20" />
+      {/* Ads Section */}
+      <Ads />
       {/* Genres Section */}
       <section className="py-24 px-6 bg-background relative border-t border-border overflow-hidden">
         <div className="absolute -left-1/4 top-0 w-[500px] h-[500px] bg-brand/10 blur-[120px] rounded-full mix-blend-screen pointer-events-none" />
