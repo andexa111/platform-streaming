@@ -21,6 +21,8 @@ export class FeaturedFilmService {
             description: true,
             director: true,
             release_year: true,
+            production_house: true,
+            production_house_logo: true,
             genres: { select: { name: true } },
           },
         },
