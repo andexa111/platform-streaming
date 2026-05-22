@@ -188,8 +188,14 @@ export default function MovieDetailPage() {
             <>
               {/* Back Button */}
               <button
-                onClick={() => router.back()}
-                className="absolute top-6 left-6 z-30 flex items-center gap-2 px-4 py-2 bg-black/30 hover:bg-black/50 backdrop-blur-md text-white rounded-full text-sm font-semibold transition-all hover:scale-105 active:scale-95 border border-white/10"
+                onClick={() => {
+                  if (typeof window !== 'undefined' && window.history.length > 1) {
+                    router.back();
+                  } else {
+                    router.push('/home');
+                  }
+                }}
+                className="absolute top-6 left-6 z-[60] flex items-center gap-2 px-4 py-2 bg-black/30 hover:bg-black/50 backdrop-blur-md text-white rounded-full text-sm font-semibold transition-all hover:scale-105 active:scale-95 border border-white/10"
               >
                 <Icon name="chevron-left" className="w-4 h-4" />
                 Kembali
