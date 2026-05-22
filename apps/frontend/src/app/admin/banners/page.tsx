@@ -210,7 +210,7 @@ export default function BannersPage() {
       </div>
       )}
 
-      <StatusModal isOpen={isStatusOpen} type={statusType} title={statusType === "success" ? "Gagal!" : "Gagal"} message={statusMessage} onClose={() => setIsStatusOpen(false)} />
+      <StatusModal isOpen={isStatusOpen} type={statusType} title={statusType === "success" ? "Berhasil!" : "Gagal!"} message={statusMessage} onClose={() => setIsStatusOpen(false)} />
 
       {/* Selection & Preview Modal */}
       {editingSlot !== null && (
