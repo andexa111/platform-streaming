@@ -99,8 +99,7 @@ function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
   const handleLogout = () => {
     logout();
     setIsProfileOpen(false);
-    router.push("/");
-    router.refresh();
+    window.location.href = "/";
   };
 
   // Close profile when clicking outside

@@ -4,6 +4,7 @@ import React, { useState, useMemo } from "react";
 import { Icon } from "@/components/ui/Icon";
 import { ButtonAction } from "@/components/ui/ButtonAction";
 import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/lib/auth-store";
 
 // --- Mock Data ---
 const INITIAL_USERS = [
@@ -67,6 +68,9 @@ const PlanBadge = ({ plan }: { plan: string }) => {
 // --- Main Page ---
 
 export default function UsersManagementPage() {
+  const { user: sessionUser } = useAuthStore();
+  const isSuperAdmin = sessionUser?.role === "superadmin";
+
   const [users, setUsers] = useState(INITIAL_USERS);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRole, setSelectedRole] = useState("All");
@@ -122,13 +126,15 @@ export default function UsersManagementPage() {
           <h1 className="text-3xl font-black text-foreground tracking-tight uppercase italic">Manajemen User</h1>
           <p className="text-muted-foreground text-sm font-bold">Kelola hak akses, reset password, dan pantau status pelanggan.</p>
         </div>
-        <button 
-          onClick={() => { setCurrentUser(null); setIsAddEditOpen(true); }}
-          className="flex items-center justify-center gap-2 px-6 py-3 bg-brand text-white rounded-xl font-bold hover:bg-brand-dark transition-all shadow-lg shadow-brand/20 active:scale-95 whitespace-nowrap"
-        >
-          <Icon name="user-plus" className="w-4 h-4" />
-          <span className="uppercase tracking-widest text-xs font-black">Tambah Admin/User</span>
-        </button>
+        {isSuperAdmin && (
+          <button 
+            onClick={() => { setCurrentUser(null); setIsAddEditOpen(true); }}
+            className="flex items-center justify-center gap-2 px-6 py-3 bg-brand text-white rounded-xl font-bold hover:bg-brand-dark transition-all shadow-lg shadow-brand/20 active:scale-95 whitespace-nowrap"
+          >
+            <Icon name="user-plus" className="w-4 h-4" />
+            <span className="uppercase tracking-widest text-xs font-black">Tambah Admin/User</span>
+          </button>
+        )}
       </div>
 
       {/* Stats Quick View */}
@@ -195,7 +201,7 @@ export default function UsersManagementPage() {
                 <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-center">Role</th>
                 <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-center">Plan</th>
                 <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-center">Status</th>
-                <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-right">Actions</th>
+                {isSuperAdmin && <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-right">Actions</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -220,21 +226,30 @@ export default function UsersManagementPage() {
                     <PlanBadge plan={user.plan} />
                   </td>
                   <td className="px-8 py-5">
-                    <button 
-                      onClick={() => handleToggleStatus(user.id)}
-                      className="flex items-center gap-2 mx-auto px-3 py-1.5 rounded-lg hover:bg-secondary transition-all"
-                    >
-                      <div className={cn("w-1.5 h-1.5 rounded-full", user.status === "Active" ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]")} />
-                      <span className="text-[10px] font-black uppercase text-foreground">{user.status}</span>
-                    </button>
+                    {isSuperAdmin ? (
+                      <button 
+                        onClick={() => handleToggleStatus(user.id)}
+                        className="flex items-center gap-2 mx-auto px-3 py-1.5 rounded-lg hover:bg-secondary transition-all"
+                      >
+                        <div className={cn("w-1.5 h-1.5 rounded-full", user.status === "Active" ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]")} />
+                        <span className="text-[10px] font-black uppercase text-foreground">{user.status}</span>
+                      </button>
+                    ) : (
+                      <div className="flex items-center gap-2 mx-auto px-3 py-1.5 w-fit">
+                        <div className={cn("w-1.5 h-1.5 rounded-full", user.status === "Active" ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]")} />
+                        <span className="text-[10px] font-black uppercase text-foreground">{user.status}</span>
+                      </div>
+                    )}
                   </td>
-                  <td className="px-8 py-5">
-                    <ButtonAction 
-                      onReset={() => { setCurrentUser(user); setIsResetOpen(true); }}
-                      onEdit={() => { setCurrentUser(user); setIsAddEditOpen(true); }}
-                      onDelete={() => handleDelete(user.id)}
-                    />
-                  </td>
+                  {isSuperAdmin && (
+                    <td className="px-8 py-5">
+                      <ButtonAction 
+                        onReset={() => { setCurrentUser(user); setIsResetOpen(true); }}
+                        onEdit={() => { setCurrentUser(user); setIsAddEditOpen(true); }}
+                        onDelete={() => handleDelete(user.id)}
+                      />
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
