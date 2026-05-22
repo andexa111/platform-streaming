@@ -191,10 +191,10 @@ export class FilmController {
 
   /**
    * PATCH /films/:id/clip
-   * Update clip_start & clip_end untuk highlight trailer — superadmin only
+   * Update clip_start & clip_end untuk highlight trailer — admin & superadmin
    */
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('superadmin')
+  @Roles('admin', 'superadmin')
   @Patch(':id/clip')
   async updateClip(
     @Param('id', ParseIntPipe) id: number,

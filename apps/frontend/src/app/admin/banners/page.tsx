@@ -17,6 +17,8 @@ export default function BannersPage() {
 
   const [editingSlot, setEditingSlot] = useState<number | null>(null);
   const [tempSelectedMovie, setTempSelectedMovie] = useState<Video | null>(null);
+  const [clipStart, setClipStart] = useState<number>(0);
+  const [clipEnd, setClipEnd] = useState<number>(10);
   const [searchQuery, setSearchQuery] = useState("");
   const [playingSlot, setPlayingSlot] = useState<number | null>(null);
   const [isListExpanded, setIsListExpanded] = useState(false);
@@ -74,32 +76,66 @@ export default function BannersPage() {
   const handleSelectMovie = (movie: Video) => {
     setTempSelectedMovie(movie);
     setSearchQuery(movie.title);
+    setClipStart(movie.clipStart ?? 0);
+    setClipEnd(movie.clipEnd ?? 10);
     setIsListExpanded(false);
+  };
+
+  const handleEditSlot = (slotIndex: number) => {
+    const movie = bannerSlots[slotIndex];
+    setEditingSlot(slotIndex);
+    if (movie) {
+      setTempSelectedMovie(movie);
+      setSearchQuery(movie.title);
+      setClipStart(movie.clipStart ?? 0);
+      setClipEnd(movie.clipEnd ?? 10);
+    } else {
+      setTempSelectedMovie(null);
+      setSearchQuery("");
+      setClipStart(0);
+      setClipEnd(10);
+    }
   };
 
   const handleConfirmAssignment = () => {
     if (editingSlot !== null && tempSelectedMovie) {
-      const newSlots = [...bannerSlots];
-      newSlots[editingSlot] = tempSelectedMovie;
-
-      const items = newSlots
-        .map((movie, idx) => (movie ? { filmId: movie.id, position: idx + 1 } : null))
-        .filter(Boolean) as { filmId: number; position: number }[];
-
-      api.put("/featured-films", { items })
+      // 1. Update clip duration in backend first
+      api.patch(`/films/${tempSelectedMovie.id}/clip`, {
+        clip_start: clipStart,
+        clip_end: clipEnd,
+      })
         .then(() => {
-          setBannerSlots(newSlots);
-          setEditingSlot(null);
-          setTempSelectedMovie(null);
-          setSearchQuery("");
+          // Update the movie's clip info locally
+          const updatedMovie = {
+            ...tempSelectedMovie,
+            clipStart,
+            clipEnd,
+          };
 
-          setStatusType("success");
-          setStatusMessage(`Film "${tempSelectedMovie.title}" berhasil dipasang pada slot #${editingSlot + 1}.`);
-          setIsStatusOpen(true);
+          const newSlots = [...bannerSlots];
+          newSlots[editingSlot] = updatedMovie;
+
+          const items = newSlots
+            .map((movie, idx) => (movie ? { filmId: movie.id, position: idx + 1 } : null))
+            .filter(Boolean) as { filmId: number; position: number }[];
+
+          // 2. Put to featured-films
+          return api.put("/featured-films", { items })
+            .then(() => {
+              setBannerSlots(newSlots);
+              setEditingSlot(null);
+              setTempSelectedMovie(null);
+              setSearchQuery("");
+
+              setStatusType("success");
+              setStatusMessage(`Film "${tempSelectedMovie.title}" berhasil dipasang dengan cuplikan ${clipStart}s - ${clipEnd}s pada slot #${editingSlot + 1}.`);
+              setIsStatusOpen(true);
+            });
         })
-        .catch(() => {
+        .catch((err) => {
+          console.error("Gagal menyimpan banner:", err);
           setStatusType("error");
-          setStatusMessage("Gagal menyimpan konfigurasi banner ke server.");
+          setStatusMessage("Gagal menyimpan konfigurasi banner atau durasi cuplikan ke server.");
           setIsStatusOpen(true);
         });
     }
@@ -200,7 +236,7 @@ export default function BannersPage() {
                     <span className="text-[14px] font-medium text-muted-foreground">{movie?.productionHouse || "-"}</span>
                   </td>
                   <td className="px-8 py-6">
-                    <ButtonAction onEdit={() => setEditingSlot(index)} onDelete={movie ? () => handleRemoveMovie(index) : undefined} />
+                    <ButtonAction onEdit={() => handleEditSlot(index)} onDelete={movie ? () => handleRemoveMovie(index) : undefined} />
                   </td>
                 </tr>
               ))}
@@ -302,6 +338,32 @@ export default function BannersPage() {
                   <div className="mt-5 space-y-1.5">
                     <h3 className="text-2xl font-black italic uppercase tracking-tighter leading-tight">{tempSelectedMovie.title}</h3>
                     <p className="text-xs text-neutral-400 font-bold uppercase tracking-wider">{tempSelectedMovie.productionHouse || "-"}</p>
+                  </div>
+
+                  {/* Clip Settings */}
+                  <div className="mt-4 grid grid-cols-2 gap-4 bg-white/5 p-4 rounded-2xl border border-white/10">
+                    <div>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 block mb-1">Mulai Cuplikan (Detik)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        placeholder="0"
+                        value={clipStart}
+                        onChange={(e) => setClipStart(Math.max(0, parseInt(e.target.value) || 0))}
+                        className="w-full px-4 py-2.5 bg-neutral-800 border border-white/10 rounded-xl text-white font-bold focus:outline-none focus:border-brand text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 block mb-1">Selesai Cuplikan (Detik)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        placeholder="10"
+                        value={clipEnd}
+                        onChange={(e) => setClipEnd(Math.max(0, parseInt(e.target.value) || 0))}
+                        className="w-full px-4 py-2.5 bg-neutral-800 border border-white/10 rounded-xl text-white font-bold focus:outline-none focus:border-brand text-sm"
+                      />
+                    </div>
                   </div>
 
                   <div className="flex flex-row gap-3 pt-5">
