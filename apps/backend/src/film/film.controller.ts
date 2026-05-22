@@ -200,10 +200,16 @@ export class FilmController {
     @Param('id', ParseIntPipe) id: number,
     @Body() body: { clip_start: number; clip_end: number },
   ) {
-    return this.filmService.update(id, {
+    const film = await this.filmService.update(id, {
       clip_start: body.clip_start,
       clip_end: body.clip_end,
     } as any);
+
+    if (film.trailer_url) {
+      clipVideoInBackground(film.trailer_url, body.clip_start, body.clip_end);
+    }
+
+    return film;
   }
 
   /**
@@ -240,23 +246,40 @@ export class FilmController {
     const cleanFilename = path.basename(filename);
     const dirPath = './public/uploads/trailers';
 
-    let targetPath = path.join(dirPath, cleanFilename);
+    // Try to find if a pre-cut clip file exists for this trailer
+    const extname = path.extname(cleanFilename);
+    const baseName = path.basename(cleanFilename, extname);
+    const clipFilename = extname ? `${baseName}-clip${extname}` : `${baseName}-clip`;
 
-    if (!fs.existsSync(targetPath)) {
-      const files = fs.existsSync(dirPath)
-        ? fs.readdirSync(dirPath)
-        : [];
+    let targetPath = path.join(dirPath, clipFilename);
+    let fileExists = fs.existsSync(targetPath);
 
-      const found = files.find(
-        (f: string) =>
-          path.basename(f, path.extname(f)) === cleanFilename,
-      );
+    if (!fileExists) {
+      targetPath = path.join(dirPath, cleanFilename);
+      fileExists = fs.existsSync(targetPath);
 
-      if (found) {
-        targetPath = path.join(dirPath, found);
-      } else {
-        return res.status(404).send('Trailer tidak ditemukan');
+      if (!fileExists) {
+        const files = fs.existsSync(dirPath) ? fs.readdirSync(dirPath) : [];
+        const foundClip = files.find(
+          (f: string) => path.basename(f, path.extname(f)) === `${baseName}-clip`
+        );
+        if (foundClip) {
+          targetPath = path.join(dirPath, foundClip);
+          fileExists = true;
+        } else {
+          const foundOriginal = files.find(
+            (f: string) => path.basename(f, path.extname(f)) === baseName
+          );
+          if (foundOriginal) {
+            targetPath = path.join(dirPath, foundOriginal);
+            fileExists = true;
+          }
+        }
       }
+    }
+
+    if (!fileExists) {
+      return res.status(404).send('Trailer tidak ditemukan');
     }
 
     const stat = fs.statSync(targetPath);
@@ -307,4 +330,64 @@ export class FilmController {
 
     file.pipe(res);
   }
+}
+
+// Background helper for FFmpeg video clipping (cuts video from start to end in background)
+function clipVideoInBackground(trailerUrl: string, start: number, end: number) {
+  const path = require('path');
+  const fs = require('fs');
+  const { exec } = require('child_process');
+
+  const cleanPath = trailerUrl.startsWith('/') ? trailerUrl.substring(1) : trailerUrl;
+  const absoluteFilePath = path.resolve('./public', cleanPath);
+
+  if (!fs.existsSync(absoluteFilePath)) {
+    console.warn(`⚠️ File trailer tidak ditemukan untuk pemotongan klip: ${absoluteFilePath}`);
+    return;
+  }
+
+  // If start and end are both 0 or unset, delete the clip file to force fallback to original video
+  if (start === 0 && end === 0) {
+    const dir = path.dirname(absoluteFilePath);
+    const ext = path.extname(absoluteFilePath);
+    const base = path.basename(absoluteFilePath, ext);
+    const clipPath = path.join(dir, `${base}-clip${ext}`);
+    if (fs.existsSync(clipPath)) {
+      try {
+        fs.unlinkSync(clipPath);
+        console.log(`🗑️ Klip video dihapus karena pengaturan disetel ulang.`);
+      } catch (err) {
+        console.error('❌ Gagal menghapus klip video:', err);
+      }
+    }
+    return;
+  }
+
+  exec('ffmpeg -version', (err: any) => {
+    if (err) {
+      console.warn('⚠️ FFmpeg tidak terdeteksi pada sistem. Klip video tidak dipotong.');
+      return;
+    }
+
+    const dir = path.dirname(absoluteFilePath);
+    const ext = path.extname(absoluteFilePath);
+    const base = path.basename(absoluteFilePath, ext);
+    const clipPath = path.join(dir, `${base}-clip${ext}`);
+
+    console.log(`🎬 Mulai pemotongan video klip: ${absoluteFilePath} (${start}s - ${end}s) -> ${clipPath}`);
+
+    // Fast-cutting with libx264 fast preset & +faststart metadata shifting for instant browser play
+    const cmd = `ffmpeg -y -ss ${start} -to ${end} -i "${absoluteFilePath}" -vcodec libx264 -preset superfast -crf 24 -acodec aac -b:a 128k -movflags +faststart "${clipPath}"`;
+
+    exec(cmd, (execErr: any) => {
+      if (execErr) {
+        console.error('❌ Gagal memotong video klip:', execErr);
+        if (fs.existsSync(clipPath)) {
+          fs.unlinkSync(clipPath);
+        }
+        return;
+      }
+      console.log(`🎉 Sukses memotong video klip: ${clipPath}`);
+    });
+  });
 }
