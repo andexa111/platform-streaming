@@ -31,7 +31,7 @@ export class FilmController {
   constructor(
     private filmService: FilmService,
     private bunnyService: BunnyService,
-  ) {}
+  ) { }
 
   // ==================== ADMIN ENDPOINTS ====================
 
@@ -231,6 +231,7 @@ export class FilmController {
   @Get('trailer-stream/:filename')
   streamTrailer(
     @Param('filename') filename: string,
+    @Req() req: express.Request,
     @Res() res: express.Response,
   ) {
     const path = require('path');
@@ -238,13 +239,19 @@ export class FilmController {
 
     const cleanFilename = path.basename(filename);
     const dirPath = './public/uploads/trailers';
+
     let targetPath = path.join(dirPath, cleanFilename);
 
     if (!fs.existsSync(targetPath)) {
-      const files = fs.existsSync(dirPath) ? fs.readdirSync(dirPath) : [];
+      const files = fs.existsSync(dirPath)
+        ? fs.readdirSync(dirPath)
+        : [];
+
       const found = files.find(
-        (f: string) => path.basename(f, path.extname(f)) === cleanFilename,
+        (f: string) =>
+          path.basename(f, path.extname(f)) === cleanFilename,
       );
+
       if (found) {
         targetPath = path.join(dirPath, found);
       } else {
@@ -252,16 +259,52 @@ export class FilmController {
       }
     }
 
-    res.setHeader('Content-Type', 'application/octet-stream');
-    res.setHeader('Content-Disposition', 'inline');
+    const stat = fs.statSync(targetPath);
+    const fileSize = stat.size;
+    const range = req.headers.range;
+    const ext = path.extname(targetPath).toLowerCase();
 
-    const fileStream = fs.createReadStream(targetPath);
-    fileStream.on('error', (err: any) => {
-      console.error('Error streaming trailer file:', err);
-      if (!res.headersSent) {
-        res.status(500).send('Error streaming file');
-      }
+    let contentType = 'video/mp4';
+    if (ext === '.mov') {
+      contentType = 'video/quicktime';
+    }
+
+    if (!range) {
+      res.writeHead(200, {
+        'Content-Length': fileSize,
+        'Content-Type': contentType,
+        'Content-Disposition': 'inline',
+      });
+      const fileStream = fs.createReadStream(targetPath);
+      fileStream.on('error', (err: any) => {
+        console.error('Error streaming trailer file:', err);
+        if (!res.headersSent) {
+          res.status(500).send('Error streaming file');
+        }
+      });
+      return fileStream.pipe(res);
+    }
+
+    const parts = range.replace(/bytes=/, '').split('-');
+    const start = parseInt(parts[0], 10);
+    const end = parts[1]
+      ? parseInt(parts[1], 10)
+      : fileSize - 1;
+
+    const chunkSize = end - start + 1;
+
+    const file = fs.createReadStream(targetPath, {
+      start,
+      end,
     });
-    fileStream.pipe(res);
+
+    res.writeHead(206, {
+      'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+      'Accept-Ranges': 'bytes',
+      'Content-Length': chunkSize,
+      'Content-Type': contentType,
+    });
+
+    file.pipe(res);
   }
 }
