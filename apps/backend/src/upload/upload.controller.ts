@@ -64,7 +64,7 @@ export class UploadController {
     )
     file: Express.Multer.File,
   ) {
-    const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/uploads/posters/${file.filename}`;
+    const url = `uploads/posters/${file.filename}`;
     return { url, fileName: file.filename };
   }
 
@@ -106,7 +106,7 @@ export class UploadController {
     )
     file: Express.Multer.File,
   ) {
-    const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/uploads/images/${file.filename}`;
+    const url = `uploads/images/${file.filename}`;
     return { url, fileName: file.filename };
   }
 
@@ -148,7 +148,7 @@ export class UploadController {
     )
     file: Express.Multer.File,
   ) {
-    const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/uploads/trailers/${file.filename}`;
+    const url = `uploads/trailers/${file.filename}`;
     
     // Trigger background compression
     compressVideoInBackground(file.path);
