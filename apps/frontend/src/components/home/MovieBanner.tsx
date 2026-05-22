@@ -113,14 +113,17 @@ export function MovieBanner({ movies, autoPlayInterval = 5000, basePath = "/movi
                   onPlay={isCurrent ? () => setVideoPlaying(true) : undefined}
                   onPlaying={isCurrent ? () => setVideoPlaying(true) : undefined}
                   onLoadedMetadata={(e) => {
-                    if (movie.clipStart) {
-                      (e.currentTarget as HTMLVideoElement).currentTime = movie.clipStart;
+                    const video = e.currentTarget as HTMLVideoElement;
+                    if (movie.clipStart && video.duration >= movie.clipStart) {
+                      video.currentTime = movie.clipStart;
                     }
                   }}
                   onTimeUpdate={isCurrent ? (e) => {
                     const video = e.currentTarget as HTMLVideoElement;
-                    if (movie.clipEnd && video.currentTime >= movie.clipEnd) {
-                      video.currentTime = movie.clipStart || 0;
+                    if (movie.clipEnd && video.duration >= movie.clipEnd) {
+                      if (video.currentTime >= movie.clipEnd) {
+                        video.currentTime = movie.clipStart || 0;
+                      }
                     }
                   } : undefined}
                   onEnded={isCurrent ? nextSlide : undefined}
