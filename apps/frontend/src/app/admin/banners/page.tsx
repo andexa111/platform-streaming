@@ -8,12 +8,12 @@ import { ALL_MOVIES } from "@/constants/video-data";
 import Image from "next/image";
 import { Video } from "@/types/video";
 import { cn } from "@/lib/utils";
+import { api, getMediaUrl } from "@/lib/api";
 
 export default function BannersPage() {
-  const [bannerSlots, setBannerSlots] = useState<(Video | null)[]>(() => {
-    const slots = new Array(10).fill(null);
-    return slots;
-  });
+  const [bannerSlots, setBannerSlots] = useState<(Video | null)[]>(new Array(10).fill(null));
+  const [loading, setLoading] = useState(true);
+  const [allMovies, setAllMovies] = useState<Video[]>([]);
 
   const [editingSlot, setEditingSlot] = useState<number | null>(null);
   const [tempSelectedMovie, setTempSelectedMovie] = useState<Video | null>(null);
@@ -25,10 +25,51 @@ export default function BannersPage() {
   const [statusType, setStatusType] = useState<"success" | "error">("success");
   const [statusMessage, setStatusMessage] = useState("");
 
+  const mapFilm = (film: any): Video => ({
+    id: film.id,
+    title: film.title,
+    genre: film.genres && film.genres.length > 0 ? film.genres[0].name : "Other",
+    rating: "4.8",
+    quality: "4K UHD",
+    thumbnail: film.poster_url ? getMediaUrl(film.poster_url) : "",
+    backdrop: film.poster_url ? getMediaUrl(film.poster_url) : "",
+    description: film.description || "",
+    trailerUrl: film.trailer_url ? getMediaUrl(film.trailer_url) : "",
+    productionHouse: film.production_house || "",
+    productionHouseLogo: film.production_house_logo ? getMediaUrl(film.production_house_logo) : "",
+    clipStart: film.clip_start ?? undefined,
+    clipEnd: film.clip_end ?? undefined,
+  });
+
+  useEffect(() => {
+    Promise.all([
+      api.get("/featured-films").catch(() => ({ data: [] })),
+      api.get("/films?limit=100").catch(() => ({ data: { data: [] } })),
+    ])
+      .then(([featuredRes, filmsRes]) => {
+        const dbFilms = filmsRes.data?.data || [];
+        const mappedAll = dbFilms.map(mapFilm);
+        setAllMovies(mappedAll);
+
+        const dbFeatured = featuredRes.data || [];
+        const newSlots = new Array(10).fill(null);
+        dbFeatured.forEach((item: any) => {
+          if (item.film && item.position >= 1 && item.position <= 10) {
+            newSlots[item.position - 1] = mapFilm(item.film);
+          }
+        });
+        setBannerSlots(newSlots);
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
   const filteredMovies = useMemo(() => {
     if (!searchQuery) return [];
-    return ALL_MOVIES.filter((m) => m.title.toLowerCase().includes(searchQuery.toLowerCase()));
-  }, [searchQuery]);
+    return allMovies.filter((m) =>
+      m.title.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [searchQuery, allMovies]);
 
   const handleSelectMovie = (movie: Video) => {
     setTempSelectedMovie(movie);
@@ -36,32 +77,56 @@ export default function BannersPage() {
     setIsListExpanded(false);
   };
 
-  const handleSaveConfig = () => {
-    setStatusType("success");
-    setStatusMessage("Konfigurasi banner berhasil disimpan.");
-    setIsStatusOpen(true);
-  };
-
   const handleConfirmAssignment = () => {
     if (editingSlot !== null && tempSelectedMovie) {
       const newSlots = [...bannerSlots];
       newSlots[editingSlot] = tempSelectedMovie;
-      setBannerSlots(newSlots);
-      setEditingSlot(null);
-      setTempSelectedMovie(null);
-      setSearchQuery("");
 
-      setStatusType("success");
-      setStatusMessage(`Film "${tempSelectedMovie.title}" berhasil dipasang pada slot #${editingSlot + 1}.`);
-      setIsStatusOpen(true);
+      const items = newSlots
+        .map((movie, idx) => (movie ? { filmId: movie.id, position: idx + 1 } : null))
+        .filter(Boolean) as { filmId: number; position: number }[];
+
+      api.put("/featured-films", { items })
+        .then(() => {
+          setBannerSlots(newSlots);
+          setEditingSlot(null);
+          setTempSelectedMovie(null);
+          setSearchQuery("");
+
+          setStatusType("success");
+          setStatusMessage(`Film "${tempSelectedMovie.title}" berhasil dipasang pada slot #${editingSlot + 1}.`);
+          setIsStatusOpen(true);
+        })
+        .catch(() => {
+          setStatusType("error");
+          setStatusMessage("Gagal menyimpan konfigurasi banner ke server.");
+          setIsStatusOpen(true);
+        });
     }
   };
 
   const handleRemoveMovie = (slotIndex: number) => {
     const newSlots = [...bannerSlots];
     newSlots[slotIndex] = null;
-    setBannerSlots(newSlots);
-    if (playingSlot === slotIndex) setPlayingSlot(null);
+
+    const items = newSlots
+      .map((movie, idx) => (movie ? { filmId: movie.id, position: idx + 1 } : null))
+      .filter(Boolean) as { filmId: number; position: number }[];
+
+    api.put("/featured-films", { items })
+      .then(() => {
+        setBannerSlots(newSlots);
+        if (playingSlot === slotIndex) setPlayingSlot(null);
+
+        setStatusType("success");
+        setStatusMessage(`Slot #${slotIndex + 1} berhasil dikosongkan.`);
+        setIsStatusOpen(true);
+      })
+      .catch(() => {
+        setStatusType("error");
+        setStatusMessage("Gagal menghapus banner dari server.");
+        setIsStatusOpen(true);
+      });
   };
 
   // Sync search query with temp selection if cleared manually
@@ -80,8 +145,14 @@ export default function BannersPage() {
       </div>
 
       {/* Main Table Container */}
-      <div className="bg-card rounded-xl shadow-sm overflow-hidden border border-border">
-        <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-neutral-200">
+      {loading ? (
+        <div className="bg-card rounded-xl border border-border p-20 flex flex-col items-center justify-center gap-4">
+          <div className="w-10 h-10 border-4 border-brand border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm font-semibold text-muted-foreground">Memuat data banner...</p>
+        </div>
+      ) : (
+        <div className="bg-card rounded-xl shadow-sm overflow-hidden border border-border">
+          <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-neutral-200">
           <table className="w-full text-left border-collapse min-w-[1000px]">
             <thead>
               <tr className="bg-brand text-white">
@@ -137,6 +208,7 @@ export default function BannersPage() {
           </table>
         </div>
       </div>
+      )}
 
       <StatusModal isOpen={isStatusOpen} type={statusType} title={statusType === "success" ? "Gagal!" : "Gagal"} message={statusMessage} onClose={() => setIsStatusOpen(false)} />
 
