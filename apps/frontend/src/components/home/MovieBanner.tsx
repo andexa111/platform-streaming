@@ -81,6 +81,7 @@ export function MovieBanner({ movies, autoPlayInterval = 5000, basePath = "/movi
               isTrailerLocal ? (
                 <ProtectedVideo
                   src={movie.trailerUrl!}
+                  streamDirect={true}
                   muted
                   playsInline
                   autoPlay

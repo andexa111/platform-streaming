@@ -249,6 +249,7 @@ export default function MovieDetailPage() {
                   isTrailerLocal ? (
                     <ProtectedVideo 
                       src={getMediaUrl(movie.trailer_url)} 
+                      streamDirect={true}
                       controls 
                       autoPlay 
                       className="w-full h-full object-contain absolute inset-0 bg-black" 

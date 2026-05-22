@@ -10,6 +10,7 @@ interface ProtectedVideoProps {
   playsInline?: boolean;
   loop?: boolean;
   className?: string;
+  streamDirect?: boolean;
   onLoadedMetadata?: (e: React.SyntheticEvent<HTMLVideoElement>) => void;
   onTimeUpdate?: (e: React.SyntheticEvent<HTMLVideoElement>) => void;
   onEnded?: () => void;
@@ -28,6 +29,7 @@ export function ProtectedVideo({
   playsInline,
   loop,
   className,
+  streamDirect = false,
   onLoadedMetadata,
   onTimeUpdate,
   onEnded,
@@ -49,6 +51,11 @@ export function ProtectedVideo({
       const filename = filenameWithExt.substring(0, filenameWithExt.lastIndexOf("."));
       const baseUrl = src.substring(0, src.indexOf("/uploads/trailers/"));
       finalSrc = `${baseUrl}/films/trailer-stream/${filename}`;
+    }
+
+    if (streamDirect) {
+      setBlobUrl(finalSrc);
+      return;
     }
 
     const loadVideo = async () => {
@@ -87,7 +94,7 @@ export function ProtectedVideo({
         URL.revokeObjectURL(objectUrl);
       }
     };
-  }, [src]);
+  }, [src, streamDirect]);
 
   // Prevent right-click context menu (download option)
   const handleContextMenu = (e: React.MouseEvent) => {
