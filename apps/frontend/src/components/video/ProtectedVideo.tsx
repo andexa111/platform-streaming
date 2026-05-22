@@ -11,6 +11,7 @@ interface ProtectedVideoProps {
   loop?: boolean;
   className?: string;
   streamDirect?: boolean;
+  preload?: string;
   onLoadedMetadata?: (e: React.SyntheticEvent<HTMLVideoElement>) => void;
   onTimeUpdate?: (e: React.SyntheticEvent<HTMLVideoElement>) => void;
   onEnded?: () => void;
@@ -32,6 +33,7 @@ export function ProtectedVideo({
   loop,
   className,
   streamDirect = false,
+  preload = "auto",
   onLoadedMetadata,
   onTimeUpdate,
   onEnded,
@@ -123,6 +125,7 @@ export function ProtectedVideo({
       controls={controls}
       playsInline={playsInline}
       loop={loop}
+      preload={preload}
       className={className}
       controlsList="nodownload noremoteplayback"
       disablePictureInPicture

@@ -77,49 +77,18 @@ export function MovieBanner({ movies, autoPlayInterval = 5000, basePath = "/movi
       {/* Background Slides */}
       {movies.map((movie, index) => {
         const isTrailerLocal = movie.trailerUrl?.startsWith("http") || movie.trailerUrl?.includes("/uploads") || movie.trailerUrl?.includes(".mp4");
-        
+        const isCurrent = index === currentIndex;
+        const isNext = index === (currentIndex + 1) % movies.length;
+
         return (
           <div
             key={movie.id}
             className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-              index === currentIndex ? "opacity-100 z-10" : "opacity-0 z-0"
+              isCurrent ? "opacity-100 z-10" : "opacity-0 z-0"
             }`}
           >
-            {index === currentIndex && movie.trailerUrl ? (
-              isTrailerLocal ? (
-                <ProtectedVideo
-                  src={movie.trailerUrl!}
-                  streamDirect={true}
-                  muted
-                  playsInline
-                  autoPlay
-                  onPlay={() => setVideoPlaying(true)}
-                  onPlaying={() => setVideoPlaying(true)}
-                  onLoadedMetadata={(e) => {
-                    if (movie.clipStart) {
-                      (e.currentTarget as HTMLVideoElement).currentTime = movie.clipStart;
-                    }
-                  }}
-                  onTimeUpdate={(e) => {
-                    const video = e.currentTarget as HTMLVideoElement;
-                    if (movie.clipEnd && video.currentTime >= movie.clipEnd) {
-                      video.currentTime = movie.clipStart || 0;
-                    }
-                  }}
-                  onEnded={nextSlide}
-                  className="w-full h-full object-cover object-center"
-                />
-              ) : (
-                <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none bg-black">
-                  <iframe
-                    src={`https://iframe.mediadelivery.net/embed/245642/${movie.trailerUrl}?autoplay=true&loop=true&muted=true&controls=false`}
-                    loading="lazy"
-                    allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen"
-                    className="w-full h-full border-none absolute inset-0 pointer-events-none scale-[1.3] aspect-video"
-                  />
-                </div>
-              )
-            ) : movie.backdrop ? (
+            {/* Backdrop Image (Always rendered as background layer) */}
+            {movie.backdrop ? (
               <Image
                 src={movie.backdrop}
                 alt={movie.title}
@@ -129,6 +98,48 @@ export function MovieBanner({ movies, autoPlayInterval = 5000, basePath = "/movi
               />
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-muted via-background to-brand/20" />
+            )}
+
+            {/* Video Player Layer (Only rendered for current and next slide to preload) */}
+            {(isCurrent || isNext) && movie.trailerUrl && (
+              isTrailerLocal ? (
+                <ProtectedVideo
+                  src={movie.trailerUrl!}
+                  streamDirect={true}
+                  muted
+                  playsInline
+                  autoPlay={isCurrent}
+                  preload="auto"
+                  onPlay={isCurrent ? () => setVideoPlaying(true) : undefined}
+                  onPlaying={isCurrent ? () => setVideoPlaying(true) : undefined}
+                  onLoadedMetadata={(e) => {
+                    if (movie.clipStart) {
+                      (e.currentTarget as HTMLVideoElement).currentTime = movie.clipStart;
+                    }
+                  }}
+                  onTimeUpdate={isCurrent ? (e) => {
+                    const video = e.currentTarget as HTMLVideoElement;
+                    if (movie.clipEnd && video.currentTime >= movie.clipEnd) {
+                      video.currentTime = movie.clipStart || 0;
+                    }
+                  } : undefined}
+                  onEnded={isCurrent ? nextSlide : undefined}
+                  className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-700 ${
+                    isCurrent && videoPlaying ? "opacity-100" : "opacity-0 pointer-events-none"
+                  }`}
+                />
+              ) : (
+                <div className={`absolute inset-0 w-full h-full overflow-hidden pointer-events-none bg-black transition-opacity duration-700 ${
+                  isCurrent ? "opacity-100" : "opacity-0 pointer-events-none"
+                }`}>
+                  <iframe
+                    src={`https://iframe.mediadelivery.net/embed/245642/${movie.trailerUrl}?autoplay=${isCurrent}&loop=true&muted=true&controls=false`}
+                    loading="lazy"
+                    allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen"
+                    className="w-full h-full border-none absolute inset-0 pointer-events-none scale-[1.3] aspect-video"
+                  />
+                </div>
+              )
             )}
             
             {/* Overlays */}
