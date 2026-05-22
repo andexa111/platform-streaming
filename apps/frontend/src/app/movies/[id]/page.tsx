@@ -186,15 +186,6 @@ export default function MovieDetailPage() {
           {/* Conditional Content: Backdrop OR Video Player */}
           {!isPlaying ? (
             <>
-              {/* Back Button */}
-              <button
-                onClick={() => router.back()}
-                className="absolute top-6 left-6 z-[60] flex items-center gap-2 px-4 py-2 bg-black/30 hover:bg-black/50 backdrop-blur-md text-white rounded-full text-sm font-semibold transition-all hover:scale-105 active:scale-95 border border-white/10"
-              >
-                <Icon name="chevron-left" className="w-4 h-4" />
-                Kembali
-              </button>
-
               {/* Backdrop Image with mask */}
               <div className="absolute inset-0 z-0 animate-in fade-in zoom-in-105 duration-1000">
                 <div className="absolute inset-0 bg-gradient-to-r from-background via-background/40 to-transparent z-10" />
