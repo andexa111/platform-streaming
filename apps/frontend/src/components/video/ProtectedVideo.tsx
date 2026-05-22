@@ -14,6 +14,8 @@ interface ProtectedVideoProps {
   onLoadedMetadata?: (e: React.SyntheticEvent<HTMLVideoElement>) => void;
   onTimeUpdate?: (e: React.SyntheticEvent<HTMLVideoElement>) => void;
   onEnded?: () => void;
+  onPlay?: () => void;
+  onPlaying?: () => void;
 }
 
 /**
@@ -33,6 +35,8 @@ export function ProtectedVideo({
   onLoadedMetadata,
   onTimeUpdate,
   onEnded,
+  onPlay,
+  onPlaying,
 }: ProtectedVideoProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
@@ -126,6 +130,8 @@ export function ProtectedVideo({
       onLoadedMetadata={onLoadedMetadata}
       onTimeUpdate={onTimeUpdate}
       onEnded={onEnded}
+      onPlay={onPlay}
+      onPlaying={onPlaying}
     />
   );
 }

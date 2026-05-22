@@ -17,11 +17,13 @@ interface MovieBannerProps {
 export function MovieBanner({ movies, autoPlayInterval = 5000, basePath = "/movies" }: MovieBannerProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [videoPlaying, setVideoPlaying] = useState(false);
 
   const nextSlide = useCallback(() => {
     if (isAnimating) return;
     setIsAnimating(true);
     setCurrentIndex((prev) => (prev + 1) % movies.length);
+    setVideoPlaying(false);
     setTimeout(() => setIsAnimating(false), 500); // Wait for transition
   }, [isAnimating, movies.length]);
 
@@ -29,6 +31,7 @@ export function MovieBanner({ movies, autoPlayInterval = 5000, basePath = "/movi
     if (isAnimating) return;
     setIsAnimating(true);
     setCurrentIndex((prev) => (prev - 1 + movies.length) % movies.length);
+    setVideoPlaying(false);
     setTimeout(() => setIsAnimating(false), 500);
   };
 
@@ -36,6 +39,11 @@ export function MovieBanner({ movies, autoPlayInterval = 5000, basePath = "/movi
   useEffect(() => {
     if (!movies || movies.length === 0) return;
     const currentMovie = movies[currentIndex];
+
+    // If the slide has a trailer and it's not yet playing, pause the auto-slide timer
+    if (currentMovie?.trailerUrl && !videoPlaying) {
+      return;
+    }
     
     let delay = autoPlayInterval;
     if (currentMovie?.trailerUrl) {
@@ -49,7 +57,7 @@ export function MovieBanner({ movies, autoPlayInterval = 5000, basePath = "/movi
     
     const timer = setTimeout(nextSlide, delay);
     return () => clearTimeout(timer);
-  }, [currentIndex, nextSlide, autoPlayInterval, movies]);
+  }, [currentIndex, nextSlide, autoPlayInterval, movies, videoPlaying]);
 
   const truncateDescription = (text: string, wordLimit: number) => {
     if (!text) return "";
@@ -85,6 +93,8 @@ export function MovieBanner({ movies, autoPlayInterval = 5000, basePath = "/movi
                   muted
                   playsInline
                   autoPlay
+                  onPlay={() => setVideoPlaying(true)}
+                  onPlaying={() => setVideoPlaying(true)}
                   onLoadedMetadata={(e) => {
                     if (movie.clipStart) {
                       (e.currentTarget as HTMLVideoElement).currentTime = movie.clipStart;
@@ -193,7 +203,10 @@ export function MovieBanner({ movies, autoPlayInterval = 5000, basePath = "/movi
           {movies.map((_, index) => (
             <button
               key={index}
-              onClick={() => setCurrentIndex(index)}
+              onClick={() => {
+                setCurrentIndex(index);
+                setVideoPlaying(false);
+              }}
               className={`h-1 md:h-1.5 transition-all duration-300 rounded-full ${
                 index === currentIndex ? "w-4 md:w-8 bg-brand" : "w-1.5 md:w-3 bg-white/20 hover:bg-white/40"
               }`}
