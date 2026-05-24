@@ -2,8 +2,10 @@ import {
   Controller,
   Post,
   Get,
+  Patch,
   Body,
-  Query,
+  Param,
+  ParseIntPipe,
   UseGuards,
   Request,
   Res,
@@ -14,6 +16,8 @@ import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { RolesGuard } from './guards/roles.guard';
+import { Roles } from './decorators/roles.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -22,7 +26,7 @@ export class AuthController {
   /**
    * POST /auth/register
    * Body: { name, email, password }
-   * Response: { message, user }
+   * Response: { message, user } — user belum di-approve
    */
   @Post('register')
   register(@Body() dto: RegisterDto) {
@@ -40,25 +44,16 @@ export class AuthController {
   }
 
   /**
-   * GET /auth/verify-email?token=xxxxx
-   * User klik link dari email → verifikasi email
-   */
-  @Get('verify-email')
-  verifyEmail(@Query('token') token: string) {
-    return this.authService.verifyEmail(token);
-  }
-
-  /**
    * GET /auth/profile
    * Header: Authorization: Bearer <token>
-   * Response: { id, name, email, role }
-   * Butuh login (JWT Guard)
    */
   @UseGuards(JwtAuthGuard)
   @Get('profile')
   getProfile(@Request() req: any) {
     return this.authService.getProfile(req.user.sub);
   }
+
+  // ==================== GOOGLE OAUTH ====================
 
   /**
    * GET /auth/google
@@ -72,16 +67,36 @@ export class AuthController {
 
   /**
    * GET /auth/google/callback
-   * Handled by Google Strategy callback
    */
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   async googleAuthRedirect(@Request() req: any, @Res() res: express.Response) {
-    // req.user has been populated by GoogleStrategy's validate method
     const loginResult = await this.authService.validateOAuthLogin(req.user);
-    
-    // Redirect to frontend with token
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+
+    // User approved, redirect dengan token
     return res.redirect(`${frontendUrl}/auth/callback?token=${loginResult.access_token}`);
+  }
+
+
+
+  // ==================== PASSWORD RECOVERY ====================
+
+  /**
+   * POST /auth/forgot-password
+   * Body: { email }
+   */
+  @Post('forgot-password')
+  forgotPassword(@Body('email') email: string) {
+    return this.authService.forgotPassword(email);
+  }
+
+  /**
+   * POST /auth/reset-password
+   * Body: { token, new_password }
+   */
+  @Post('reset-password')
+  resetPassword(@Body() body: any) {
+    return this.authService.resetPassword(body.token, body.new_password);
   }
 }

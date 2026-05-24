@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
 import { cn } from "@/lib/utils";
-import { api } from "@/lib/api";
+import { api, getMediaUrl } from "@/lib/api";
 
 interface Film {
   id: number;
@@ -20,7 +20,7 @@ interface Film {
   video_id?: string;
   is_published: boolean;
   is_deleted: boolean;
-  genres: { id: number; title: string }[];
+  genres: { id: number; name: string }[];
   actors: { id: number; name: string }[];
 }
 
@@ -39,15 +39,27 @@ export default function EditMoviePage() {
     description: "",
     director: "",
     producer: "",
-    duration: "",
+    genre: "",
     release_year: "",
     video_id: "",
     trailer_url: "",
     poster_url: "",
     production_house: "",
     production_house_logo: "",
+    poster_url: "",
     is_published: false,
+    actors: [] as string[],
   });
+
+  const [genresList, setGenresList] = useState<{ id: number; name: string }[]>([]);
+  const [actorInput, setActorInput] = useState("");
+
+  // Fetch genres
+  useEffect(() => {
+    api.get("/genre")
+      .then((res) => setGenresList(res.data))
+      .catch(console.error);
+  }, []);
 
   // Fetch film data
   useEffect(() => {
@@ -60,7 +72,7 @@ export default function EditMoviePage() {
           description: film.description || "",
           director: film.director || "",
           producer: film.producer || "",
-          duration: film.duration?.toString() || "",
+          genre: film.genres && film.genres.length > 0 ? film.genres[0].id.toString() : "",
           release_year: film.release_year?.toString() || "",
           video_id: film.video_id || "",
           trailer_url: film.trailer_url || "",
@@ -68,6 +80,7 @@ export default function EditMoviePage() {
           production_house: (film as any).production_house || "",
           production_house_logo: (film as any).production_house_logo || "",
           is_published: film.is_published,
+          actors: film.actors ? film.actors.map((a) => a.name) : [],
         });
       } catch (err) {
         console.error("Gagal memuat data film:", err);
@@ -79,24 +92,62 @@ export default function EditMoviePage() {
     fetchFilm();
   }, [filmId]);
 
-  const updateField = (field: string, value: string | boolean) => {
+  const updateField = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
+
+  const handleAddActor = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const newActor = actorInput.trim();
+      if (newActor && !formData.actors.includes(newActor)) {
+        updateField("actors", [...formData.actors, newActor]);
+      }
+      setActorInput("");
+    }
+  };
+
+  const handleRemoveActor = (actorToRemove: string) => {
+    updateField("actors", formData.actors.filter(a => a !== actorToRemove));
+  };
+
+  const [uploadingTrailer, setUploadingTrailer] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const handleImageUpload = async (file: File, field: "poster_url" | "production_house_logo") => {
     const formData = new FormData();
     formData.append("file", file);
 
     try {
-      const res = await api.post("/upload/poster", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const res = await api.post("/upload/poster", formData);
       updateField(field, res.data.url);
-    } catch (err) {
+    } catch (err: any) {
       console.error(`Gagal upload ${field}:`, err);
-      alert(`Gagal mengunggah gambar. Pastikan formatnya jpg/png/webp dan ukuran maks 5MB.`);
+      alert(err.response?.data?.message || `Gagal mengunggah gambar. Pastikan formatnya jpg/png/webp dan ukuran maks 5MB.`);
+    }
+  };
+
+  const handleTrailerUpload = async (file: File) => {
+    setUploadingTrailer(true);
+    setUploadProgress(0);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await api.post("/upload/trailer", formData, {
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(percentCompleted);
+          }
+        }
+      });
+      updateField("trailer_url", res.data.url);
+    } catch (err: any) {
+      console.error("Gagal upload trailer:", err);
+      alert(err.response?.data?.message || "Gagal mengunggah trailer. Pastikan formatnya video (mp4/webm) dan ukuran maks 500MB.");
+    } finally {
+      setUploadingTrailer(false);
     }
   };
 
@@ -111,12 +162,15 @@ export default function EditMoviePage() {
         description: formData.description || undefined,
         director: formData.director || undefined,
         producer: formData.producer || undefined,
-        duration: formData.duration ? parseInt(formData.duration) : undefined,
         release_year: formData.release_year ? parseInt(formData.release_year) : undefined,
         video_id: formData.video_id || undefined,
         trailer_url: formData.trailer_url || undefined,
         poster_url: formData.poster_url || undefined,
+        production_house: formData.production_house || undefined,
+        production_house_logo: formData.production_house_logo || undefined,
         is_published: formData.is_published,
+        genreIds: formData.genre ? [parseInt(formData.genre)] : undefined,
+        actorNames: formData.actors.length > 0 ? formData.actors : undefined,
       };
 
       await api.patch(`/films/${filmId}`, payload);
@@ -225,14 +279,29 @@ export default function EditMoviePage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase text-neutral-400">Durasi (menit)</label>
-              <input 
-                type="number" 
-                placeholder="90"
-                className="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm"
-                value={formData.duration}
-                onChange={(e) => updateField("duration", e.target.value)}
-              />
+              <label className="text-xs font-black uppercase text-neutral-400">Genre</label>
+              <div className="relative">
+                <select
+                  className={cn(
+                    "w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm appearance-none pr-12 text-neutral-900",
+                    !formData.genre ? "opacity-50" : "opacity-100",
+                  )}
+                  value={formData.genre}
+                  onChange={(e) => updateField("genre", e.target.value)}
+                >
+                  <option value="" disabled>
+                    Pilih Genre
+                  </option>
+                  {genresList.map((g) => (
+                    <option key={g.id} value={g.id.toString()} className="bg-white text-neutral-900">
+                      {g.name}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-neutral-400">
+                  <Icon name="chevron-down" className="w-5 h-5" />
+                </div>
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -244,6 +313,32 @@ export default function EditMoviePage() {
                 value={formData.release_year}
                 onChange={(e) => updateField("release_year", e.target.value)}
               />
+            </div>
+
+            <div className="space-y-2 md:col-span-2">
+              <label className="text-xs font-black uppercase text-neutral-400">Aktor</label>
+              <div className="p-3 bg-neutral-50 border border-neutral-200 rounded-2xl focus-within:border-brand transition-all">
+                {formData.actors.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {formData.actors.map((actor) => (
+                      <span key={actor} className="inline-flex items-center gap-1 px-3 py-1.5 bg-brand text-white rounded-xl text-xs font-bold">
+                        {actor}
+                        <button type="button" onClick={() => handleRemoveActor(actor)} className="hover:text-red-400 ml-1 transition-colors">
+                          <Icon name="x" className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <input
+                  type="text"
+                  placeholder={formData.actors.length === 0 ? "Ketik nama aktor lalu tekan Enter..." : "Tambah aktor lain..."}
+                  className="w-full bg-transparent focus:outline-none text-sm px-2 py-1.5 text-neutral-900 placeholder:text-neutral-400"
+                  value={actorInput}
+                  onChange={(e) => setActorInput(e.target.value)}
+                  onKeyDown={handleAddActor}
+                />
+              </div>
             </div>
 
             <div className="space-y-2 md:col-span-2">
@@ -335,14 +430,47 @@ export default function EditMoviePage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase text-neutral-400">Trailer Video ID</label>
-              <input 
-                type="text" 
-                placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                className="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm font-mono"
-                value={formData.trailer_url}
-                onChange={(e) => updateField("trailer_url", e.target.value)}
-              />
+              <label className="text-xs font-black uppercase text-neutral-400">Video Trailer Film (Local MP4/WebM)</label>
+              <div className="flex flex-col gap-3">
+                <label className="block cursor-pointer">
+                  <div className="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 border-dashed rounded-2xl flex flex-col gap-2 hover:border-brand transition-all">
+                    <div className="flex items-center gap-3">
+                      {uploadingTrailer ? (
+                        <div className="w-5 h-5 border-2 border-brand border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Icon name="film" className="w-5 h-5 text-neutral-400" />
+                      )}
+                      <span className="text-sm text-neutral-400">
+                        {uploadingTrailer ? `Sedang mengunggah (${uploadProgress}%)...` : formData.trailer_url ? "Ganti Trailer Video" : "Klik untuk upload trailer..."}
+                      </span>
+                    </div>
+                    {uploadingTrailer && (
+                      <div className="w-full h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full overflow-hidden mt-1">
+                        <div className="h-full bg-brand transition-all duration-300" style={{ width: `${uploadProgress}%` }} />
+                      </div>
+                    )}
+                  </div>
+                  <input
+                    type="file"
+                    accept="video/*"
+                    className="hidden"
+                    disabled={uploadingTrailer}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleTrailerUpload(file);
+                    }}
+                  />
+                </label>
+                {formData.trailer_url && (
+                  <div className="p-4 bg-neutral-50 border border-neutral-200 rounded-2xl">
+                    <p className="text-[10px] font-black uppercase text-neutral-400 mb-2">Trailer Terunggah</p>
+                    <div className="flex items-center gap-2 text-xs text-neutral-600 font-mono break-all bg-white p-2 rounded border border-neutral-100">
+                      <span className="truncate flex-1">{getMediaUrl(formData.trailer_url)}</span>
+                    </div>
+                    <video src={getMediaUrl(formData.trailer_url)} controls className="w-full max-h-48 rounded-lg mt-3 bg-black" />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -383,7 +511,7 @@ export default function EditMoviePage() {
             {formData.poster_url ? (
               <div className="aspect-[2/3] w-full rounded-2xl overflow-hidden border border-neutral-200 shadow-sm">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={formData.poster_url} alt="Poster" className="w-full h-full object-cover" />
+                <img src={getMediaUrl(formData.poster_url)} alt="Poster" className="w-full h-full object-cover" />
               </div>
             ) : (
               <div className="aspect-[2/3] w-full rounded-2xl bg-neutral-100 border-2 border-dashed border-neutral-200 flex items-center justify-center">

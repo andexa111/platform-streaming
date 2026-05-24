@@ -9,9 +9,10 @@ import { Video } from "@/types/video";
 interface VideoRowProps {
   videos: Video[];
   viewAllHref?: string;
+  basePath?: string;
 }
 
-export function VideoRow({ videos, viewAllHref }: VideoRowProps) {
+export function VideoRow({ videos, viewAllHref, basePath = "/movies" }: VideoRowProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
@@ -75,6 +76,7 @@ export function VideoRow({ videos, viewAllHref }: VideoRowProps) {
             <VideoCard 
               video={video} 
               isFirst={index === 0}
+              basePath={basePath}
             />
           </div>
         ))}

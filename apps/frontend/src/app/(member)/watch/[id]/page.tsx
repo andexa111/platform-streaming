@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
 import { ALL_MOVIES } from "@/constants/video-data";
@@ -8,12 +8,38 @@ import { VideoCard } from "@/components/video/VideoCard";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
+import { useAuthStore } from "@/lib/auth-store";
 
 export default function WatchPage() {
   const { id } = useParams();
   const router = useRouter();
   const movieId = parseInt(id as string);
-  const [isSynopsisExpanded, setIsSynopsisExpanded] = useState(false);
+  const { user } = useAuthStore();
+
+
+
+  // Keyboard shortcut blockers
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "PrintScreen") {
+        e.preventDefault();
+        try {
+          navigator.clipboard.writeText("");
+        } catch (_) {}
+        alert("Pengambilan gambar layar (screenshot) tidak diperbolehkan demi melindungi hak cipta.");
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === "p") {
+        e.preventDefault();
+        alert("Pencetakan halaman dilindungi.");
+      }
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "S" || e.key === "s")) {
+        e.preventDefault();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const movie = ALL_MOVIES.find((m) => m.id === movieId) || ALL_MOVIES[0];
   const relatedMovies = ALL_MOVIES.filter((m) => m.id !== movie.id).slice(0, 6);
@@ -38,16 +64,21 @@ export default function WatchPage() {
         {/* Main Player Section */}
         <div className="xl:col-span-3 space-y-8">
           {/* Simulated Video Player */}
-          <div className="group relative aspect-video bg-black rounded-[2rem] overflow-hidden border border-white/5 shadow-2xl shadow-brand/10">
+          <div 
+            className="group relative aspect-video bg-black rounded-[2rem] overflow-hidden border border-white/5 shadow-2xl shadow-brand/10"
+            onContextMenu={(e) => e.preventDefault()}
+          >
+
             {/* Mock Video Content */}
-            <div className="absolute inset-0 z-0 flex items-center justify-center bg-black">
-              {movie.thumbnail && <Image src={movie.thumbnail} alt="Video" fill className="object-contain opacity-80" />}
+            <div className="absolute inset-0 z-0">
+              {movie.thumbnail && <Image src={movie.thumbnail} alt="Backdrop" fill className="object-cover opacity-20 blur-xl scale-110" />}
+              <div className="absolute inset-0 bg-neutral-950/40" />
             </div>
 
             {/* Central Play Indicator */}
             <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
-              <div className="w-12 h-12 md:w-16 md:h-16 lg:w-24 lg:h-24 rounded-full bg-brand/90 flex items-center justify-center shadow-[0_0_50px_rgba(2,77,148,0.5)] cursor-pointer hover:scale-110 transition-transform active:scale-95 group/play">
-                <Icon name="play" className="w-5 h-5 md:w-6 md:h-6 lg:w-10 lg:h-10 fill-current ml-0.5 md:ml-1" />
+              <div className="w-24 h-24 rounded-full bg-brand/90 flex items-center justify-center shadow-[0_0_50px_rgba(2,77,148,0.5)] cursor-pointer hover:scale-110 transition-transform active:scale-95 group/play">
+                <Icon name="play" className="w-10 h-10 fill-current ml-1" />
               </div>
             </div>
 
@@ -92,6 +123,10 @@ export default function WatchPage() {
           <div className="space-y-6">
             <div className="flex flex-wrap items-center gap-4">
               <h1 className="text-4xl md:text-5xl font-black tracking-tight">{movie.title}</h1>
+              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-brand/10 border border-brand/20">
+                <Icon name="star" className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                <span className="text-sm font-bold">{movie.rating}</span>
+              </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-6 text-muted-foreground">
@@ -104,23 +139,16 @@ export default function WatchPage() {
                 <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Rilis</span>
                 <span className="text-sm font-bold text-foreground/80">2024</span>
               </div>
+              <div className="w-1.5 h-1.5 rounded-full bg-border" />
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Kualitas</span>
+                <span className="text-sm font-bold text-brand">{movie.quality}</span>
+              </div>
             </div>
 
-            <div className="space-y-2 relative max-w-4xl">
-              <p className={cn(
-                "text-neutral-700 dark:text-muted-foreground text-xs md:text-xl leading-relaxed font-normal transition-all duration-300",
-                !isSynopsisExpanded && "line-clamp-3 md:line-clamp-4"
-              )}>
-                {movie.description || `Temukan kisah epik dari ${movie.title}, di mana takdir bertemu dengan ketidaktahuan. Mahakarya sinematik ini membawa Anda dalam perjalanan melalui visual yang tak tertandingi dan aksi yang memacu jantung. Sebuah cerita luar biasa yang akan menguji batas keberanian dan kesetiaan Anda, dibalut dengan efek khusus pemenang penghargaan dan scoring musik orkestra megah. Jangan lewatkan tontonan yang akan mengubah cara Anda memandang dunia.`}
-              </p>
-              <button 
-                onClick={() => setIsSynopsisExpanded(!isSynopsisExpanded)}
-                className="text-brand font-bold text-xs md:text-sm hover:underline transition-colors focus:outline-none flex items-center gap-1"
-              >
-                {isSynopsisExpanded ? "Sembunyikan" : "Baca Selengkapnya"}
-                <Icon name={isSynopsisExpanded ? "chevron-up" : "chevron-down"} className="w-3 h-3 md:w-4 md:h-4" />
-              </button>
-            </div>
+            <p className="text-lg md:text-xl text-neutral-400 leading-relaxed font-light max-w-4xl">
+              {movie.description || "Discover the epic journey of this masterpiece. Immerse yourself in the world of storytelling with high-quality visual experience only on Sinea."}
+            </p>
           </div>
         </div>
 
@@ -143,11 +171,14 @@ export default function WatchPage() {
                     <div className="absolute inset-0 bg-gradient-to-br from-muted to-background" />
                   )}
                   <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
+                  <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-black/80 text-[8px] font-black text-white">{m.quality}</div>
                 </div>
                 <div className="flex flex-col justify-center gap-1 min-w-0">
                   <h3 className="text-xs font-bold text-foreground line-clamp-2 group-hover:text-brand transition-colors uppercase tracking-tight leading-tight">{m.title}</h3>
                   <div className="flex items-center gap-2">
                     <span className="text-[9px] font-bold text-muted-foreground">{m.genre}</span>
+                    <div className="w-1 h-1 rounded-full bg-border" />
+                    <span className="text-[9px] font-bold text-yellow-500">{m.rating}</span>
                   </div>
                 </div>
               </div>

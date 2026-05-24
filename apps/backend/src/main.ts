@@ -16,11 +16,15 @@ async function bootstrap() {
   );
 
   app.enableCors({
-    origin: process.env.FRONTEND_URL ?? 'http://localhost:3000',
+    origin: true,
     credentials: true,
   });
 
   const port = process.env.PORT ?? 3001;
+  const server = app.getHttpServer();
+  // Set timeout to 10 minutes (600,000 ms) for large video uploads
+  server.setTimeout(10 * 60 * 1000);
+  
   await app.listen(port);
   Logger.log(`🚀 Backend running on: http://localhost:${port}`, 'Bootstrap');
 }

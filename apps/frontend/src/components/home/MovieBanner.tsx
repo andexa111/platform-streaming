@@ -9,9 +9,10 @@ import { Video } from "@/types/video";
 interface MovieBannerProps {
   movies: Video[];
   autoPlayInterval?: number;
+  basePath?: string;
 }
 
-export function MovieBanner({ movies, autoPlayInterval = 5000 }: MovieBannerProps) {
+export function MovieBanner({ movies, autoPlayInterval = 5000, basePath = "/watch" }: MovieBannerProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
@@ -30,12 +31,20 @@ export function MovieBanner({ movies, autoPlayInterval = 5000 }: MovieBannerProp
     setTimeout(() => setIsAnimating(false), 500);
   };
 
-  // Manage auto-slide interval and limit video to 10s
+  // Manage auto-slide interval and limit video to 10s or custom clip duration
   useEffect(() => {
     if (!movies || movies.length === 0) return;
     const currentMovie = movies[currentIndex];
-    // If it has a trailer, set timeout to 10 seconds. Else use autoPlayInterval (5s)
-    const delay = currentMovie?.trailerUrl ? 10000 : autoPlayInterval;
+    
+    let delay = autoPlayInterval;
+    if (currentMovie?.trailerUrl) {
+      if (currentMovie.clipStart !== undefined && currentMovie.clipEnd !== undefined) {
+        delay = (currentMovie.clipEnd - currentMovie.clipStart) * 1000;
+        if (delay <= 0) delay = 10000;
+      } else {
+        delay = 10000;
+      }
+    }
     
     const timer = setTimeout(nextSlide, delay);
     return () => clearTimeout(timer);
@@ -43,10 +52,11 @@ export function MovieBanner({ movies, autoPlayInterval = 5000 }: MovieBannerProp
 
   // Manage video playing state
   useEffect(() => {
+    const currentMovie = movies[currentIndex];
     videoRefs.current.forEach((video, idx) => {
       if (video) {
         if (idx === currentIndex) {
-          video.currentTime = 0;
+          video.currentTime = currentMovie?.clipStart || 0;
           video.play().catch(() => {});
         } else {
           // Pause after 1s to allow the fade transition to complete smoothly
@@ -56,7 +66,7 @@ export function MovieBanner({ movies, autoPlayInterval = 5000 }: MovieBannerProp
         }
       }
     });
-  }, [currentIndex]);
+  }, [currentIndex, movies]);
 
   const truncateDescription = (text: string, wordLimit: number) => {
     if (!text) return "";
@@ -72,7 +82,7 @@ export function MovieBanner({ movies, autoPlayInterval = 5000 }: MovieBannerProp
   const currentMovie = movies[currentIndex];
 
   return (
-    <section className="relative w-full aspect-[4/3] md:aspect-auto md:h-[80vh] overflow-hidden group bg-background">
+    <section className="relative w-full h-[60vh] md:h-[80vh] overflow-hidden group bg-background">
       {/* Background Slides */}
       {movies.map((movie, index) => (
         <div
@@ -89,6 +99,12 @@ export function MovieBanner({ movies, autoPlayInterval = 5000 }: MovieBannerProp
               src={movie.trailerUrl}
               muted
               playsInline
+              onTimeUpdate={(e) => {
+                const video = e.currentTarget;
+                if (movie.clipEnd && video.currentTime >= movie.clipEnd) {
+                  video.currentTime = movie.clipStart || 0;
+                }
+              }}
               onEnded={nextSlide}
               className="w-full h-full object-cover object-center"
             />
@@ -111,14 +127,14 @@ export function MovieBanner({ movies, autoPlayInterval = 5000 }: MovieBannerProp
       ))}
 
       {/* Content Section */}
-      <div className="relative z-20 h-full max-w-7xl mx-auto px-6 flex flex-col justify-end pt-28 pb-8 md:pb-20">
-        <div className="max-w-xl space-y-2 md:space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
+      <div className="relative z-20 h-full max-w-7xl mx-auto px-6 flex flex-col justify-end pb-12 md:pb-20">
+        <div className="max-w-xl space-y-4 md:space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
           <div className="space-y-2">
             {/* Production House Info */}
             {currentMovie.productionHouse && (
-              <div className="flex items-center gap-1.5 md:gap-2 mb-2 md:mb-3">
+              <div className="flex items-center gap-2 mb-3">
                 {currentMovie.productionHouseLogo && (
-                  <div className="relative w-4 h-4 md:w-8 md:h-8 rounded-full overflow-hidden border border-white/20 bg-white/10">
+                  <div className="relative w-6 h-6 md:w-8 md:h-8 rounded-full overflow-hidden border border-white/20 bg-white/10">
                     <Image 
                       src={currentMovie.productionHouseLogo} 
                       alt={currentMovie.productionHouse} 
@@ -127,62 +143,57 @@ export function MovieBanner({ movies, autoPlayInterval = 5000 }: MovieBannerProp
                     />
                   </div>
                 )}
-                <span className="text-[9px] md:text-sm font-bold text-brand tracking-widest uppercase drop-shadow-md">
+                <span className="text-xs md:text-sm font-bold text-brand tracking-widest uppercase drop-shadow-md">
                   {currentMovie.productionHouse}
                 </span>
               </div>
             )}
-            <h2 className="text-sm md:text-5xl font-black tracking-tight text-foreground drop-shadow-sm leading-tight">
+            <h2 className="text-2xl md:text-5xl font-black tracking-tight text-foreground drop-shadow-sm">
               {currentMovie.title}
             </h2>
-            <p className="text-[8px] md:text-sm text-muted-foreground max-w-[220px] md:max-w-md leading-relaxed font-medium">
-              {truncateDescription(currentMovie.description || "", 15)}
+            <p className="text-[10px] md:text-sm text-muted-foreground max-w-sm md:max-w-md leading-relaxed font-medium">
+              {truncateDescription(currentMovie.description || "", 20)}
             </p>
           </div>
 
-          <div className="flex items-center gap-2 md:gap-3 pt-1 md:pt-2">
+          <div className="flex items-center gap-3 pt-2">
             <Link
-              href={`/watch/${currentMovie.id}`}
-              className="px-3 py-1.5 md:px-8 md:py-3 bg-brand hover:bg-brand-dark text-white rounded-full text-[8px] md:text-sm font-bold flex items-center gap-1.5 md:gap-2 transition-all hover:scale-105 active:scale-95 shadow-xl shadow-brand/20"
+              href={`${basePath}/${currentMovie.id}`}
+              className="px-6 py-2.5 md:px-8 md:py-3 bg-brand hover:bg-brand-dark text-white rounded-full text-xs md:text-sm font-bold flex items-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-xl shadow-brand/20"
             >
-              <Icon name="play" className="w-2.5 h-2.5 md:w-4 md:h-4 fill-current" />
+              <Icon name="play" className="w-3 h-3 md:w-4 md:h-4 fill-current" />
               Tonton Sekarang
             </Link>
           </div>
         </div>
       </div>
 
-      {/* Controls Container (Arrows + Indicators) */}
-      <div className="absolute bottom-4 right-4 md:bottom-10 md:right-10 z-30 flex flex-col items-end gap-3">
-        {/* Navigation Arrows */}
-        <div className="flex items-center gap-2 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
+      {/* Slide Indicators */}
+      <div className="absolute bottom-6 right-6 md:bottom-10 md:right-10 z-30 flex flex-wrap max-w-[50%] justify-end items-center gap-2">
+        {movies.map((_, index) => (
           <button
-            onClick={prevSlide}
-            className="p-1.5 md:p-2 rounded-full bg-black/40 hover:bg-brand text-white/70 hover:text-white transition-all backdrop-blur-sm"
-          >
-            <Icon name="chevron-right" className="w-3 h-3 md:w-5 md:h-5 rotate-180" />
-          </button>
-          <button
-            onClick={nextSlide}
-            className="p-1.5 md:p-2 rounded-full bg-black/40 hover:bg-brand text-white/70 hover:text-white transition-all backdrop-blur-sm"
-          >
-            <Icon name="chevron-right" className="w-3 h-3 md:w-5 md:h-5" />
-          </button>
-        </div>
-
-        {/* Slide Indicators */}
-        <div className="flex justify-end items-center gap-1 md:gap-2">
-          {movies.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentIndex(index)}
-              className={`h-1 md:h-1.5 transition-all duration-300 rounded-full ${
-                index === currentIndex ? "w-4 md:w-8 bg-brand" : "w-1.5 md:w-3 bg-white/20 hover:bg-white/40"
-              }`}
-            />
-          ))}
-        </div>
+            key={index}
+            onClick={() => setCurrentIndex(index)}
+            className={`h-1 transition-all duration-300 rounded-full ${
+              index === currentIndex ? "w-8 bg-brand" : "w-3 bg-white/20 hover:bg-white/40"
+            }`}
+          />
+        ))}
       </div>
+
+      {/* Navigation Arrows */}
+      <button
+        onClick={prevSlide}
+        className="absolute left-4 top-1/2 -translate-y-1/2 z-30 p-2 rounded-full bg-black/20 hover:bg-black/40 text-white/50 hover:text-white transition-all opacity-0 group-hover:opacity-100 hidden md:block"
+      >
+        <Icon name="chevron-right" className="w-6 h-6 rotate-180" />
+      </button>
+      <button
+        onClick={nextSlide}
+        className="absolute right-4 top-1/2 -translate-y-1/2 z-30 p-2 rounded-full bg-black/20 hover:bg-black/40 text-white/50 hover:text-white transition-all opacity-0 group-hover:opacity-100 hidden md:block"
+      >
+        <Icon name="chevron-right" className="w-6 h-6" />
+      </button>
     </section>
   );
 }

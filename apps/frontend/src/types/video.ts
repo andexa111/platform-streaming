@@ -15,4 +15,10 @@ export interface Video {
   trailerUrl?: string;
   productionHouse?: string;
   productionHouseLogo?: string;
+  director?: string;
+  producer?: string;
+  releaseYear?: string | number;
+  actors?: string[];
+  clipStart?: number;
+  clipEnd?: number;
 }

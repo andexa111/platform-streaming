@@ -4,6 +4,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { AuthStateProvider } from "@/components/auth/AuthStateProvider";
 
 const oswald = Oswald({
   subsets: ["latin"],
@@ -33,7 +34,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <AuthStateProvider>
+            {children}
+          </AuthStateProvider>
         </ThemeProvider>
       </body>
     </html>

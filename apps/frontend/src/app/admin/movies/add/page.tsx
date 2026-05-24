@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { Icon } from "@/components/ui/Icon";
 import { cn } from "@/lib/utils";
-import { api } from "@/lib/api";
+import { api, getMediaUrl } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { GENRES } from "@/constants/video-data";
 
@@ -38,6 +38,11 @@ export default function AddMoviePage() {
   });
 
   const [actorInput, setActorInput] = useState("");
+  const [genresList, setGenresList] = useState<{ id: number; name: string }[]>([]);
+
+  React.useEffect(() => {
+    api.get("/genre").then((res) => setGenresList(res.data)).catch(console.error);
+  }, []);
 
   const updateField = (field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -61,20 +66,43 @@ export default function AddMoviePage() {
   const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, 3));
   const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
 
+  const [uploadingTrailer, setUploadingTrailer] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
   const handleImageUpload = async (file: File, field: "poster_url" | "production_house_logo") => {
     const formData = new FormData();
     formData.append("file", file);
 
     try {
-      const res = await api.post("/upload/poster", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const res = await api.post("/upload/poster", formData);
       updateField(field, res.data.url);
-    } catch (err) {
+    } catch (err: any) {
       console.error(`Gagal upload ${field}:`, err);
-      alert(`Gagal mengunggah gambar. Pastikan formatnya jpg/png/webp dan ukuran maks 5MB.`);
+      alert(err.response?.data?.message || `Gagal mengunggah gambar. Pastikan formatnya jpg/png/webp dan ukuran maks 5MB.`);
+    }
+  };
+
+  const handleTrailerUpload = async (file: File) => {
+    setUploadingTrailer(true);
+    setUploadProgress(0);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await api.post("/upload/trailer", formData, {
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(percentCompleted);
+          }
+        }
+      });
+      updateField("trailer_url", res.data.url);
+    } catch (err: any) {
+      console.error("Gagal upload trailer:", err);
+      alert(err.response?.data?.message || "Gagal mengunggah trailer. Pastikan formatnya video (mp4/webm) dan ukuran maks 500MB.");
+    } finally {
+      setUploadingTrailer(false);
     }
   };
 
@@ -88,12 +116,14 @@ export default function AddMoviePage() {
         description: formData.description || undefined,
         director: formData.director || undefined,
         producer: formData.producer || undefined,
-        actors: formData.actors.length > 0 ? formData.actors : undefined,
-        genre: formData.genre || undefined,
+        actorNames: formData.actors.length > 0 ? formData.actors : undefined,
+        genreIds: formData.genre ? [parseInt(formData.genre)] : undefined,
         release_year: formData.release_year ? parseInt(formData.release_year) : undefined,
         video_id: formData.video_id || undefined,
         trailer_url: formData.trailer_url || undefined,
         poster_url: formData.poster_url || undefined,
+        production_house: formData.production_house || undefined,
+        production_house_logo: formData.production_house_logo || undefined,
         is_published: formData.is_published,
       };
 
@@ -235,9 +265,9 @@ export default function AddMoviePage() {
                       <option value="" disabled>
                         Pilih Genre
                       </option>
-                      {GENRES.map((g) => (
-                        <option key={g.title} value={g.title} className="bg-card text-foreground">
-                          {g.title}
+                      {genresList.map((g) => (
+                        <option key={g.id} value={g.id.toString()} className="bg-card text-foreground">
+                          {g.name}
                         </option>
                       ))}
                     </select>
@@ -357,15 +387,47 @@ export default function AddMoviePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-black uppercase text-foreground">Trailer Video ID (Bunny Stream)</label>
-                  <input
-                    type="text"
-                    placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                    className="w-full px-5 py-3.5 bg-secondary border border-border rounded-2xl focus:outline-none focus:border-brand transition-all text-sm font-mono text-foreground placeholder:text-muted-foreground"
-                    value={formData.trailer_url}
-                    onChange={(e) => updateField("trailer_url", e.target.value)}
-                  />
-                  <p className="text-xs text-muted-foreground">Copy Video ID trailer dari dashboard Bunny Stream</p>
+                  <label className="text-xs font-black uppercase text-foreground">Video Trailer Film (Local MP4/WebM)</label>
+                  <div className="flex flex-col gap-3">
+                    <label className="block cursor-pointer">
+                      <div className="w-full px-5 py-3.5 bg-secondary border border-border border-dashed rounded-2xl flex flex-col gap-2 hover:border-brand transition-all">
+                        <div className="flex items-center gap-3">
+                          {uploadingTrailer ? (
+                            <div className="w-5 h-5 border-2 border-brand border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <Icon name="film" className="w-5 h-5 text-muted-foreground" />
+                          )}
+                          <span className="text-sm text-muted-foreground">
+                            {uploadingTrailer ? `Sedang mengunggah (${uploadProgress}%)...` : formData.trailer_url ? "Ganti Trailer Video" : "Klik untuk upload trailer..."}
+                          </span>
+                        </div>
+                        {uploadingTrailer && (
+                          <div className="w-full h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full overflow-hidden mt-1">
+                            <div className="h-full bg-brand transition-all duration-300" style={{ width: `${uploadProgress}%` }} />
+                          </div>
+                        )}
+                      </div>
+                      <input
+                        type="file"
+                        accept="video/*"
+                        className="hidden"
+                        disabled={uploadingTrailer}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleTrailerUpload(file);
+                        }}
+                      />
+                    </label>
+                    {formData.trailer_url && (
+                      <div className="p-4 bg-secondary border border-border rounded-2xl">
+                        <p className="text-[10px] font-black uppercase text-foreground mb-2">Trailer Terunggah</p>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground font-mono break-all bg-card p-2 rounded border border-border">
+                          <span className="truncate flex-1">{getMediaUrl(formData.trailer_url)}</span>
+                        </div>
+                        <video src={getMediaUrl(formData.trailer_url)} controls className="w-full max-h-48 rounded-lg mt-3 bg-black" />
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Preview */}
@@ -398,7 +460,7 @@ export default function AddMoviePage() {
                       { label: "Sutradara", value: formData.director },
                       { label: "Produser", value: formData.producer },
                       { label: "Aktor", value: formData.actors.length > 0 ? formData.actors.join(", ") : "" },
-                      { label: "Genre", value: formData.genre },
+                      { label: "Genre", value: genresList.find(g => g.id.toString() === formData.genre)?.name || formData.genre },
                       { label: "Tahun Rilis", value: formData.release_year },
                       { label: "Video ID", value: formData.video_id },
                       { label: "Trailer ID", value: formData.trailer_url },
@@ -422,7 +484,7 @@ export default function AddMoviePage() {
                     <p className="text-[10px] font-black uppercase text-foreground tracking-widest mb-3">Poster</p>
                     <div className="w-24 h-36 rounded-lg overflow-hidden border border-border">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={formData.poster_url} alt="Poster" className="w-full h-full object-cover" />
+                      <img src={getMediaUrl(formData.poster_url)} alt="Poster" className="w-full h-full object-cover" />
                     </div>
                   </div>
                 )}

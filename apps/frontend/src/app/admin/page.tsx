@@ -5,10 +5,14 @@ import Link from "next/link";
 import { Icon } from "@/components/ui/Icon";
 import { cn } from "@/lib/utils";
 import { NAV_LINKS } from "@/config/navigation";
+import { useAuthStore } from "@/lib/auth-store";
 
 export default function AdminDashboardPage() {
+  const user = useAuthStore((s) => s.user);
+  const links = user?.role === 'superadmin' ? NAV_LINKS.adminSuper : NAV_LINKS.adminBasic;
+
   // Filter out the home link since we're already here
-  const shortcuts = NAV_LINKS.admin.filter(link => link.href !== "/admin");
+  const shortcuts = links.filter(link => link.href !== "/admin");
 
   return (
     <div className="space-y-12 py-8 animate-in fade-in duration-700">

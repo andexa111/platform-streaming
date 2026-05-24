@@ -9,7 +9,7 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
-// ==================== DATA GENRE ====================
+// ==================== DATA ====================
 
 const genres = [
   { name: 'Comedy', slug: 'comedy' },
@@ -17,45 +17,129 @@ const genres = [
   { name: 'Action', slug: 'action' },
   { name: 'Historical', slug: 'historical' },
   { name: 'Drama', slug: 'drama' },
+  { name: 'Romance', slug: 'romance' },
+  { name: 'Thriller', slug: 'thriller' },
+  { name: 'Documentary', slug: 'documentary' },
+];
+
+const membershipPlans = [
+  {
+    slug: 'paket_1',
+    name: 'Paket 1 Bulan',
+    price: 50000,
+    duration_months: 1,
+    benefits: ['Akses Semua Film', 'Kualitas 4K HDR', 'Tanpa Iklan', 'Bisa Didownload', 'Akses Semua Perangkat'],
+    max_devices: 4,
+    quality: '4K HDR',
+  },
+  {
+    slug: 'paket_2',
+    name: 'Paket 3 Bulan',
+    price: 150000,
+    duration_months: 3,
+    benefits: ['Akses Semua Film', 'Kualitas 4K HDR', 'Tanpa Iklan', 'Bisa Didownload', 'Akses Semua Perangkat'],
+    max_devices: 4,
+    quality: '4K HDR',
+  },
+  {
+    slug: 'paket_3',
+    name: 'Paket 6 Bulan',
+    price: 300000,
+    duration_months: 6,
+    benefits: ['Akses Semua Film', 'Kualitas 4K HDR', 'Tanpa Iklan', 'Bisa Didownload', 'Akses Semua Perangkat'],
+    max_devices: 4,
+    quality: '4K HDR',
+  },
+  {
+    slug: 'paket_4',
+    name: 'Paket 1 Tahun',
+    price: 600000,
+    duration_months: 12,
+    benefits: ['Akses Semua Film', 'Kualitas 4K HDR', 'Tanpa Iklan', 'Bisa Didownload', 'Akses Semua Perangkat'],
+    max_devices: 4,
+    quality: '4K HDR',
+  },
 ];
 
 // ==================== SEED FUNCTIONS ====================
 
 async function seedGenres() {
   console.log('🎬 Seeding genres...');
-
   for (const genre of genres) {
     await prisma.genre.upsert({
       where: { slug: genre.slug },
-      update: {}, // Kalau sudah ada, skip
+      update: {},
       create: genre,
     });
   }
-
   console.log(`   ✅ ${genres.length} genres seeded`);
 }
 
 async function seedSuperAdmin() {
-  console.log('👤 Seeding super admin...');
+  console.log('👑 Seeding super admin...');
 
-  const email = process.env.ADMIN_EMAIL || 'admin@sinea.id';
-  const password = process.env.ADMIN_PASSWORD || 'admin12345';
-
+  const email = 'superadmin@sinea.id';
+  const password = 'SuperAdmin@2026';
   const hashedPassword = await bcrypt.hash(password, 10);
 
   await prisma.user.upsert({
     where: { email },
-    update: {}, // Kalau sudah ada, skip
+    update: {
+      password: hashedPassword,
+    },
     create: {
       name: 'Super Admin',
       email,
       password: hashedPassword,
       role: 'superadmin',
-      email_verified_at: new Date(), // Langsung verified
+      email_verified_at: new Date(),
     },
   });
 
   console.log(`   ✅ Super admin seeded (${email})`);
+}
+
+async function seedAdmin() {
+  console.log('👤 Seeding admin biasa...');
+
+  const email = 'admin@sinea.id';
+  const password = 'Admin@2026';
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  await prisma.user.upsert({
+    where: { email },
+    update: {},
+    create: {
+      name: 'Admin',
+      email,
+      password: hashedPassword,
+      role: 'admin',
+      email_verified_at: new Date(),
+    },
+  });
+
+  console.log(`   ✅ Admin seeded (${email})`);
+}
+
+async function seedMembershipPlans() {
+  console.log('💳 Seeding membership plans...');
+
+  for (const plan of membershipPlans) {
+    await prisma.membershipPlan.upsert({
+      where: { slug: plan.slug },
+      update: {
+        name: plan.name,
+        price: plan.price,
+        duration_months: plan.duration_months,
+        benefits: plan.benefits,
+        max_devices: plan.max_devices,
+        quality: plan.quality,
+      },
+      create: plan,
+    });
+  }
+
+  console.log(`   ✅ ${membershipPlans.length} membership plans seeded`);
 }
 
 // ==================== MAIN ====================
@@ -65,8 +149,13 @@ async function main() {
 
   await seedGenres();
   await seedSuperAdmin();
+  await seedAdmin();
+  await seedMembershipPlans();
 
   console.log('\n✅ Seed completed!\n');
+  console.log('📋 Akun yang tersedia:');
+  console.log('   Super Admin : superadmin@sinea.id / SuperAdmin@2026');
+  console.log('   Admin Biasa : admin@sinea.id / Admin@2026');
 }
 
 main()

@@ -19,13 +19,9 @@ enum Role {
   superadmin
 }
 
-enum SubPlan {
-  monthly
-  yearly
-}
-
 enum SubStatus {
   inactive
+  pending
   active
   expired
 }
@@ -71,16 +67,21 @@ model Film {
   poster_url   String?
   trailer_url  String?
   video_id     String?   // Bunny Stream video ID
-  is_published Boolean   @default(false)
-  is_deleted   Boolean   @default(false)
-  scheduled_at DateTime?
-  createdAt    DateTime  @default(now())
+  clip_start   Int?      // detik mulai highlight trailer
+  clip_end     Int?      // detik akhir highlight trailer
+  is_published          Boolean   @default(false)
+  is_deleted            Boolean   @default(false)
+  scheduled_at          DateTime?
+  production_house      String?
+  production_house_logo String?
+  createdAt             DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
   genres         Genre[]        @relation("FilmGenres")
   actors         Actor[]        @relation("FilmActors")
   filmViews      FilmView[]
   watchHistories WatchHistory[]
+  featuredFilms  FeaturedFilm[]
 
   @@map("films")
 }
@@ -138,19 +139,74 @@ model WatchHistory {
   @@map("watch_histories")
 }
 
+// ==================== MEMBERSHIP PLANS ====================
+
+model MembershipPlan {
+  id          Int      @id @default(autoincrement())
+  slug        String   @unique       // "paket_1", "paket_2", etc.
+  name        String                 // "Paket 1"
+  price          Int                    // harga per bulan (Rupiah)
+  duration_months Int     @default(1)    // durasi paket dalam bulan
+  benefits       String[]               // array benefit
+  max_devices    Int      @default(1)
+  quality        String   @default("720p")
+  is_active   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  discounts     Discount[]
+  subscriptions Subscription[]
+  payments      Payment[]
+
+  @@map("membership_plans")
+}
+
+// ==================== DISCOUNTS ====================
+
+model Discount {
+  id           Int      @id @default(autoincrement())
+  planId       Int
+  label        String                // "Promo Launching", "Diskon Spesial"
+  percentage   Int?                  // diskon persen (0-100)
+  fixed_amount Int?                  // atau potongan flat (Rupiah)
+  valid_from   DateTime
+  valid_until  DateTime
+  is_active    Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  plan MembershipPlan @relation(fields: [planId], references: [id])
+
+  @@map("discounts")
+}
+
+// ==================== FEATURED FILMS ====================
+
+model FeaturedFilm {
+  id        Int      @id @default(autoincrement())
+  filmId    Int
+  position  Int      @unique        // urutan 1-10
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  film Film @relation(fields: [filmId], references: [id])
+
+  @@map("featured_films")
+}
+
 // ==================== SUBSCRIPTION & PAYMENT ====================
 
 model Subscription {
   id            Int       @id @default(autoincrement())
   userId        Int
-  plan          SubPlan
+  planId        Int                   // referensi ke MembershipPlan
   status        SubStatus @default(inactive)
   expired_at    DateTime?
   reminder_sent Boolean   @default(false)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  user User @relation(fields: [userId], references: [id])
+  user User           @relation(fields: [userId], references: [id])
+  plan MembershipPlan @relation(fields: [planId], references: [id])
 
   @@map("subscriptions")
 }
@@ -159,13 +215,14 @@ model Payment {
   id        Int           @id @default(autoincrement())
   order_id  String        @unique
   userId    Int
-  plan      SubPlan
-  amount    Int           // nominal dalam Rupiah
+  planId    Int                      // referensi ke MembershipPlan
+  amount    Int                      // nominal dalam Rupiah (setelah diskon)
   status    PaymentStatus @default(pending)
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
 
-  user User @relation(fields: [userId], references: [id])
+  user User           @relation(fields: [userId], references: [id])
+  plan MembershipPlan @relation(fields: [planId], references: [id])
 
   @@map("payments")
 }

@@ -39,33 +39,20 @@ export class AuthService {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(dto.password, saltRounds);
 
-    // 3. Simpan user ke database
+    // 3. Simpan user ke database (belum di-approve)
     const user = await this.prisma.user.create({
       data: {
         name: dto.name,
         email: dto.email,
         password: hashedPassword,
-        role: 'guest', // Default role saat register, nanti jadi 'user' setelah verify email
+        role: 'user', // langsung jadi user (belum langganan)
       },
     });
-
-    // 4. Buat token verifikasi email
-    const token = crypto.randomBytes(32).toString('hex');
-    await this.prisma.emailToken.create({
-      data: {
-        userId: user.id,
-        token,
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 jam
-      },
-    });
-
-    // 5. Kirim email verifikasi
-    await this.mailService.sendVerificationEmail(user.email, user.name, token);
 
     this.logger.log(`User registered: ${user.email}`);
 
     return {
-      message: 'Registrasi berhasil! Cek email kamu untuk verifikasi.',
+      message: 'Pendaftaran berhasil! Silakan login untuk melanjutkan.',
       user: {
         id: user.id,
         name: user.name,
@@ -94,16 +81,11 @@ export class AuthService {
       throw new UnauthorizedException('Email atau password salah');
     }
 
-    // 3. Cek apakah email sudah diverifikasi
-    if (!user.email_verified_at) {
-      throw new UnauthorizedException(
-        'Email belum diverifikasi. Cek inbox kamu.',
-      );
-    }
+
 
     // 4. Generate JWT token
     const payload = {
-      sub: user.id, // subject = user id
+      sub: user.id,
       email: user.email,
       role: user.role,
     };
@@ -122,45 +104,6 @@ export class AuthService {
         role: user.role,
         avatar_url: user.avatar_url,
       },
-    };
-  }
-
-  // ==================== VERIFY EMAIL ====================
-
-  async verifyEmail(token: string) {
-    // 1. Cari token di database
-    const emailToken = await this.prisma.emailToken.findUnique({
-      where: { token },
-      include: { user: true },
-    });
-
-    if (!emailToken) {
-      throw new BadRequestException('Token tidak valid');
-    }
-
-    // 2. Cek apakah token sudah expired
-    if (emailToken.expiresAt < new Date()) {
-      throw new BadRequestException('Token sudah kedaluwarsa');
-    }
-
-    // 3. Update user: set email_verified_at + upgrade role ke 'user'
-    await this.prisma.user.update({
-      where: { id: emailToken.userId },
-      data: {
-        email_verified_at: new Date(),
-        role: 'user',
-      },
-    });
-
-    // 4. Hapus token (sudah terpakai)
-    await this.prisma.emailToken.delete({
-      where: { id: emailToken.id },
-    });
-
-    this.logger.log(`Email verified: ${emailToken.user.email}`);
-
-    return {
-      message: 'Email berhasil diverifikasi! Silakan login.',
     };
   }
 
@@ -187,9 +130,8 @@ export class AuthService {
     return user;
   }
 
-  /**
-   * OAuth Login Logic
-   */
+  // ==================== OAUTH LOGIN ====================
+
   async validateOAuthLogin(profile: any) {
     try {
       let user = await this.prisma.user.findUnique({
@@ -197,24 +139,16 @@ export class AuthService {
       });
 
       if (!user) {
-        // Create new user, automatically verified if from Google
+        // Buat user baru, langsung aktif sbg 'user' biasa
         user = await this.prisma.user.create({
           data: {
             email: profile.email,
             name: profile.name,
             avatar_url: profile.avatar_url,
-            email_verified_at: new Date(),
-            // Empty password since they use OAuth
+            role: 'user',
           },
         });
         this.logger.log(`New user created via OAuth: ${user.email}`);
-      } else if (!user.email_verified_at) {
-        // If email was unverified but they logged in via Google with the same email, we trust it and verify it
-        user = await this.prisma.user.update({
-          where: { email: user.email },
-          data: { email_verified_at: new Date() },
-        });
-        this.logger.log(`User automatically verified via OAuth: ${user.email}`);
       }
 
       this.logger.log(`User logged in via OAuth: ${user.email}`);
@@ -223,9 +157,9 @@ export class AuthService {
       const payload = { sub: user.id, email: user.email, role: user.role };
       const access_token = await this.jwtService.signAsync(payload);
 
-      // Return both token and user info without password
       const { password: _, ...userWithoutPassword } = user;
       return {
+        status: 'approved',
         message: 'Login sukses via Google',
         access_token,
         user: userWithoutPassword,
@@ -234,5 +168,53 @@ export class AuthService {
       this.logger.error('OAuth login failed', err);
       throw new BadRequestException('OAuth login failed');
     }
+  }
+
+  // ==================== FORGOT PASSWORD ====================
+
+  async forgotPassword(email: string) {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      // Don't leak if user exists
+      return { message: 'Jika email terdaftar, instruksi reset password akan dikirimkan.' };
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    await this.prisma.emailToken.create({
+      data: {
+        userId: user.id,
+        token,
+        expiresAt: new Date(Date.now() + 1 * 60 * 60 * 1000), // 1 hour
+      },
+    });
+
+    await this.mailService.sendPasswordResetEmail(user.email, user.name, token);
+
+    return { message: 'Jika email terdaftar, instruksi reset password akan dikirimkan.' };
+  }
+
+  // ==================== RESET PASSWORD ====================
+
+  async resetPassword(token: string, new_password: string) {
+    const emailToken = await this.prisma.emailToken.findUnique({
+      where: { token },
+      include: { user: true },
+    });
+
+    if (!emailToken || emailToken.expiresAt < new Date()) {
+      throw new BadRequestException('Token tidak valid atau sudah kedaluwarsa');
+    }
+
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(new_password, saltRounds);
+
+    await this.prisma.user.update({
+      where: { id: emailToken.userId },
+      data: { password: hashedPassword },
+    });
+
+    await this.prisma.emailToken.delete({ where: { id: emailToken.id } });
+
+    return { message: 'Password berhasil diubah. Silakan login dengan password baru.' };
   }
 }

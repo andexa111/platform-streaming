@@ -56,7 +56,12 @@ import {
   CircleDashed,
   Pencil,
   ChevronLeft,
-  AlertTriangle
+  AlertTriangle,
+  Calendar,
+  Smartphone,
+  Download,
+  ShieldCheck,
+  Clock
 } from "lucide-react";
 
 const ICON_MAP = {
@@ -117,6 +122,11 @@ const ICON_MAP = {
   "circle-dashed": CircleDashed,
   "chevron-left": ChevronLeft,
   warning: AlertTriangle,
+  calendar: Calendar,
+  smartphone: Smartphone,
+  download: Download,
+  "shield-check": ShieldCheck,
+  clock: Clock,
 };
 
 interface IconProps extends LucideProps {

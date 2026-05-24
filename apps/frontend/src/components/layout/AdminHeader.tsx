@@ -5,6 +5,7 @@ import { Icon } from "@/components/ui/Icon";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { NAV_LINKS } from "@/config/navigation";
 import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/lib/auth-store";
 
 interface AdminHeaderProps {
   onMenuClick: () => void;
@@ -12,6 +13,7 @@ interface AdminHeaderProps {
 
 export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
   const pathname = usePathname();
+  const user = useAuthStore((s) => s.user);
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -27,8 +29,9 @@ export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Find current link name for breadcrumbs/title
-  const currentLink = NAV_LINKS.admin.find((link) => link.href === pathname);
+  // Find current link name for breadcrumbs/title across both admin and superadmin menus
+  const allAdminLinks = [...NAV_LINKS.adminBasic, ...NAV_LINKS.adminSuper];
+  const currentLink = allAdminLinks.find((link) => link.href === pathname);
   const pageTitle = currentLink ? currentLink.name : "Dashboard";
 
   return (
@@ -57,8 +60,12 @@ export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
         <div ref={profileRef} className="relative">
           <button onClick={() => setIsProfileOpen(!isProfileOpen)} className="flex items-center gap-3 pl-2 group transition-all">
             <div className="text-right hidden sm:block">
-              <p className="text-xs font-black text-foreground group-hover:text-brand transition-colors">Super Admin</p>
-              <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Administrator</p>
+              <p className="text-xs font-black text-foreground group-hover:text-brand transition-colors">
+                {user?.name || (user?.role === 'superadmin' ? 'Super Admin' : 'Admin')}
+              </p>
+              <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
+                {user?.role === 'superadmin' ? 'Superadministrator' : 'Administrator'}
+              </p>
             </div>
             <div className={cn(
               "w-10 h-10 rounded-xl flex items-center justify-center transition-all shadow-sm group-hover:scale-105 active:scale-95",

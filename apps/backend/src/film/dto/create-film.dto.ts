@@ -63,6 +63,14 @@ export class CreateFilmDto {
   scheduled_at?: string; // ISO date string
 
   @IsOptional()
+  @IsString()
+  production_house?: string;
+
+  @IsOptional()
+  @IsString()
+  production_house_logo?: string;
+
+  @IsOptional()
   @IsArray()
   @IsInt({ each: true, message: 'Genre ID harus berupa angka' })
   genreIds?: number[]; // Array of genre IDs

@@ -8,12 +8,13 @@ interface VideoCardProps {
   priority?: boolean;
   isFirst?: boolean;
   isLast?: boolean;
+  basePath?: string;
 }
 
-export function VideoCard({ video, priority = false, isFirst, isLast }: VideoCardProps) {
+export function VideoCard({ video, priority = false, isFirst, isLast, basePath = "/movies" }: VideoCardProps) {
   return (
     <Link 
-      href={`/movies/${video.id}`}
+      href={`${basePath}/${video.id}`}
       className="group block snap-start flex-shrink-0 w-full cursor-pointer hover:z-20 transition-all duration-300"
     >
       <div className={`relative aspect-[2/3] rounded-xl overflow-hidden bg-secondary border border-border group-hover:border-brand/50 transition-all duration-500 shadow-lg group-hover:shadow-brand/20 group-hover:scale-[1.02] ${
