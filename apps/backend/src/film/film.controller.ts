@@ -12,9 +12,15 @@ import {
   BadRequestException,
   Req,
   Res,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import * as express from 'express';
 import { v4 as uuidv4 } from 'uuid';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import * as fs from 'fs';
+import * as path from 'path';
 import { FilmService } from './film.service';
 import { CreateFilmDto } from './dto/create-film.dto';
 import { UpdateFilmDto } from './dto/update-film.dto';
@@ -153,40 +159,156 @@ export class FilmController {
    * Generate signed URL untuk streaming video film
    * User harus login, film harus punya video_id
    */
+  /**
+   * GET /films/:id/stream
+   * Mengatur cookie sinea_stream_auth (JWT) dan mengembalikan URL streaming index.m3u8 di R2.
+   * User harus login (memiliki token JWT di header/cookie) dan film harus memiliki video_id.
+   */
+  @UseGuards(JwtAuthGuard)
   @Get(':id/stream')
-  async getStreamUrl(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
+  async getStreamUrl(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: any,
+    @Res({ passthrough: true }) res: express.Response,
+  ) {
     const film = await this.filmService.findOne(id);
 
     if (!film.video_id) {
       throw new BadRequestException('Film ini belum memiliki video');
     }
 
-    const realStreamUrl = this.bunnyService.generateSignedStreamUrl(film.video_id);
+    // Generate JWT token untuk memproteksi path file film ini di Cloudflare Worker
+    const secret = process.env.SINEA_STREAM_SECRET || 'optq2hT5KgM9F5ukjhsQUawiW6LnZiOJ';
+    const expiresInSeconds = 3 * 3600; // Aktif selama 3 jam
+    const exp = Math.floor(Date.now() / 1000) + expiresInSeconds;
 
-    // Clean up expired tokens to prevent leaks
-    const now = Date.now();
-    for (const [key, val] of streamSessions.entries()) {
-      if (now > val.expiresAt) {
-        streamSessions.delete(key);
-      }
-    }
+    const crypto = require('crypto');
+    const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
+    const payload = Buffer.from(JSON.stringify({
+      allowed_path: `/films/${id}/`,
+      exp,
+    })).toString('base64url');
 
-    // Generate random short-lived token (valid for 30s to initiate player load)
-    const token = uuidv4();
-    streamSessions.set(token, {
-      url: realStreamUrl,
-      expiresAt: now + 30 * 1000,
+    const signature = crypto
+      .createHmac('sha256', secret)
+      .update(`${header}.${payload}`)
+      .digest('base64url');
+
+    const jwtToken = `${header}.${payload}.${signature}`;
+
+    // Set cookie sinea_stream_auth agar dibaca oleh Cloudflare Worker
+    const isProduction = process.env.NODE_ENV === 'production' || !req.get('host').includes('localhost');
+    res.cookie('sinea_stream_auth', jwtToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      domain: isProduction ? '.sinea.id' : undefined,
+      maxAge: expiresInSeconds * 1000,
     });
 
-    const host = req.get('host') || 'localhost:3001';
-    const protocol = host.includes('localhost') ? 'http' : 'https';
-    const dynamicUrl = `${protocol}://${host}/films/stream/play/${token}`;
+    const mediaHost = process.env.MEDIA_HOST || 'https://media.sinea.id';
+    const streamUrl = `${mediaHost}/${film.video_id}`;
 
     return {
       filmId: film.id,
       title: film.title,
-      stream_url: dynamicUrl,
+      stream_url: streamUrl,
     };
+  }
+
+  /**
+   * POST /films/:id/upload-video
+   * Upload video film utama (.mp4), memicu segmentasi HLS asinkron dan upload ke R2
+   */
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'superadmin')
+  @Post(':id/upload-video')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: (req, file, cb) => {
+          const dir = './temp-uploads';
+          if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+          }
+          cb(null, dir);
+        },
+        filename: (req, file, cb) => {
+          const id = req.params.id;
+          const ext = path.extname(file.originalname);
+          cb(null, `raw-${id}${ext}`);
+        },
+      }),
+      limits: { fileSize: 5 * 1024 * 1024 * 1024 }, // Max 5GB
+    }),
+  )
+  async uploadVideo(
+    @Param('id', ParseIntPipe) id: number,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) {
+      throw new BadRequestException('File video tidak ditemukan');
+    }
+
+    // Mulai proses pemecahan HLS & upload ke R2 di background
+    this.processHlsVideo(id, file.path);
+
+    return {
+      success: true,
+      message: 'Video berhasil diunggah. Pemrosesan HLS berjalan di background.',
+    };
+  }
+
+  /**
+   * Helper pemrosesan video HLS & upload ke R2 di background
+   */
+  private processHlsVideo(filmId: number, rawFilePath: string) {
+    const absoluteRawPath = path.resolve(rawFilePath);
+    const tempHlsDir = `./temp-uploads/hls-${filmId}`;
+    const absoluteHlsDir = path.resolve(tempHlsDir);
+
+    if (!fs.existsSync(absoluteHlsDir)) {
+      fs.mkdirSync(absoluteHlsDir, { recursive: true });
+    }
+
+    console.log(`🎬 [HLS Process] Memulai segmentasi HLS untuk Film ID: ${filmId}`);
+
+    // Segmentasi cepat HLS menggunakan FFmpeg (codec copy tanpa kompresi ulang)
+    const cmd = `ffmpeg -y -i "${absoluteRawPath}" -c copy -hls_time 10 -hls_playlist_type vod -hls_segment_filename "${absoluteHlsDir}/segment_%03d.ts" "${absoluteHlsDir}/index.m3u8"`;
+
+    const { exec } = require('child_process');
+    exec(cmd, async (err: any) => {
+      if (err) {
+        console.error(`❌ [HLS Process] FFmpeg error untuk Film ID ${filmId}:`, err);
+        if (fs.existsSync(absoluteRawPath)) fs.unlinkSync(absoluteRawPath);
+        if (fs.existsSync(absoluteHlsDir)) fs.rmSync(absoluteHlsDir, { recursive: true, force: true });
+        return;
+      }
+
+      console.log(`✅ [HLS Process] Segmentasi selesai. Mengunggah folder ke R2...`);
+
+      try {
+        const r2FolderPath = `films/${filmId}`;
+        await this.bunnyService.uploadHlsFolder(absoluteHlsDir, r2FolderPath);
+
+        // Perbarui kolom video_id di database dengan path relatif index.m3u8
+        await this.filmService.update(filmId, {
+          video_id: `films/${filmId}/index.m3u8`,
+        } as any);
+
+        console.log(`🎉 [HLS Process] Sukses memproses & mengunggah HLS untuk Film ID: ${filmId}`);
+      } catch (uploadErr) {
+        console.error(`❌ [HLS Process] Upload/Update DB gagal untuk Film ID ${filmId}:`, uploadErr);
+      } finally {
+        // Hapus file sementara
+        if (fs.existsSync(absoluteRawPath)) {
+          try { fs.unlinkSync(absoluteRawPath); } catch (e) {}
+        }
+        if (fs.existsSync(absoluteHlsDir)) {
+          try { fs.rmSync(absoluteHlsDir, { recursive: true, force: true }); } catch (e) {}
+        }
+      }
+    });
   }
 
   /**

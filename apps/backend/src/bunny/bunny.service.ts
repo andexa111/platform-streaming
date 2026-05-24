@@ -1,131 +1,107 @@
 import { Injectable, Logger } from '@nestjs/common';
-import * as crypto from 'crypto';
+import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class BunnyService {
   private readonly logger = new Logger(BunnyService.name);
 
-  // Bunny Storage config
-  private readonly storageApiKey = process.env.BUNNY_STORAGE_PASSWORD || '';
-  private readonly storageZone = process.env.BUNNY_STORAGE_ZONE || 'sinea-storage';
-  private readonly storageHost =
-    process.env.BUNNY_STORAGE_HOST || 'sg.storage.bunnycdn.com';
-  private readonly cdnUrl =
-    process.env.BUNNY_CDN_URL || 'https://sinea-cdn.b-cdn.net';
-
-  // Bunny Stream config
-  private readonly streamApiKey = process.env.BUNNY_STREAM_API_KEY || '';
-  private readonly streamLibraryId = process.env.BUNNY_STREAM_LIBRARY_ID || '';
-  private readonly streamTokenKey = process.env.BUNNY_TOKEN_KEY || '';
-
-  // ==================== STORAGE: UPLOAD ====================
+  // Cloudflare R2 configuration
+  private readonly s3Client = new S3Client({
+    endpoint: process.env.S3_ENDPOINT || '',
+    credentials: {
+      accessKeyId: process.env.S3_ACCESS_KEY || '',
+      secretAccessKey: process.env.S3_SECRET_KEY || '',
+    },
+    region: 'auto',
+  });
+  private readonly bucketName = process.env.S3_BUCKET_NAME || 'sinea-media';
 
   /**
-   * Upload file ke Bunny Storage
-   * @param folder - folder tujuan (posters/, trailers/, ads/)
-   * @param fileName - nama file
-   * @param fileBuffer - isi file (Buffer)
-   * @returns CDN URL dari file yang diupload
+   * Upload file tunggal ke Cloudflare R2
    */
   async uploadToStorage(
     folder: string,
     fileName: string,
     fileBuffer: Buffer,
+    contentType: string = 'application/octet-stream',
   ): Promise<string> {
-    const path = `/${this.storageZone}/${folder}/${fileName}`;
-    const url = `https://${this.storageHost}${path}`;
+    const key = `${folder}/${fileName}`;
 
-    const response = await fetch(url, {
-      method: 'PUT',
-      headers: {
-        AccessKey: this.storageApiKey,
-        'Content-Type': 'application/octet-stream',
-      },
-      body: new Uint8Array(fileBuffer),
-    });
+    await this.s3Client.send(
+      new PutObjectCommand({
+        Bucket: this.bucketName,
+        Key: key,
+        Body: fileBuffer,
+        ContentType: contentType,
+      }),
+    );
 
-    if (!response.ok) {
-      const error = await response.text();
-      this.logger.error(`Upload gagal: ${error}`);
-      throw new Error(`Upload ke Bunny Storage gagal: ${error}`);
-    }
-
-    const cdnFileUrl = `${this.cdnUrl}/${folder}/${fileName}`;
-    this.logger.log(`File uploaded: ${cdnFileUrl}`);
-    return cdnFileUrl;
+    const publicUrl = `${process.env.MEDIA_HOST || 'https://media.sinea.id'}/${key}`;
+    this.logger.log(`Uploaded file to R2: ${key}`);
+    return publicUrl;
   }
 
-  // ==================== STORAGE: DELETE ====================
-
   /**
-   * Hapus file dari Bunny Storage
-   * @param folder - folder file (posters/, trailers/)
-   * @param fileName - nama file yang dihapus
+   * Hapus file tunggal dari Cloudflare R2
    */
   async deleteFromStorage(folder: string, fileName: string): Promise<void> {
-    const path = `/${this.storageZone}/${folder}/${fileName}`;
-    const url = `https://${this.storageHost}${path}`;
+    const key = `${folder}/${fileName}`;
 
-    const response = await fetch(url, {
-      method: 'DELETE',
-      headers: {
-        AccessKey: this.storageApiKey,
-      },
-    });
+    await this.s3Client.send(
+      new DeleteObjectCommand({
+        Bucket: this.bucketName,
+        Key: key,
+      }),
+    );
+    this.logger.log(`Deleted file from R2: ${key}`);
+  }
 
-    if (!response.ok) {
-      this.logger.warn(`Delete gagal untuk ${folder}/${fileName}`);
-    } else {
-      this.logger.log(`File deleted: ${folder}/${fileName}`);
+  /**
+   * Upload seluruh folder HLS (index.m3u8 + segment_*.ts) ke Cloudflare R2 secara asinkron
+   */
+  async uploadHlsFolder(localFolderPath: string, r2FolderPath: string): Promise<void> {
+    if (!fs.existsSync(localFolderPath)) {
+      throw new Error(`Direktori lokal tidak ditemukan: ${localFolderPath}`);
+    }
+
+    const files = fs.readdirSync(localFolderPath);
+    for (const file of files) {
+      const filePath = path.join(localFolderPath, file);
+      const stat = fs.statSync(filePath);
+
+      if (stat.isFile()) {
+        const fileContent = fs.readFileSync(filePath);
+        const r2Key = `${r2FolderPath}/${file}`;
+
+        let contentType = 'application/octet-stream';
+        if (file.endsWith('.m3u8')) {
+          contentType = 'application/x-mpegURL';
+        } else if (file.endsWith('.ts')) {
+          contentType = 'video/MP2T';
+        }
+
+        await this.s3Client.send(
+          new PutObjectCommand({
+            Bucket: this.bucketName,
+            Key: r2Key,
+            Body: fileContent,
+            ContentType: contentType,
+          }),
+        );
+        this.logger.log(`Uploaded HLS file to R2: ${r2Key}`);
+      }
     }
   }
 
-  // ==================== STREAM: SIGNED URL ====================
-
   /**
-   * Generate signed URL untuk streaming video (token auth)
-   * URL berlaku selama expiresInHours jam
-   *
-   * Ini dipakai untuk embed video player di frontend:
-   * <iframe src="signedUrl" allow="autoplay; fullscreen"></iframe>
+   * Menghapus seluruh folder video di R2
    */
-  generateSignedStreamUrl(
-    videoId: string,
-    expiresInHours: number = 6,
-  ): string {
-    const expiresTimestamp = Math.floor(Date.now() / 1000) + expiresInHours * 3600;
-
-    // Token = SHA256(tokenKey + videoId + expiresTimestamp)
-    const hashableBase = `${this.streamTokenKey}${videoId}${expiresTimestamp}`;
-    const token = crypto
-      .createHash('sha256')
-      .update(hashableBase)
-      .digest('hex');
-
-    const signedUrl = `https://iframe.mediadelivery.net/embed/${this.streamLibraryId}/${videoId}?token=${token}&expires=${expiresTimestamp}`;
-
-    this.logger.log(`Signed URL generated for video: ${videoId}`);
-    return signedUrl;
-  }
-
-  // ==================== STREAM: GET VIDEO LIST ====================
-
-  /**
-   * Ambil daftar video dari Bunny Stream Library
-   */
-  async getStreamVideos(): Promise<any> {
-    const url = `https://video.bunnycdn.com/library/${this.streamLibraryId}/videos`;
-
-    const response = await fetch(url, {
-      headers: {
-        AccessKey: this.streamApiKey,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error('Gagal mengambil daftar video dari Bunny Stream');
-    }
-
-    return response.json();
+  async deleteHlsFolder(r2FolderPath: string): Promise<void> {
+    // Di S3/R2, tidak ada konsep folder nyata, semua adalah key datar.
+    // Menghapus folder berarti menghapus semua objek dengan prefix folder tersebut.
+    // Untuk kesederhanaan, kita bisa biarkan kosong atau implementasikan list-and-delete jika diperlukan nanti.
+    this.logger.log(`Request delete folder R2 (ignored for prefix simplicity): ${r2FolderPath}`);
   }
 }

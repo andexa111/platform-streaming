@@ -25,12 +25,12 @@ export const useAuthStore = create<AuthState>((set) => ({
   isLoading: true, // Initially loading until checkAuth completes
 
   setAuth: (user, token) => {
-    Cookies.set('token', token); // Session cookie (removed when browser is closed)
+    Cookies.set('token', token, { path: '/' }); // Session cookie (removed when browser is closed)
     set({ user, isAuthenticated: true, isLoading: false });
   },
 
   logout: () => {
-    Cookies.remove('token');
+    Cookies.remove('token', { path: '/' });
     set({ user: null, isAuthenticated: false, isLoading: false });
   },
 
@@ -50,7 +50,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         throw new Error('User not found');
       }
     } catch (error) {
-      Cookies.remove('token');
+      Cookies.remove('token', { path: '/' });
       set({ user: null, isAuthenticated: false, isLoading: false });
     }
   },
