@@ -23,6 +23,7 @@ export default function WatchPage() {
   const movieId = parseInt(id as string);
   const { user } = useAuthStore();
 
+  const [mounted, setMounted] = useState(false);
   const [movie, setMovie] = useState<any>(null);
   const [streamUrl, setStreamUrl] = useState<string | null>(null);
   const [relatedMovies, setRelatedMovies] = useState<Video[]>([]);
@@ -31,6 +32,7 @@ export default function WatchPage() {
 
   // Keyboard shortcut blockers (PrintScreen, Ctrl+P, Ctrl+Shift+S)
   useEffect(() => {
+    setMounted(true);
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "PrintScreen") {
         e.preventDefault();
@@ -98,7 +100,7 @@ export default function WatchPage() {
       });
   }, [movieId]);
 
-  if (loading) {
+  if (!mounted || loading) {
     return (
       <div className="bg-background min-h-screen flex items-center justify-center">
         <div className="w-12 h-12 border-4 border-brand border-t-transparent rounded-full animate-spin" />
