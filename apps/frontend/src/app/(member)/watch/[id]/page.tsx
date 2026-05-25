@@ -15,12 +15,43 @@ export default function WatchPage() {
   const router = useRouter();
   const movieId = parseInt(id as string);
   const { user } = useAuthStore();
+  const videoRef = React.useRef<HTMLVideoElement | null>(null);
 
   const [movie, setMovie] = useState<any>(null);
   const [streamUrl, setStreamUrl] = useState<string | null>(null);
   const [relatedMovies, setRelatedMovies] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !streamUrl) return;
+
+    let hls: any = null;
+
+    import("hls.js").then(({ default: Hls }) => {
+      if (Hls.isSupported()) {
+        hls = new Hls({
+          xhrSetup: (xhr) => {
+            xhr.withCredentials = true;
+          }
+        });
+        hls.loadSource(streamUrl);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          video.play().catch((err) => console.log("Autoplay blocked:", err));
+        });
+      } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+        video.src = streamUrl;
+      }
+    });
+
+    return () => {
+      if (hls) {
+        hls.destroy();
+      }
+    };
+  }, [streamUrl]);
 
   // Keyboard shortcut blockers (PrintScreen, Ctrl+P, Ctrl+Shift+S)
   useEffect(() => {
@@ -138,11 +169,11 @@ export default function WatchPage() {
             onContextMenu={(e) => e.preventDefault()}
           >
             {streamUrl ? (
-              <iframe
-                src={streamUrl}
-                loading="lazy"
-                allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen"
-                className="w-full h-full border-none absolute inset-0"
+              <video
+                ref={videoRef}
+                controls
+                crossOrigin="use-credentials"
+                className="w-full h-full object-contain absolute inset-0"
               />
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center text-center p-6 space-y-4">
@@ -151,7 +182,7 @@ export default function WatchPage() {
                 </div>
                 <h3 className="text-xl font-bold text-white">Stream Tidak Tersedia</h3>
                 <p className="text-sm text-neutral-400 max-w-md leading-relaxed">
-                  Video asli belum ditautkan ke film ini di BunnyCDN, atau sesi otentikasi Anda telah berakhir.
+                  Video asli belum ditautkan ke film ini di Cloudflare R2, atau sesi otentikasi Anda telah berakhir.
                 </p>
               </div>
             )}
