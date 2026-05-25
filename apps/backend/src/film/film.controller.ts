@@ -283,9 +283,38 @@ export class FilmController {
     const { exec } = require('child_process');
     exec(cmd, async (err: any) => {
       if (err) {
-        console.error(`❌ [HLS Process] FFmpeg error untuk Film ID ${filmId}:`, err);
-        if (fs.existsSync(absoluteRawPath)) fs.unlinkSync(absoluteRawPath);
-        if (fs.existsSync(absoluteHlsDir)) fs.rmSync(absoluteHlsDir, { recursive: true, force: true });
+        console.warn(`⚠️ [HLS Process] FFmpeg tidak tersedia atau gagal untuk Film ID ${filmId}. Menggunakan fallback upload MP4 mentah...`);
+        try {
+          if (!fs.existsSync(absoluteRawPath)) {
+            throw new Error(`File raw mp4 tidak ditemukan pada path: ${absoluteRawPath}`);
+          }
+          const rawBuffer = fs.readFileSync(absoluteRawPath);
+          const r2Key = `films/${filmId}/video.mp4`;
+
+          // Upload raw mp4 to R2 as fallback
+          await this.bunnyService.uploadToStorage(
+            `films/${filmId}`,
+            'video.mp4',
+            rawBuffer,
+            'video/mp4'
+          );
+
+          // Update database video_id to point directly to the mp4 file
+          await this.filmService.update(filmId, {
+            video_id: r2Key,
+          } as any);
+
+          console.log(`🎉 [HLS Process] Fallback MP4 sukses untuk Film ID: ${filmId}`);
+        } catch (fallbackErr) {
+          console.error(`❌ [HLS Process] Fallback MP4 gagal untuk Film ID ${filmId}:`, fallbackErr);
+        } finally {
+          if (fs.existsSync(absoluteRawPath)) {
+            try { fs.unlinkSync(absoluteRawPath); } catch (e) {}
+          }
+          if (fs.existsSync(absoluteHlsDir)) {
+            try { fs.rmSync(absoluteHlsDir, { recursive: true, force: true }); } catch (e) {}
+          }
+        }
         return;
       }
 
