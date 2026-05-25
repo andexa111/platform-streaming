@@ -9,49 +9,24 @@ import Link from "next/link";
 import { useAuthStore } from "@/lib/auth-store";
 import { api, getMediaUrl } from "@/lib/api";
 import { Video } from "@/types/video";
+import { MediaPlayer, MediaProvider, isHLSProvider } from "@vidstack/react";
+import { defaultLayoutIcons, DefaultVideoLayout } from "@vidstack/react/player/layouts/default";
+
+// Import Vidstack styles
+import "@vidstack/react/player/styles/default/theme.css";
+import "@vidstack/react/player/styles/default/layouts/video.css";
 
 export default function WatchPage() {
   const { id } = useParams();
   const router = useRouter();
   const movieId = parseInt(id as string);
   const { user } = useAuthStore();
-  const videoRef = React.useRef<HTMLVideoElement | null>(null);
 
   const [movie, setMovie] = useState<any>(null);
   const [streamUrl, setStreamUrl] = useState<string | null>(null);
   const [relatedMovies, setRelatedMovies] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video || !streamUrl) return;
-
-    let hls: any = null;
-
-    import("hls.js").then(({ default: Hls }) => {
-      if (Hls.isSupported()) {
-        hls = new Hls({
-          xhrSetup: (xhr) => {
-            xhr.withCredentials = true;
-          }
-        });
-        hls.loadSource(streamUrl);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
-          video.play().catch((err) => console.log("Autoplay blocked:", err));
-        });
-      } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        video.src = streamUrl;
-      }
-    });
-
-    return () => {
-      if (hls) {
-        hls.destroy();
-      }
-    };
-  }, [streamUrl]);
 
   // Keyboard shortcut blockers (PrintScreen, Ctrl+P, Ctrl+Shift+S)
   useEffect(() => {
@@ -169,12 +144,25 @@ export default function WatchPage() {
             onContextMenu={(e) => e.preventDefault()}
           >
             {streamUrl ? (
-              <video
-                ref={videoRef}
-                controls
+              <MediaPlayer
+                title={movie.title}
+                src={streamUrl}
                 crossOrigin="use-credentials"
-                className="w-full h-full object-contain absolute inset-0"
-              />
+                className="w-full h-full border-none absolute inset-0"
+                onProviderChange={(provider) => {
+                  if (isHLSProvider(provider)) {
+                    provider.config = {
+                      ...provider.config,
+                      xhrSetup: (xhr) => {
+                        xhr.withCredentials = true;
+                      }
+                    };
+                  }
+                }}
+              >
+                <MediaProvider />
+                <DefaultVideoLayout icons={defaultLayoutIcons} />
+              </MediaPlayer>
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center text-center p-6 space-y-4">
                 <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center justify-center text-red-500">
