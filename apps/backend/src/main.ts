@@ -1,4 +1,11 @@
-import 'dotenv/config'; // Load .env PERTAMA sebelum semua import
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+// Load .env dari folder backend
+dotenv.config();
+// Fallback: Load .env dari root folder monorepo jika berada di path berbeda
+dotenv.config({ path: path.resolve(process.cwd(), '../../.env') });
+dotenv.config({ path: path.resolve(process.cwd(), '../..', '.env') });
+
 import { NestFactory } from '@nestjs/core';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
