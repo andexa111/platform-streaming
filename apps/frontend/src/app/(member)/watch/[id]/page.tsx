@@ -57,10 +57,10 @@ export default function WatchPage() {
     setError(null);
 
     Promise.all([
-      api.get(`/films/${movieId}`).catch((err) => {
+      api.get(`/films/${movieId}`, { withCredentials: true }).catch((err) => {
         throw new Error(err.response?.data?.message || "Film tidak ditemukan");
       }),
-      api.get(`/films/${movieId}/stream`).catch((err) => {
+      api.get(`/films/${movieId}/stream`, { withCredentials: true }).catch((err) => {
         console.warn("Stream URL fetch failed", err);
         return { data: { stream_url: null, error: err.response?.data?.message || "Gagal memuat stream" } };
       }),
