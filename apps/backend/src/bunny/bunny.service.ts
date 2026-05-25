@@ -18,6 +18,8 @@ export class BunnyService {
     },
     region: 'auto',
     forcePathStyle: true,
+    requestChecksumCalculation: 'WHEN_REQUIRED',
+    responseChecksumValidation: 'WHEN_REQUIRED',
   });
   private readonly bucketName = process.env.S3_BUCKET_NAME || 'sinea-media';
 
