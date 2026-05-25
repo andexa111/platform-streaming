@@ -145,6 +145,28 @@ export class BunnyService {
   }
 
   /**
+   * Mengambil file dari Cloudflare R2 sebagai Buffer
+   */
+  async getFromStorage(key: string): Promise<Buffer> {
+    const response = await this.s3Client.send(
+      new GetObjectCommand({
+        Bucket: this.bucketName,
+        Key: key,
+      }),
+    );
+    const stream = response.Body as Readable;
+    return new Promise((resolve, reject) => {
+      const chunks: any[] = [];
+      stream.on('data', (chunk) => chunks.push(chunk));
+      stream.on('error', (err) => {
+        this.logger.error(`Stream error reading ${key}: ${err.message}`);
+        reject(err);
+      });
+      stream.on('end', () => resolve(Buffer.concat(chunks)));
+    });
+  }
+
+  /**
    * Mendapatkan link upload langsung (presigned URL) ke Cloudflare R2 untuk client-side upload
    */
   async getPresignedUploadUrl(key: string, contentType: string = 'video/mp4'): Promise<string> {

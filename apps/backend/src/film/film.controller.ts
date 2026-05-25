@@ -14,6 +14,7 @@ import {
   Res,
   UseInterceptors,
   UploadedFile,
+  NotFoundException,
 } from '@nestjs/common';
 import * as express from 'express';
 import { v4 as uuidv4 } from 'uuid';
@@ -221,6 +222,36 @@ export class FilmController {
   }
 
   /**
+   * GET /films/:id/key
+   * Mengambil kunci dekripsi HLS AES-128 untuk film tertentu.
+   * Hanya user terotentikasi (JWT) yang diizinkan mengambil kunci ini.
+   */
+  @UseGuards(JwtAuthGuard)
+  @Get(':id/key')
+  async getDecryptionKey(
+    @Param('id', ParseIntPipe) id: number,
+    @Res() res: express.Response,
+  ) {
+    try {
+      const keyBuffer = await this.bunnyService.getFromStorage(`keys/film-${id}.key`);
+      
+      res.set({
+        'Content-Type': 'application/octet-stream',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'Access-Control-Allow-Origin': res.req.headers.origin || 'https://sinea.id',
+        'Access-Control-Allow-Credentials': 'true',
+      });
+      
+      return res.send(keyBuffer);
+    } catch (err) {
+      console.error(`❌ Gagal mengambil kunci untuk film ${id}:`, err);
+      throw new NotFoundException('Kunci tidak ditemukan atau Anda tidak memiliki akses');
+    }
+  }
+
+  /**
    * GET /films/:id/presigned-upload
    * Dapatkan link presigned upload langsung ke Cloudflare R2 untuk file video utama
    */
@@ -312,10 +343,24 @@ export class FilmController {
       fs.mkdirSync(absoluteHlsDir, { recursive: true });
     }
 
-    console.log(`🎬 [HLS Process] Memulai segmentasi HLS untuk Film ID: ${filmId}`);
+    console.log(`🎬 [HLS Process] Memulai segmentasi HLS AES-128 untuk Film ID: ${filmId}`);
 
-    // Segmentasi cepat HLS menggunakan FFmpeg (codec copy tanpa kompresi ulang)
-    const cmd = `ffmpeg -y -i "${absoluteRawPath}" -c copy -hls_time 10 -hls_playlist_type vod -hls_segment_filename "${absoluteHlsDir}/segment_%03d.ts" "${absoluteHlsDir}/index.m3u8"`;
+    // Generate AES-128 key & key info file
+    const crypto = require('crypto');
+    const key = crypto.randomBytes(16);
+    const iv = crypto.randomBytes(16).toString('hex');
+    const keyPath = path.join(tempHlsDir, 'video.key');
+    const keyInfoPath = path.join(tempHlsDir, 'key_info.txt');
+
+    fs.writeFileSync(keyPath, key);
+
+    const backendUrl = process.env.BACKEND_URL || 'https://api.sinea.id';
+    const keyUri = `${backendUrl}/films/${filmId}/key`;
+    const keyInfoContent = `${keyUri}\n${path.resolve(keyPath)}\n${iv}`;
+    fs.writeFileSync(keyInfoPath, keyInfoContent);
+
+    // Segmentasi cepat HLS menggunakan FFmpeg dengan enkripsi
+    const cmd = `ffmpeg -y -i "${absoluteRawPath}" -c copy -hls_time 10 -hls_key_info_file "${path.resolve(keyInfoPath)}" -hls_playlist_type vod -hls_segment_filename "${absoluteHlsDir}/segment_%03d.ts" "${absoluteHlsDir}/index.m3u8"`;
 
     const { exec } = require('child_process');
     exec(cmd, async (err: any) => {
@@ -358,6 +403,23 @@ export class FilmController {
       console.log(`✅ [HLS Process] Segmentasi selesai. Mengunggah folder ke R2...`);
 
       try {
+        // Upload key ke R2 secara privat di folder keys/
+        await this.bunnyService.uploadToStorage(
+          'keys',
+          `film-${filmId}.key`,
+          key,
+          'application/octet-stream'
+        );
+
+        // Hapus file key lokal sebelum mengunggah seluruh folder HLS ke R2
+        // Supaya file key dan key_info tidak ikut terupload ke folder publik films/
+        if (fs.existsSync(keyPath)) {
+          try { fs.unlinkSync(keyPath); } catch (e) {}
+        }
+        if (fs.existsSync(keyInfoPath)) {
+          try { fs.unlinkSync(keyInfoPath); } catch (e) {}
+        }
+
         const r2FolderPath = `films/${filmId}`;
         await this.bunnyService.uploadHlsFolder(absoluteHlsDir, r2FolderPath);
 
@@ -366,7 +428,7 @@ export class FilmController {
           video_id: `films/${filmId}/index.m3u8`,
         } as any);
 
-        console.log(`🎉 [HLS Process] Sukses memproses & mengunggah HLS untuk Film ID: ${filmId}`);
+        console.log(`🎉 [HLS Process] Sukses memproses & mengunggah HLS AES-128 untuk Film ID: ${filmId}`);
       } catch (uploadErr) {
         console.error(`❌ [HLS Process] Upload/Update DB gagal untuk Film ID ${filmId}:`, uploadErr);
       } finally {
@@ -548,9 +610,23 @@ export class FilmController {
       const r2Key = `films/${filmId}/video.mp4`;
       await this.bunnyService.downloadFromStorage(r2Key, absoluteRawPath);
 
-      // 2. Lakukan HLS segmentasi menggunakan FFmpeg
-      console.log(`🎬 [HLS Process] Memulai segmentasi HLS untuk Film ID: ${filmId}`);
-      const cmd = `ffmpeg -y -i "${absoluteRawPath}" -c copy -hls_time 10 -hls_playlist_type vod -hls_segment_filename "${absoluteHlsDir}/segment_%03d.ts" "${absoluteHlsDir}/index.m3u8"`;
+      // 2. Lakukan HLS segmentasi menggunakan FFmpeg dengan enkripsi AES-128
+      console.log(`🎬 [HLS Process] Memulai segmentasi HLS AES-128 untuk Film ID: ${filmId}`);
+
+      const crypto = require('crypto');
+      const key = crypto.randomBytes(16);
+      const iv = crypto.randomBytes(16).toString('hex');
+      const keyPath = path.join(tempHlsDir, 'video.key');
+      const keyInfoPath = path.join(tempHlsDir, 'key_info.txt');
+
+      fs.writeFileSync(keyPath, key);
+
+      const backendUrl = process.env.BACKEND_URL || 'https://api.sinea.id';
+      const keyUri = `${backendUrl}/films/${filmId}/key`;
+      const keyInfoContent = `${keyUri}\n${path.resolve(keyPath)}\n${iv}`;
+      fs.writeFileSync(keyInfoPath, keyInfoContent);
+
+      const cmd = `ffmpeg -y -i "${absoluteRawPath}" -c copy -hls_time 10 -hls_key_info_file "${path.resolve(keyInfoPath)}" -hls_playlist_type vod -hls_segment_filename "${absoluteHlsDir}/segment_%03d.ts" "${absoluteHlsDir}/index.m3u8"`;
 
       const { exec } = require('child_process');
       exec(cmd, async (err: any) => {
@@ -577,6 +653,22 @@ export class FilmController {
 
         console.log(`✅ [HLS Process] Segmentasi selesai. Mengunggah folder ke R2...`);
         try {
+          // Upload key ke R2 secara privat di folder keys/
+          await this.bunnyService.uploadToStorage(
+            'keys',
+            `film-${filmId}.key`,
+            key,
+            'application/octet-stream'
+          );
+
+          // Hapus file key lokal sebelum mengunggah seluruh folder HLS ke R2
+          if (fs.existsSync(keyPath)) {
+            try { fs.unlinkSync(keyPath); } catch (e) {}
+          }
+          if (fs.existsSync(keyInfoPath)) {
+            try { fs.unlinkSync(keyInfoPath); } catch (e) {}
+          }
+
           const r2FolderPath = `films/${filmId}`;
           await this.bunnyService.uploadHlsFolder(absoluteHlsDir, r2FolderPath);
 
@@ -585,7 +677,7 @@ export class FilmController {
             video_id: `${r2FolderPath}/index.m3u8`,
           } as any);
 
-          console.log(`🎉 [HLS Process] Sukses memproses & mengunggah HLS untuk Film ID: ${filmId}`);
+          console.log(`🎉 [HLS Process] Sukses memproses & mengunggah HLS AES-128 untuk Film ID: ${filmId}`);
         } catch (uploadErr) {
           console.error(`❌ [HLS Process] Upload/Update DB gagal untuk Film ID ${filmId}:`, uploadErr);
         } finally {
