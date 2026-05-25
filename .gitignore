@@ -40,3 +40,16 @@ apps/backend/prisma/*.db
 
 # Internal Documentation (Do not track)
 docs/
+
+# Uploads
+apps/backend/public/uploads/
+temp-uploads/
+
+# Backups
+*.sql
+*.backup
+
+# Local test scripts
+apps/backend/check-db.js
+apps/backend/publish-all.js
+apps/backend/test-update.js

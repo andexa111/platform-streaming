@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Icon } from "@/components/ui/Icon";
 import { cn } from "@/lib/utils";
 import { api, getMediaUrl } from "@/lib/api";
+import axios from "axios";
 import { useRouter } from "next/navigation";
 import { GENRES } from "@/constants/video-data";
 
@@ -139,10 +140,17 @@ export default function AddMoviePage() {
         setUploadingVideo(true);
         setVideoUploadProgress(0);
 
-        const videoFormData = new FormData();
-        videoFormData.append("file", selectedVideoFile);
+        // 1. Dapatkan presigned URL dari backend
+        const presignedRes = await api.get(`/films/${newFilm.id}/presigned-upload`, {
+          params: { contentType: selectedVideoFile.type }
+        });
+        const { upload_url } = presignedRes.data;
 
-        await api.post(`/films/${newFilm.id}/upload-video`, videoFormData, {
+        // 2. Upload file langsung ke Cloudflare R2 via presigned URL (menggunakan axios mentah agar tidak memicu auth interceptor default)
+        await axios.put(upload_url, selectedVideoFile, {
+          headers: {
+            "Content-Type": selectedVideoFile.type,
+          },
           onUploadProgress: (progressEvent) => {
             if (progressEvent.total) {
               const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
@@ -150,6 +158,9 @@ export default function AddMoviePage() {
             }
           }
         });
+
+        // 3. Memicu backend untuk mendownload dan memproses HLS di background
+        await api.post(`/films/${newFilm.id}/process-uploaded-video`);
       }
 
       alert("Film berhasil ditambahkan!");

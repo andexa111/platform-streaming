@@ -221,6 +221,43 @@ export class FilmController {
   }
 
   /**
+   * GET /films/:id/presigned-upload
+   * Dapatkan link presigned upload langsung ke Cloudflare R2 untuk file video utama
+   */
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'superadmin')
+  @Get(':id/presigned-upload')
+  async getPresignedUpload(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('contentType') contentType?: string,
+  ) {
+    const key = `films/${id}/video.mp4`;
+    const uploadUrl = await this.bunnyService.getPresignedUploadUrl(key, contentType || 'video/mp4');
+    return {
+      success: true,
+      upload_url: uploadUrl,
+      key,
+    };
+  }
+
+  /**
+   * POST /films/:id/process-uploaded-video
+   * Memicu pemrosesan HLS setelah video utama selesai diunggah langsung ke R2
+   */
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'superadmin')
+  @Post(':id/process-uploaded-video')
+  async processUploadedVideo(@Param('id', ParseIntPipe) id: number) {
+    // Mulai proses pemecahan HLS di background dengan mendownload dari R2 dahulu
+    this.processHlsVideoFromR2(id);
+
+    return {
+      success: true,
+      message: 'Pemrosesan HLS dimulai di background.',
+    };
+  }
+
+  /**
    * POST /films/:id/upload-video
    * Upload video film utama (.mp4), memicu segmentasi HLS asinkron dan upload ke R2
    */
@@ -484,6 +521,89 @@ export class FilmController {
     });
 
     file.pipe(res);
+  }
+
+  /**
+   * Helper pemrosesan video HLS dari file yang sudah ada di R2 di background
+   */
+  private async processHlsVideoFromR2(filmId: number) {
+    const tempDir = `./temp-uploads`;
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+    }
+
+    const rawFilePath = `${tempDir}/raw-${filmId}.mp4`;
+    const absoluteRawPath = path.resolve(rawFilePath);
+    const tempHlsDir = `./temp-uploads/hls-${filmId}`;
+    const absoluteHlsDir = path.resolve(tempHlsDir);
+
+    if (!fs.existsSync(absoluteHlsDir)) {
+      fs.mkdirSync(absoluteHlsDir, { recursive: true });
+    }
+
+    console.log(`🎬 [HLS Process] Mengunduh video mentah dari R2 untuk Film ID: ${filmId}`);
+
+    try {
+      // 1. Download file video mentah dari R2
+      const r2Key = `films/${filmId}/video.mp4`;
+      await this.bunnyService.downloadFromStorage(r2Key, absoluteRawPath);
+
+      // 2. Lakukan HLS segmentasi menggunakan FFmpeg
+      console.log(`🎬 [HLS Process] Memulai segmentasi HLS untuk Film ID: ${filmId}`);
+      const cmd = `ffmpeg -y -i "${absoluteRawPath}" -c copy -hls_time 10 -hls_playlist_type vod -hls_segment_filename "${absoluteHlsDir}/segment_%03d.ts" "${absoluteHlsDir}/index.m3u8"`;
+
+      const { exec } = require('child_process');
+      exec(cmd, async (err: any) => {
+        if (err) {
+          console.warn(`⚠️ [HLS Process] FFmpeg gagal/tidak ada untuk Film ID ${filmId}. Memakai fallback raw MP4...`);
+          try {
+            // Karena raw MP4 sudah ada di R2, kita cukup update video_id ke key raw MP4 tersebut!
+            await this.filmService.update(filmId, {
+              video_id: r2Key,
+            } as any);
+            console.log(`🎉 [HLS Process] Fallback MP4 sukses untuk Film ID: ${filmId}`);
+          } catch (updateErr) {
+            console.error(`❌ [HLS Process] Gagal mengupdate fallback video_id:`, updateErr);
+          } finally {
+            if (fs.existsSync(absoluteRawPath)) {
+              try { fs.unlinkSync(absoluteRawPath); } catch (e) {}
+            }
+            if (fs.existsSync(absoluteHlsDir)) {
+              try { fs.rmSync(absoluteHlsDir, { recursive: true, force: true }); } catch (e) {}
+            }
+          }
+          return;
+        }
+
+        console.log(`✅ [HLS Process] Segmentasi selesai. Mengunggah folder ke R2...`);
+        try {
+          const r2FolderPath = `films/${filmId}`;
+          await this.bunnyService.uploadHlsFolder(absoluteHlsDir, r2FolderPath);
+
+          // Perbarui kolom video_id di database dengan path relatif index.m3u8
+          await this.filmService.update(filmId, {
+            video_id: `${r2FolderPath}/index.m3u8`,
+          } as any);
+
+          console.log(`🎉 [HLS Process] Sukses memproses & mengunggah HLS untuk Film ID: ${filmId}`);
+        } catch (uploadErr) {
+          console.error(`❌ [HLS Process] Upload/Update DB gagal untuk Film ID ${filmId}:`, uploadErr);
+        } finally {
+          if (fs.existsSync(absoluteRawPath)) {
+            try { fs.unlinkSync(absoluteRawPath); } catch (e) {}
+          }
+          if (fs.existsSync(absoluteHlsDir)) {
+            try { fs.rmSync(absoluteHlsDir, { recursive: true, force: true }); } catch (e) {}
+          }
+        }
+      });
+    } catch (downloadErr) {
+      console.error(`❌ [HLS Process] Gagal mengunduh berkas mentah dari R2 untuk Film ID ${filmId}:`, downloadErr);
+      // Jika download gagal, pastikan hapus folder temp
+      if (fs.existsSync(absoluteHlsDir)) {
+        try { fs.rmSync(absoluteHlsDir, { recursive: true, force: true }); } catch (e) {}
+      }
+    }
   }
 }
 

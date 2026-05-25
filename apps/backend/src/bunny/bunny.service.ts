@@ -1,5 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { Readable } from 'stream';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -103,5 +105,50 @@ export class BunnyService {
     // Menghapus folder berarti menghapus semua objek dengan prefix folder tersebut.
     // Untuk kesederhanaan, kita bisa biarkan kosong atau implementasikan list-and-delete jika diperlukan nanti.
     this.logger.log(`Request delete folder R2 (ignored for prefix simplicity): ${r2FolderPath}`);
+  }
+
+  /**
+   * Mengunduh file dari Cloudflare R2 ke local filesystem VPS
+   */
+  async downloadFromStorage(key: string, localFilePath: string): Promise<void> {
+    const response = await this.s3Client.send(
+      new GetObjectCommand({
+        Bucket: this.bucketName,
+        Key: key,
+      }),
+    );
+
+    return new Promise((resolve, reject) => {
+      const stream = response.Body as Readable;
+      const fileStream = fs.createWriteStream(localFilePath);
+      stream.pipe(fileStream);
+      stream.on('error', (err) => {
+        this.logger.error(`Stream error downloading ${key}: ${err.message}`);
+        reject(err);
+      });
+      fileStream.on('finish', () => {
+        this.logger.log(`Successfully downloaded R2 file ${key} to ${localFilePath}`);
+        resolve();
+      });
+      fileStream.on('error', (err) => {
+        this.logger.error(`FileStream error writing to ${localFilePath}: ${err.message}`);
+        reject(err);
+      });
+    });
+  }
+
+  /**
+   * Mendapatkan link upload langsung (presigned URL) ke Cloudflare R2 untuk client-side upload
+   */
+  async getPresignedUploadUrl(key: string, contentType: string = 'video/mp4'): Promise<string> {
+    const command = new PutObjectCommand({
+      Bucket: this.bucketName,
+      Key: key,
+      ContentType: contentType,
+    });
+    // Link aktif selama 15 menit (900 detik)
+    const url = await getSignedUrl(this.s3Client, command, { expiresIn: 900 });
+    this.logger.log(`Generated presigned upload URL for: ${key}`);
+    return url;
   }
 }
