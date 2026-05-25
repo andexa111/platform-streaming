@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useAuthStore } from "@/lib/auth-store";
 import { api, getMediaUrl } from "@/lib/api";
 import { Video } from "@/types/video";
+import Cookies from "js-cookie";
 import { MediaPlayer, MediaProvider, isHLSProvider } from "@vidstack/react";
 import { defaultLayoutIcons, DefaultVideoLayout } from "@vidstack/react/player/layouts/default";
 
@@ -155,6 +156,10 @@ export default function WatchPage() {
                       ...provider.config,
                       xhrSetup: (xhr) => {
                         xhr.withCredentials = true;
+                        const token = Cookies.get("token");
+                        if (token) {
+                          xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+                        }
                       }
                     };
                   }

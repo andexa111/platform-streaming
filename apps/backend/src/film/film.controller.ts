@@ -240,8 +240,6 @@ export class FilmController {
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         'Pragma': 'no-cache',
         'Expires': '0',
-        'Access-Control-Allow-Origin': res.req.headers.origin || 'https://sinea.id',
-        'Access-Control-Allow-Credentials': 'true',
       });
       
       return res.send(keyBuffer);
