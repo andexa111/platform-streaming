@@ -69,6 +69,10 @@ export default function AddMoviePage() {
   const [uploadingTrailer, setUploadingTrailer] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
+  const [selectedVideoFile, setSelectedVideoFile] = useState<File | null>(null);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [videoUploadProgress, setVideoUploadProgress] = useState(0);
+
   const handleImageUpload = async (file: File, field: "poster_url" | "production_house_logo") => {
     const formData = new FormData();
     formData.append("file", file);
@@ -127,14 +131,35 @@ export default function AddMoviePage() {
         is_published: formData.is_published,
       };
 
-      await api.post("/films", payload);
+      const res = await api.post("/films", payload);
+      const newFilm = res.data;
+
+      // Unggah video jika dipilih
+      if (selectedVideoFile) {
+        setUploadingVideo(true);
+        setVideoUploadProgress(0);
+
+        const videoFormData = new FormData();
+        videoFormData.append("file", selectedVideoFile);
+
+        await api.post(`/films/${newFilm.id}/upload-video`, videoFormData, {
+          onUploadProgress: (progressEvent) => {
+            if (progressEvent.total) {
+              const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+              setVideoUploadProgress(percentCompleted);
+            }
+          }
+        });
+      }
+
       alert("Film berhasil ditambahkan!");
       router.push("/admin/movies");
     } catch (err: any) {
       console.error("Gagal menyimpan film:", err);
-      setError(err.response?.data?.message || "Gagal menyimpan film. Coba lagi.");
+      setError(err.response?.data?.message || "Gagal menyimpan film atau mengunggah video. Coba lagi.");
     } finally {
       setIsSaving(false);
+      setUploadingVideo(false);
     }
   };
 
@@ -375,15 +400,43 @@ export default function AddMoviePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-black uppercase text-foreground">Video ID Film (Bunny Stream)</label>
-                  <input
-                    type="text"
-                    placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                    className="w-full px-5 py-3.5 bg-secondary border border-border rounded-2xl focus:outline-none focus:border-brand transition-all text-sm font-mono text-foreground placeholder:text-muted-foreground"
-                    value={formData.video_id}
-                    onChange={(e) => updateField("video_id", e.target.value)}
-                  />
-                  <p className="text-xs text-muted-foreground">Copy Video ID dari dashboard Bunny Stream</p>
+                  <label className="text-xs font-black uppercase text-foreground">Video Utama Film (Local MP4)</label>
+                  <div className="flex flex-col gap-3">
+                    <label className="block cursor-pointer">
+                      <div className="w-full px-5 py-3.5 bg-secondary border border-border border-dashed rounded-2xl flex flex-col gap-2 hover:border-brand transition-all">
+                        <div className="flex items-center gap-3">
+                          {uploadingVideo ? (
+                            <div className="w-5 h-5 border-2 border-brand border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <Icon name="film" className="w-5 h-5 text-muted-foreground" />
+                          )}
+                          <span className="text-sm text-muted-foreground">
+                            {uploadingVideo
+                              ? `Sedang mengunggah video utama (${videoUploadProgress}%)...`
+                              : selectedVideoFile
+                              ? `File terpilih: ${selectedVideoFile.name}`
+                              : "Klik untuk memilih video utama (.mp4)..."}
+                          </span>
+                        </div>
+                        {uploadingVideo && (
+                          <div className="w-full h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full overflow-hidden mt-1">
+                            <div className="h-full bg-brand transition-all duration-300" style={{ width: `${videoUploadProgress}%` }} />
+                          </div>
+                        )}
+                      </div>
+                      <input
+                        type="file"
+                        accept="video/mp4"
+                        className="hidden"
+                        disabled={uploadingVideo}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) setSelectedVideoFile(file);
+                        }}
+                      />
+                    </label>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Pilih file MP4 terkompresi. Sistem akan melakukan segmentasi HLS secara otomatis di VPS.</p>
                 </div>
 
                 <div className="space-y-2">
@@ -462,7 +515,7 @@ export default function AddMoviePage() {
                       { label: "Aktor", value: formData.actors.length > 0 ? formData.actors.join(", ") : "" },
                       { label: "Genre", value: genresList.find(g => g.id.toString() === formData.genre)?.name || formData.genre },
                       { label: "Tahun Rilis", value: formData.release_year },
-                      { label: "Video ID", value: formData.video_id },
+                      { label: "Video Utama", value: selectedVideoFile ? selectedVideoFile.name : formData.video_id },
                       { label: "Trailer ID", value: formData.trailer_url },
                     ].map((item) => (
                        <div key={item.label} className="p-4 bg-secondary rounded-xl border border-border">
@@ -517,8 +570,8 @@ export default function AddMoviePage() {
            <div className="mt-12 pt-8 border-t border-border flex items-center justify-between">
             <button
               onClick={prevStep}
-              disabled={currentStep === 1 || isSaving}
-              className={cn("px-8 py-3.5 rounded-2xl font-bold text-sm transition-all", currentStep === 1 || isSaving ? "opacity-30 cursor-not-allowed" : "hover:bg-secondary text-foreground")}
+              disabled={currentStep === 1 || isSaving || uploadingVideo}
+              className={cn("px-8 py-3.5 rounded-2xl font-bold text-sm transition-all", currentStep === 1 || isSaving || uploadingVideo ? "opacity-30 cursor-not-allowed" : "hover:bg-secondary text-foreground")}
             >
               Kembali
             </button>
@@ -537,10 +590,10 @@ export default function AddMoviePage() {
             ) : (
               <button
                 onClick={handleSubmit}
-                disabled={isSaving}
-                className={cn("px-12 py-3.5 bg-brand text-white rounded-2xl font-black text-sm transition-all shadow-xl shadow-brand/20", isSaving ? "opacity-50 cursor-not-allowed" : "hover:scale-105 active:scale-95")}
+                disabled={isSaving || uploadingVideo}
+                className={cn("px-12 py-3.5 bg-brand text-white rounded-2xl font-black text-sm transition-all shadow-xl shadow-brand/20", isSaving || uploadingVideo ? "opacity-50 cursor-not-allowed" : "hover:scale-105 active:scale-95")}
               >
-                {isSaving ? "Menyimpan..." : "Simpan Film"}
+                {uploadingVideo ? `Mengunggah Video (${videoUploadProgress}%)` : isSaving ? "Menyimpan..." : "Simpan Film"}
               </button>
             )}
           </div>

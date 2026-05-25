@@ -113,6 +113,10 @@ export default function EditMoviePage() {
   const [uploadingTrailer, setUploadingTrailer] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
+  const [selectedVideoFile, setSelectedVideoFile] = useState<File | null>(null);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [videoUploadProgress, setVideoUploadProgress] = useState(0);
+
   const handleImageUpload = async (file: File, field: "poster_url" | "production_house_logo") => {
     const formData = new FormData();
     formData.append("file", file);
@@ -173,13 +177,33 @@ export default function EditMoviePage() {
       };
 
       await api.patch(`/films/${filmId}`, payload);
+
+      // Unggah video jika dipilih
+      if (selectedVideoFile) {
+        setUploadingVideo(true);
+        setVideoUploadProgress(0);
+
+        const videoFormData = new FormData();
+        videoFormData.append("file", selectedVideoFile);
+
+        await api.post(`/films/${filmId}/upload-video`, videoFormData, {
+          onUploadProgress: (progressEvent) => {
+            if (progressEvent.total) {
+              const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+              setVideoUploadProgress(percentCompleted);
+            }
+          }
+        });
+      }
+
       setSuccess("Film berhasil diperbarui!");
       setTimeout(() => router.push("/admin/movies"), 1500);
     } catch (err: any) {
       console.error("Gagal menyimpan:", err);
-      setError(err.response?.data?.message || "Gagal menyimpan perubahan.");
+      setError(err.response?.data?.message || "Gagal menyimpan perubahan atau mengunggah video.");
     } finally {
       setSaving(false);
+      setUploadingVideo(false);
     }
   };
 
@@ -419,14 +443,51 @@ export default function EditMoviePage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase text-neutral-400">Video ID Film (Bunny Stream)</label>
-              <input 
-                type="text" 
-                placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                className="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm font-mono"
-                value={formData.video_id}
-                onChange={(e) => updateField("video_id", e.target.value)}
-              />
+              <label className="text-xs font-black uppercase text-neutral-400">Video Utama Film (Local MP4)</label>
+              <div className="flex flex-col gap-3">
+                <label className="block cursor-pointer">
+                  <div className="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 border-dashed rounded-2xl flex flex-col gap-2 hover:border-brand transition-all">
+                    <div className="flex items-center gap-3">
+                      {uploadingVideo ? (
+                        <div className="w-5 h-5 border-2 border-brand border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Icon name="film" className="w-5 h-5 text-neutral-400" />
+                      )}
+                      <span className="text-sm text-neutral-400">
+                        {uploadingVideo
+                          ? `Sedang mengunggah video utama (${videoUploadProgress}%)...`
+                          : selectedVideoFile
+                          ? `File terpilih: ${selectedVideoFile.name}`
+                          : "Klik/Seret untuk memilih file video utama baru (.mp4)..."}
+                      </span>
+                    </div>
+                    {uploadingVideo && (
+                      <div className="w-full h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full overflow-hidden mt-1">
+                        <div className="h-full bg-brand transition-all duration-300" style={{ width: `${videoUploadProgress}%` }} />
+                      </div>
+                    )}
+                  </div>
+                  <input
+                    type="file"
+                    accept="video/mp4"
+                    className="hidden"
+                    disabled={uploadingVideo}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) setSelectedVideoFile(file);
+                    }}
+                  />
+                </label>
+                {formData.video_id && !selectedVideoFile && (
+                  <div className="p-4 bg-neutral-50 border border-neutral-200 rounded-2xl">
+                    <p className="text-[10px] font-black uppercase text-neutral-400 mb-2">Video Utama Saat Ini (R2)</p>
+                    <div className="flex items-center gap-2 text-xs text-neutral-600 font-mono break-all bg-white p-2 rounded border border-neutral-100">
+                      <span className="truncate flex-1">{formData.video_id}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <p className="text-xs text-neutral-400">Biarkan kosong jika Anda tidak ingin memperbarui video utama.</p>
             </div>
 
             <div className="space-y-2">
@@ -492,13 +553,13 @@ export default function EditMoviePage() {
             </Link>
             <button 
               onClick={handleSubmit}
-              disabled={saving || !formData.title}
+              disabled={saving || uploadingVideo || !formData.title}
               className={cn(
                 "px-12 py-3.5 bg-brand text-white rounded-2xl font-black text-sm transition-all shadow-xl shadow-brand/20",
-                saving || !formData.title ? "opacity-50 cursor-not-allowed" : "hover:scale-105 active:scale-95"
+                saving || uploadingVideo || !formData.title ? "opacity-50 cursor-not-allowed" : "hover:scale-105 active:scale-95"
               )}
             >
-              {saving ? "Menyimpan..." : "Simpan Perubahan"}
+              {uploadingVideo ? `Mengunggah Video (${videoUploadProgress}%)` : saving ? "Menyimpan..." : "Simpan Perubahan"}
             </button>
           </div>
         </div>
