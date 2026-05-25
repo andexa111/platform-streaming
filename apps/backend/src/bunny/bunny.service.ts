@@ -21,6 +21,10 @@ export class BunnyService {
   });
   private readonly bucketName = process.env.S3_BUCKET_NAME || 'sinea-media';
 
+  constructor() {
+    this.logger.log(`[R2 CONFIG DETECTED] S3_ENDPOINT: "${process.env.S3_ENDPOINT || 'EMPTY/UNDEFINED'}", BUCKET: "${this.bucketName}"`);
+  }
+
   /**
    * Upload file tunggal ke Cloudflare R2
    */
