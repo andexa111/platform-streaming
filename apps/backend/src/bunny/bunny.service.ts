@@ -17,6 +17,7 @@ export class BunnyService {
       secretAccessKey: process.env.S3_SECRET_KEY || '',
     },
     region: 'auto',
+    forcePathStyle: true,
   });
   private readonly bucketName = process.env.S3_BUCKET_NAME || 'sinea-media';
 
