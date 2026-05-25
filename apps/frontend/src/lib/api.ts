@@ -33,7 +33,12 @@ api.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       // Clear token if it's invalid / expired
-      Cookies.remove('token');
+      const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+      const cookieOptions: Cookies.CookieAttributes = { path: '/' };
+      if (hostname.endsWith('sinea.id')) {
+        cookieOptions.domain = '.sinea.id';
+      }
+      Cookies.remove('token', cookieOptions);
       // If running on client, maybe redirect to login
       if (typeof window !== 'undefined') {
         // window.location.href = '/login'; 

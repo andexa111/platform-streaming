@@ -25,12 +25,22 @@ export const useAuthStore = create<AuthState>((set) => ({
   isLoading: true, // Initially loading until checkAuth completes
 
   setAuth: (user, token) => {
-    Cookies.set('token', token, { path: '/' }); // Session cookie (removed when browser is closed)
+    const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+    const cookieOptions: Cookies.CookieAttributes = { path: '/' };
+    if (hostname.endsWith('sinea.id')) {
+      cookieOptions.domain = '.sinea.id';
+    }
+    Cookies.set('token', token, cookieOptions);
     set({ user, isAuthenticated: true, isLoading: false });
   },
 
   logout: () => {
-    Cookies.remove('token', { path: '/' });
+    const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+    const cookieOptions: Cookies.CookieAttributes = { path: '/' };
+    if (hostname.endsWith('sinea.id')) {
+      cookieOptions.domain = '.sinea.id';
+    }
+    Cookies.remove('token', cookieOptions);
     set({ user: null, isAuthenticated: false, isLoading: false });
   },
 
@@ -50,7 +60,12 @@ export const useAuthStore = create<AuthState>((set) => ({
         throw new Error('User not found');
       }
     } catch (error) {
-      Cookies.remove('token', { path: '/' });
+      const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+      const cookieOptions: Cookies.CookieAttributes = { path: '/' };
+      if (hostname.endsWith('sinea.id')) {
+        cookieOptions.domain = '.sinea.id';
+      }
+      Cookies.remove('token', cookieOptions);
       set({ user: null, isAuthenticated: false, isLoading: false });
     }
   },
