@@ -189,7 +189,7 @@ export default function Home() {
           ))}
         </div>
       </section>
-      {/* Pricing Section */}
+      {/* Commented out Pricing Section during free launch period
       <section className="py-24 px-6 bg-secondary/30 relative border-t border-border overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand/5 blur-[120px] rounded-full -z-10 pointer-events-none" />
         
@@ -208,13 +208,11 @@ export default function Home() {
                   "bg-neutral-50 dark:bg-neutral-900/80 hover:bg-neutral-100/60 dark:hover:bg-neutral-900/60 shadow-2xl shadow-neutral-950/5 dark:shadow-white/5",
                 )}
               >
-                {/* Card Decoration */}
                 <div className="absolute -right-6 -top-6 opacity-[0.03] group-hover:opacity-[0.08] transition-all duration-700 rotate-12">
                   <Icon name={plan.icon as any} className="w-32 h-32 md:w-40 md:h-40" />
                 </div>
 
                 <div className="relative z-10 space-y-6 flex-1">
-                  {/* Header */}
                   <div className="space-y-4">
                     <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center border border-white/5 shadow-inner", plan.bgColor)}>
                       <Icon name={plan.icon as any} className={cn("w-6 h-6", plan.color)} />
@@ -228,7 +226,6 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {/* Features */}
                   <div className="space-y-4">
                     <p className="text-[9px] font-black uppercase tracking-[0.2em] text-neutral-500">Apa yang didapat:</p>
                     <ul className="space-y-3">
@@ -244,7 +241,6 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* Action Link */}
                 <Link
                   href="/membership"
                   className={cn(
@@ -259,6 +255,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+      */}
     </main>
   );
 }

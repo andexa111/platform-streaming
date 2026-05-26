@@ -154,30 +154,22 @@ export default function GenresPage() {
                   </div>
                 </div>
 
-                {/* Action Indicator & Film Avatars */}
+                {/* Action Indicator & Film List */}
                 <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
-                  <div className="flex -space-x-2">
-                    {genre.films.slice(0, 3).map((film) => (
-                      <div
+                  <div className="flex flex-col text-[11px] text-muted-foreground space-y-0.5 max-w-[70%]">
+                    {genre.films.slice(0, 2).map((film) => (
+                      <span
                         key={film.id}
-                        className="w-8 h-8 rounded-full bg-muted border-2 border-background flex items-center justify-center overflow-hidden shadow-md group-hover:scale-105 transition-transform duration-300"
+                        className="truncate font-medium block"
                         title={film.title}
                       >
-                        {film.thumbnail ? (
-                          <img
-                            src={film.thumbnail}
-                            alt={film.title}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-brand/25 to-blue-500/25" />
-                        )}
-                      </div>
+                        • {film.title}
+                      </span>
                     ))}
-                    {genre.films.length > 3 && (
-                      <div className="w-8 h-8 rounded-full bg-neutral-800 border-2 border-background flex items-center justify-center text-[10px] font-black text-neutral-300 shadow-md">
-                        +{genre.films.length - 3}
-                      </div>
+                    {genre.films.length > 2 && (
+                      <span className="text-[9px] font-semibold text-brand block">
+                        +{genre.films.length - 2} film lainnya
+                      </span>
                     )}
                     {genre.films.length === 0 && (
                       <span className="text-[10px] text-muted-foreground/60 font-bold uppercase tracking-wider">

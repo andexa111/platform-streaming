@@ -9,13 +9,7 @@ import Link from "next/link";
 import { useAuthStore } from "@/lib/auth-store";
 import { api, getMediaUrl } from "@/lib/api";
 import { Video } from "@/types/video";
-import Cookies from "js-cookie";
-import { MediaPlayer, MediaProvider, isHLSProvider } from "@vidstack/react";
-import { defaultLayoutIcons, DefaultVideoLayout } from "@vidstack/react/player/layouts/default";
-
-// Import Vidstack styles
-import "@vidstack/react/player/styles/default/theme.css";
-import "@vidstack/react/player/styles/default/layouts/video.css";
+import { Player } from "@/components/video/Player";
 
 export default function WatchPage() {
   const { id } = useParams();
@@ -147,29 +141,13 @@ export default function WatchPage() {
             onContextMenu={(e) => e.preventDefault()}
           >
             {streamUrl ? (
-              <MediaPlayer
+              <Player
+                variant="movie"
                 title={movie.title}
                 src={streamUrl}
-                crossOrigin="use-credentials"
-                className="w-full h-full border-none absolute inset-0"
-                onProviderChange={(provider) => {
-                  if (isHLSProvider(provider)) {
-                    provider.config = {
-                      ...provider.config,
-                      xhrSetup: (xhr) => {
-                        xhr.withCredentials = true;
-                        const token = Cookies.get("token");
-                        if (token) {
-                          xhr.setRequestHeader("Authorization", `Bearer ${token}`);
-                        }
-                      }
-                    };
-                  }
-                }}
-              >
-                <MediaProvider />
-                <DefaultVideoLayout icons={defaultLayoutIcons} />
-              </MediaPlayer>
+                poster={movie.poster_url ? getMediaUrl(movie.poster_url) : ""}
+                className="w-full h-full"
+              />
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center text-center p-6 space-y-4">
                 <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center justify-center text-red-500">
@@ -187,10 +165,12 @@ export default function WatchPage() {
           <div className="space-y-6">
             <div className="flex flex-wrap items-center gap-4">
               <h1 className="text-4xl md:text-5xl font-black tracking-tight">{movie.title}</h1>
+              {/* Commented out rating since the logic is not implemented yet
               <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-brand/10 border border-brand/20">
                 <Icon name="star" className="w-4 h-4 text-yellow-500 fill-yellow-500" />
                 <span className="text-sm font-bold">4.8</span>
               </div>
+              */}
             </div>
 
             <div className="flex flex-wrap items-center gap-6 text-muted-foreground">

@@ -65,12 +65,14 @@ export function VideoCard({ video, priority = false, isFirst, isLast, basePath =
         <h3 className="text-[11px] md:text-sm font-bold text-foreground line-clamp-1 group-hover:text-brand transition-colors">
           {video.title}
         </h3>
+        {/* Commented out rating since the logic is not implemented yet
         <div className="flex items-center gap-1 mt-0.5">
           <div className="flex items-center gap-1 text-muted-foreground">
             <Icon name="star" className="w-2 h-2 md:w-2.5 md:h-2.5 text-yellow-500 fill-yellow-500" />
             <span className="text-[9px] md:text-xs font-medium">{video.rating || "N/A"}</span>
           </div>
         </div>
+        */}
       </div>
     </Link>
   );

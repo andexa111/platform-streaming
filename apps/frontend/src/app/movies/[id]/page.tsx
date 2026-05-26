@@ -10,7 +10,7 @@ import { VideoCard } from '@/components/video/VideoCard';
 import { cn } from '@/lib/utils';
 import { Video } from '@/types/video';
 import { api, getMediaUrl } from '@/lib/api';
-import { ProtectedVideo } from '@/components/video/ProtectedVideo';
+import { Player } from '@/components/video/Player';
 import { VideoRow } from '@/components/video/VideoRow';
 
 export default function MovieDetailPage() {
@@ -232,11 +232,9 @@ export default function MovieDetailPage() {
               <div className="w-full h-full flex flex-col items-center justify-center">
                 {movie.trailer_url ? (
                   isTrailerLocal ? (
-                    <ProtectedVideo 
+                    <Player 
+                      variant="trailer"
                       src={getMediaUrl(movie.trailer_url)} 
-                      streamDirect={true}
-                      controls 
-                      autoPlay 
                       className="w-full h-full object-contain absolute inset-0 bg-black" 
                     />
                   ) : (
@@ -270,6 +268,7 @@ export default function MovieDetailPage() {
               <span className="px-1.5 py-0.5 md:px-3 md:py-1 rounded bg-brand/90 text-[8px] md:text-xs font-black uppercase tracking-widest text-white shadow-lg shadow-brand/20">
                 {mappedMovie.quality}
               </span>
+              {/* Commented out rating since the logic is not implemented yet
               <div className="flex items-center gap-1 md:gap-1.5 text-[10px] md:text-sm font-bold text-yellow-500">
                 <Icon
                   name="star"
@@ -277,6 +276,7 @@ export default function MovieDetailPage() {
                 />
                 <span>{mappedMovie.rating}</span>
               </div>
+              */}
               {movie.release_year && (
                 <span className="text-muted-foreground text-[10px] md:text-sm font-medium">
                   {movie.release_year}

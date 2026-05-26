@@ -218,7 +218,7 @@ function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
                     }`}
                   >
                     <div className="space-y-4">
-                      {/* Membership Status Section */}
+                      {/* Commented out Membership Status Section during free launch period
                       <div className="space-y-2.5">
                         <label className="text-[10px] font-bold text-neutral-800 dark:text-neutral-500 uppercase tracking-widest pl-1">Status Membership</label>
 
@@ -232,7 +232,6 @@ function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
                           </div>
                         ) : (
                           <div className={`relative p-4 rounded-xl border ${currentTier.border} ${currentTier.shadow} flex items-center gap-4 overflow-hidden group/card`} style={{ backgroundImage: currentTier.gradient }}>
-                            {/* Gloss/Reflection Overlay */}
                             <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent opacity-60 pointer-events-none" />
 
                             <div className={`relative z-10 w-11 h-11 rounded-full bg-black/30 border border-white/20 flex items-center justify-center shadow-lg`}>
@@ -246,6 +245,7 @@ function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
                           </div>
                         )}
                       </div>
+                      */}
 
                       {/* Theme Toggle in Profile Dropdown (Mobile Only) */}
                       <div className="md:hidden flex items-center justify-between px-3 py-2 bg-muted/30 rounded-xl">
