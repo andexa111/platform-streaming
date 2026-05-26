@@ -5,6 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Icon } from "@/components/ui/Icon";
 import { Video } from "@/types/video";
+import { Player } from "@/components/video/Player";
+import type { MediaPlayerElement } from "@vidstack/react";
 
 interface MovieBannerProps {
   movies: Video[];
@@ -15,7 +17,7 @@ interface MovieBannerProps {
 export function MovieBanner({ movies, autoPlayInterval = 5000, basePath = "/watch" }: MovieBannerProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
-  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+  const videoRefs = useRef<(MediaPlayerElement | null)[]>([]);
 
   const nextSlide = useCallback(() => {
     if (isAnimating) return;
@@ -92,21 +94,20 @@ export function MovieBanner({ movies, autoPlayInterval = 5000, basePath = "/watc
           }`}
         >
           {movie.trailerUrl ? (
-            <video
+            <Player
               ref={(el) => {
                 videoRefs.current[index] = el;
               }}
+              variant="banner"
               src={movie.trailerUrl}
-              muted
-              playsInline
-              onTimeUpdate={(e) => {
-                const video = e.currentTarget;
-                if (movie.clipEnd && video.currentTime >= movie.clipEnd) {
+              onTimeUpdate={() => {
+                const video = videoRefs.current[index];
+                if (video && movie.clipEnd && video.currentTime >= movie.clipEnd) {
                   video.currentTime = movie.clipStart || 0;
                 }
               }}
               onEnded={nextSlide}
-              className="w-full h-full object-cover object-center"
+              className="w-full h-full"
             />
           ) : movie.backdrop ? (
             <Image

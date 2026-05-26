@@ -9,6 +9,7 @@ import { Icon } from '@/components/ui/Icon';
 import { VideoCard } from '@/components/video/VideoCard';
 import { cn } from '@/lib/utils';
 import { Video } from '@/types/video';
+import { Player } from '@/components/video/Player';
 
 import { ALL_MOVIES } from '@/constants/video-data';
 
@@ -126,11 +127,11 @@ export default function MovieDetailPage() {
             </>
           ) : (
             /* Video Player Overlay */
-            <div className="absolute inset-0 z-[60] bg-black animate-in fade-in zoom-in-95 duration-500">
+            <div className="absolute inset-0 z-[60] bg-black animate-in fade-in duration-500">
               {/* Close Button */}
               <button
                 onClick={() => setIsPlaying(false)}
-                className="absolute top-6 right-6 z-50 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full backdrop-blur-md transition-all group active:scale-95"
+                className="absolute top-4 right-4 z-50 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full backdrop-blur-md transition-all group active:scale-95"
               >
                 <Icon
                   name="x"
@@ -138,75 +139,16 @@ export default function MovieDetailPage() {
                 />
               </button>
 
-              {/* Mock Player Interface */}
-              <div className="w-full h-full flex flex-col items-center justify-center">
-                <div className="w-full h-full relative group">
-                  {/* Simulated Video Feed */}
-                  <div className="absolute inset-0 bg-neutral-900 flex items-center justify-center overflow-hidden">
-                    {movie.thumbnail && (
-                      <Image
-                        src={movie.thumbnail}
-                        alt="video preview"
-                        fill
-                        className="object-cover opacity-30 blur-2xl grayscale"
-                      />
-                    )}
-                    <div className="relative flex flex-col items-center gap-6 z-10">
-                      <div className="w-24 h-24 rounded-full bg-brand flex items-center justify-center shadow-[0_0_50px_rgba(2,77,148,0.5)] animate-pulse">
-                        <Icon
-                          name="play"
-                          className="w-10 h-10 fill-current text-white"
-                        />
-                      </div>
-                      <div className="text-center space-y-2">
-                        <p className="text-xl font-bold tracking-tight text-white">
-                          Menampilkan Video: {movie.title}
-                        </p>
-                        <p className="text-neutral-400 text-sm italic">
-                          Simulasi Pemutaran Video (High Quality 4K)
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Bottom Controls Placeholder */}
-                  <div className="absolute bottom-0 left-0 w-full p-8 bg-gradient-to-t from-black via-black/40 to-transparent">
-                    <div className="max-w-7xl mx-auto space-y-6">
-                      {/* Progress Bar */}
-                      <div className="w-full h-1 bg-white/20 rounded-full relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-[45%] h-full bg-brand" />
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-6">
-                          <Icon
-                            name="play"
-                            className="w-6 h-6 fill-current cursor-pointer hover:scale-110 transition-transform"
-                          />
-                          <div className="flex items-center gap-4 text-neutral-400 text-xs font-bold font-mono">
-                            <span className="text-white">01:12:45</span>
-                            <span>/</span>
-                            <span>02:15:00</span>
-                          </div>
-                          <button className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-md hover:bg-white/10 transition-colors">
-                            <Icon name="volume-2" className="w-4 h-4" />
-                            <span className="text-[10px] font-bold">85%</span>
-                          </button>
-                        </div>
-                        <div className="flex items-center gap-6">
-                          <Icon
-                            name="settings"
-                            className="w-6 h-6 cursor-pointer hover:rotate-90 transition-transform"
-                          />
-                          <Icon
-                            name="maximize"
-                            className="w-6 h-6 cursor-pointer hover:scale-110 transition-transform"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+              {/* Real Vidstack Trailer Player */}
+              <div className="w-full h-full flex items-center justify-center p-0">
+                <Player
+                  variant="trailer"
+                  src={movie.trailerUrl || ""}
+                  poster={movie.thumbnail}
+                  title={`Trailer — ${movie.title}`}
+                  onEnded={() => setIsPlaying(false)}
+                  className="w-full h-full rounded-none border-0"
+                />
               </div>
             </div>
           )}

@@ -9,12 +9,24 @@ import { cn } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
 import { useAuthStore } from "@/lib/auth-store";
+import { Player } from "@/components/video/Player";
 
 export default function WatchPage() {
   const { id } = useParams();
   const router = useRouter();
   const movieId = parseInt(id as string);
   const { user } = useAuthStore();
+  const [videoUrl, setVideoUrl] = useState<string>("");
+
+  useEffect(() => {
+    // Simulasi fetch pre-signed URL dari backend Sinea
+    const timer = setTimeout(() => {
+      // Kita gunakan file MP4 resmi dari Vidstack agar stabil
+      // Ini 100% kompatibel dan tidak ada isu "auto-pause" seperti iframe YouTube
+      setVideoUrl("https://files.vidstack.io/sprite-fight/720p.mp4");
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [movieId]);
 
 
 
@@ -63,60 +75,22 @@ export default function WatchPage() {
       <div className="max-w-[1600px] mx-auto px-6 mt-6 grid grid-cols-1 xl:grid-cols-4 gap-8">
         {/* Main Player Section */}
         <div className="xl:col-span-3 space-y-8">
-          {/* Simulated Video Player */}
-          <div 
-            className="group relative aspect-video bg-black rounded-[2rem] overflow-hidden border border-white/5 shadow-2xl shadow-brand/10"
-            onContextMenu={(e) => e.preventDefault()}
-          >
-
-            {/* Mock Video Content */}
-            <div className="absolute inset-0 z-0">
-              {movie.thumbnail && <Image src={movie.thumbnail} alt="Backdrop" fill className="object-cover opacity-20 blur-xl scale-110" />}
-              <div className="absolute inset-0 bg-neutral-950/40" />
-            </div>
-
-            {/* Central Play Indicator */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
-              <div className="w-24 h-24 rounded-full bg-brand/90 flex items-center justify-center shadow-[0_0_50px_rgba(2,77,148,0.5)] cursor-pointer hover:scale-110 transition-transform active:scale-95 group/play">
-                <Icon name="play" className="w-10 h-10 fill-current ml-1" />
+          {/* Video Player — tampilkan hanya setelah URL siap */}
+          <div onContextMenu={(e) => e.preventDefault()}>
+            {videoUrl ? (
+              <Player 
+                variant="movie" 
+                src={videoUrl} 
+                poster={movie.thumbnail} 
+                title={movie.title}
+              />
+            ) : (
+              <div className="w-full aspect-video bg-neutral-900 flex flex-col items-center justify-center rounded-[2rem] border border-white/5 shadow-2xl">
+                <div className="w-10 h-10 border-4 border-brand/30 border-t-brand rounded-full animate-spin mb-4" />
+                <p className="text-sm text-neutral-400 font-bold uppercase tracking-widest animate-pulse">Memuat Video...</p>
+                <p className="text-xs text-neutral-600 mt-2">Menyiapkan stream aman untuk Anda...</p>
               </div>
-            </div>
-
-            {/* Player Controls Bar */}
-            <div className="absolute bottom-0 left-0 w-full p-8 z-20 translate-y-4 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-500 bg-gradient-to-t from-black via-black/60 to-transparent">
-              <div className="space-y-6">
-                {/* Progress Bar */}
-                <div className="relative w-full h-1.5 bg-white/20 rounded-full cursor-pointer overflow-hidden group/bar">
-                  <div className="absolute inset-0 bg-brand w-[35%] rounded-full shadow-[0_0_15px_rgba(2,77,148,1)]" />
-                  <div className="absolute left-[35%] top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full opacity-0 group-hover/bar:opacity-100 transition-opacity" />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-8">
-                    <Icon name="play" className="w-6 h-6 fill-current cursor-pointer hover:text-brand transition-colors" />
-                    <div className="flex items-center gap-4 text-xs font-mono font-bold">
-                      <span className="text-white">00:45:12</span>
-                      <span className="text-neutral-600">/</span>
-                      <span className="text-neutral-400">02:15:30</span>
-                    </div>
-                    <div className="flex items-center gap-3 group/vol">
-                      <Icon name="volume-2" className="w-5 h-5 text-neutral-400 group-hover/vol:text-white transition-colors" />
-                      <div className="w-20 h-1 bg-white/20 rounded-full overflow-hidden">
-                        <div className="h-full bg-white w-[70%]" />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-8">
-                    <button className="flex items-center gap-2 px-3 py-1 bg-white/5 hover:bg-white/10 rounded-lg border border-white/5 transition-all">
-                      <div className="w-1.5 h-1.5 rounded-full bg-brand animate-pulse" />
-                      <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">4K Ultra HD</span>
-                    </button>
-                    <Icon name="settings" className="w-6 h-6 text-neutral-400 hover:text-white hover:rotate-90 transition-all cursor-pointer" />
-                    <Icon name="maximize" className="w-6 h-6 text-neutral-400 hover:text-white hover:scale-110 transition-all cursor-pointer" />
-                  </div>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
 
           {/* Movie Info */}

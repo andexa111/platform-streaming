@@ -1,0 +1,45 @@
+# RENCANA IMPLEMENTASI MIGRASI VIDEO STREAMING (BUNNY -> VIDSTACK & R2)
+
+## Tujuan Utama
+Mengganti infrastruktur video player dari Bunny Stream menjadi Vidstack yang akan memutar file HLS (.m3u8) langsung dari Cloudflare R2 via Pre-Signed URL. Selain itu, mengubah form di CMS Admin agar admin bisa langsung mengunggah file MP4 ke backend NestJS.
+
+## Fase 1: Sisi Pengguna (Frontend Video Player) - Prioritas Utama
+Target File: Pembuatan komponen *reusable* `apps/frontend/src/components/video/Player.tsx`
+Serta implementasi di:
+- `apps/frontend/src/app/(member)/watch/[id]/page.tsx` (Untuk memutar Film Utama)
+- Tempat pemutaran Trailer seperti di MovieBanner atau modal detail film.
+
+1. Instalasi Vidstack
+   - Menginstal package `@vidstack/react`.
+   - Mengatur konfigurasi dasar styles Vidstack.
+
+2. Pembuatan Komponen `Player` Kustom yang Reusable
+   - Membuat komponen Player yang memiliki 3 Mode/Variant:
+     a. Mode "Banner": Autoplay, Muted, Loop, TANPA KONTROL (untuk hero beranda).
+     b. Mode "Trailer": Memiliki kontrol standar (untuk modal cuplikan).
+     c. Mode "Movie": Kontrol penuh, dukungan HLS/m3u8 (untuk menonton film penuh).
+   - Mengonfigurasi player agar mendukung format streaming HLS (`.m3u8`).
+   - Menyambungkan desain UI khusus Sinea (tombol play/pause, volume, fullscreen, progress bar) menggunakan API dari Vidstack.
+
+3. Integrasi Pre-Signed URL (API)
+   - Menambahkan *fetching logic* untuk meminta akses video ke backend.
+   - Menambahkan state `isLoading` saat menunggu balasan *Pre-Signed URL* dari backend.
+   - Memasukkan URL yang didapat ke dalam `<media-player src="...">`.
+   - Menambahkan penanganan error (contoh: token expired, user belum bayar).
+
+## Fase 2: Sisi Admin (CMS Upload)
+Target File: `apps/frontend/src/app/admin/movies/add/page.tsx`
+
+1. Perombakan UI Form Upload (Step 2)
+   - Menghapus input field teks "Video ID Film (Bunny Stream)".
+   - Menggantinya dengan komponen area "Drag & Drop" berukuran besar khusus untuk file MP4.
+
+2. Integrasi API Upload Video Utama
+   - Mengirimkan file MP4 tersebut ke endpoint backend (misal: `/films/upload-video`).
+   - Membuat indikator *Progress Bar* (persentase 0-100%) karena file video berukuran besar.
+   - Mengelola state agar admin tidak bisa menutup atau berpindah halaman (Step 3) saat upload MP4 masih berlangsung.
+
+## Fase 3: Review dan Integrasi Akhir
+1. Memastikan *end-to-end testing*:
+   - Admin upload MP4 -> Backend memproses dengan FFmpeg -> Disimpan ke R2.
+   - User memutar video -> Frontend mendapat R2 URL -> Vidstack memutar HLS dengan lancar.

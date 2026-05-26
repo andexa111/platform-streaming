@@ -15,5 +15,8 @@
   "workspaces": [
     "apps/*",
     "packages/*"
-  ]
+  ],
+  "dependencies": {
+    "@next/swc-win32-x64-msvc": "^16.2.6"
+  }
 }

@@ -46,7 +46,6 @@ export default function EditMoviePage() {
     poster_url: "",
     production_house: "",
     production_house_logo: "",
-    poster_url: "",
     is_published: false,
     actors: [] as string[],
   });
@@ -113,6 +112,8 @@ export default function EditMoviePage() {
 
   const [uploadingTrailer, setUploadingTrailer] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [videoProgress, setVideoProgress] = useState(0);
 
   const handleImageUpload = async (file: File, field: "poster_url" | "production_house_logo") => {
     const formData = new FormData();
@@ -148,6 +149,30 @@ export default function EditMoviePage() {
       alert(err.response?.data?.message || "Gagal mengunggah trailer. Pastikan formatnya video (mp4/webm) dan ukuran maks 500MB.");
     } finally {
       setUploadingTrailer(false);
+    }
+  };
+
+  const handleVideoUpload = async (file: File) => {
+    setUploadingVideo(true);
+    setVideoProgress(0);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await api.post("/upload/video", formData, {
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setVideoProgress(percentCompleted);
+          }
+        }
+      });
+      updateField("video_id", res.data.fileName);
+    } catch (err: any) {
+      console.error("Gagal upload video film:", err);
+      alert(err.response?.data?.message || "Gagal mengunggah video. Pastikan formatnya video (mp4/webm) dan ukuran maks 2GB.");
+    } finally {
+      setUploadingVideo(false);
     }
   };
 
@@ -419,14 +444,62 @@ export default function EditMoviePage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase text-neutral-400">Video ID Film (Bunny Stream)</label>
-              <input 
-                type="text" 
-                placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                className="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm font-mono"
-                value={formData.video_id}
-                onChange={(e) => updateField("video_id", e.target.value)}
-              />
+              <label className="text-xs font-black uppercase text-neutral-400">Video Utama Film (MP4/WebM)</label>
+              <div className="flex flex-col gap-3">
+                <label className={cn(
+                  "block cursor-pointer border border-dashed rounded-2xl hover:border-brand transition-all bg-neutral-50 p-8 text-center",
+                  uploadingVideo && "opacity-50 cursor-not-allowed"
+                )}>
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    {uploadingVideo ? (
+                      <div className="w-10 h-10 border-4 border-brand border-t-transparent rounded-full animate-spin mb-2" />
+                    ) : (
+                      <Icon name="monitor-play" className="w-10 h-10 text-neutral-400 mb-2" />
+                    )}
+                    <span className="text-sm font-bold text-neutral-900">
+                      {uploadingVideo 
+                        ? `Sedang mengunggah (${videoProgress}%)...` 
+                        : formData.video_id 
+                          ? "Ganti File Video" 
+                          : "Tarik & Lepaskan file MP4 di sini atau klik untuk memilih"}
+                    </span>
+                    <span className="text-xs text-neutral-400">Format MP4, WebM (Maks. 2GB)</span>
+                  </div>
+                  {uploadingVideo && (
+                    <div className="w-full h-2 bg-neutral-200 rounded-full overflow-hidden mt-4 max-w-md mx-auto">
+                      <div className="h-full bg-brand transition-all duration-300" style={{ width: `${videoProgress}%` }} />
+                    </div>
+                  )}
+                  <input
+                    type="file"
+                    accept="video/*"
+                    className="hidden"
+                    disabled={uploadingVideo}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleVideoUpload(file);
+                    }}
+                  />
+                </label>
+                {formData.video_id && (
+                  <div className="p-4 bg-neutral-50 border border-neutral-200 rounded-2xl flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Icon name="film" className="w-5 h-5 text-brand" />
+                      <div className="leading-tight">
+                        <p className="text-xs font-bold text-neutral-950">Video Terunggah</p>
+                        <p className="text-[10px] text-neutral-400 font-mono truncate max-w-xs md:max-w-md">{formData.video_id}</p>
+                      </div>
+                    </div>
+                    <button 
+                      type="button" 
+                      onClick={() => updateField("video_id", "")}
+                      className="p-2 rounded-xl bg-white border border-neutral-200 hover:text-red-500 hover:border-red-100 transition-all"
+                    >
+                      <Icon name="x" className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -492,10 +565,10 @@ export default function EditMoviePage() {
             </Link>
             <button 
               onClick={handleSubmit}
-              disabled={saving || !formData.title}
+              disabled={saving || !formData.title || uploadingVideo || uploadingTrailer}
               className={cn(
                 "px-12 py-3.5 bg-brand text-white rounded-2xl font-black text-sm transition-all shadow-xl shadow-brand/20",
-                saving || !formData.title ? "opacity-50 cursor-not-allowed" : "hover:scale-105 active:scale-95"
+                saving || !formData.title || uploadingVideo || uploadingTrailer ? "opacity-50 cursor-not-allowed" : "hover:scale-105 active:scale-95"
               )}
             >
               {saving ? "Menyimpan..." : "Simpan Perubahan"}

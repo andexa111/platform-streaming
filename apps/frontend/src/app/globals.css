@@ -81,3 +81,82 @@
     color: #024d94;
   }
 }
+
+/* ========================================= */
+/* VIDSTACK PLAYER CUSTOMIZATION             */
+/* ========================================= */
+
+/* Mengubah warna slider (brand) menjadi biru khas Sinea */
+.vds-player,
+[data-media-player] {
+  --media-brand: #024d94 !important;
+  --media-focus-ring-color: #024d94 !important;
+}
+
+/* Menyembunyikan fitur yang tidak diinginkan di semua mode (Cast, AirPlay, CC) */
+.vds-google-cast-button,
+.vds-google-cast,
+.vds-airplay-button,
+.vds-airplay,
+.vds-caption-button,
+.vds-captions-button,
+.vds-button[aria-label*="AirPlay"],
+.vds-button[aria-label*="Caption"],
+.vds-button[aria-label*="Cast"] {
+  display: none !important;
+}
+
+/* ========================================= */
+/* RESPONSIVE PLAYER SCALING                 */
+/* ========================================= */
+
+@media (max-width: 768px) {
+  /* Mempertahankan elemen agar tidak tersembunyi secara otomatis oleh default container queries Vidstack */
+  .vds-time, .vds-button {
+    display: flex !important;
+  }
+  
+  /* Perkecil judul video/chapter agar muat di layar kecil */
+  .vds-chapter-title, .vds-title, .vds-chapter-title-container {
+    font-size: 0.7rem !important;
+  }
+  
+  /* Perkecil gap antar kontrol di control bar */
+  .vds-controls-group {
+    gap: 0.25rem !important;
+  }
+  
+  /* Perkecil tombol icon dan icon svg-nya */
+  .vds-button {
+    width: 28px !important;
+    height: 28px !important;
+    padding: 4px !important;
+  }
+  .vds-button svg, .vds-icon {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  /* Perkecil font untuk current time dan duration */
+  .vds-time {
+    font-size: 0.7rem !important;
+  }
+
+  .vds-time-slider, .vds-volume-slider {
+    margin: 0 4px !important;
+  }
+  
+  /* Perkecil menu settings */
+  .vds-menu {
+    font-size: 0.8rem !important;
+  }
+}
+
+/* Memaksa Player Banner untuk benar-benar memenuhi kontainer dan memotong video (cover) */
+.banner-player media-player,
+.banner-player media-provider,
+.banner-player video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
