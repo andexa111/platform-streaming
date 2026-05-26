@@ -12,13 +12,13 @@ interface SearchOverlayProps {
 }
 
 const TRENDING_SEARCHES = [
-  "Comedy",
-  "Drama",
-  "Historical",
-  "Action",
-  "Horror",
-  "Romance",
-  "Thriller",
+  "One Piece",
+  "Harry Potter",
+  "Climax",
+  "The Boys",
+  "Bloodhounds",
+  "Avatar",
+  "High Potential",
 ];
 
 export function SearchOverlay({ isOpen, onClose, query, setQuery }: SearchOverlayProps) {
@@ -109,7 +109,7 @@ export function SearchOverlay({ isOpen, onClose, query, setQuery }: SearchOverla
         {/* Trending Tags */}
         <div className="mt-10 space-y-4">
           <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-neutral-500 ml-1">
-            Paling Sering Dicari
+            Top Searches Now
           </h3>
           <div className="flex flex-wrap gap-2">
             {TRENDING_SEARCHES.map((tag) => (
@@ -118,18 +118,18 @@ export function SearchOverlay({ isOpen, onClose, query, setQuery }: SearchOverla
                 onClick={() => handleTrendingClick(tag)}
                 className="px-4 py-2 rounded-full bg-neutral-900 border border-white/5 text-xs font-semibold text-neutral-400 hover:text-white hover:border-brand/40 hover:bg-brand/5 transition-all"
               >
-                {tag}
+                {tag.toLowerCase()}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Decorative close on top right for mobile */}
+        {/* Close button for mobile */}
         <button 
           onClick={onClose}
-          className="absolute top-8 right-8 p-3 bg-neutral-900/50 rounded-full border border-white/10 text-neutral-400 hover:text-white md:hidden"
+          className="absolute top-4 right-4 p-2 bg-neutral-900/50 rounded-full border border-white/10 text-neutral-400 hover:text-white transition-all md:hidden"
         >
-          <Icon name="x" className="w-6 h-6" />
+          <Icon name="x" className="w-4 h-4" />
         </button>
       </div>
     </div>

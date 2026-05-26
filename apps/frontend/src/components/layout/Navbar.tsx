@@ -169,16 +169,6 @@ function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
             {variant === "public" ? (
               <div className="flex items-center gap-4">
                 <div className="flex"><ThemeToggle /></div>
-                
-                {/* Search Trigger */}
-                <button
-                  onClick={() => setIsSearchOpen(true)}
-                  className="w-10 h-10 rounded-full bg-muted/50 border border-border/50 flex items-center justify-center hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-all hover:scale-105 active:scale-95"
-                  aria-label="Search"
-                >
-                  <Icon name="search" className="w-5 h-5" />
-                </button>
-
                 <div className="hidden md:flex items-center gap-4 border-l border-border pl-4">
                   <Link href="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
                     Login
