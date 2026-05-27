@@ -1,8 +1,12 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
+import { api, getMediaUrl } from "@/lib/api";
+import { Video } from "@/types/video";
+import Link from "next/link";
+import Image from "next/image";
 
 interface SearchOverlayProps {
   isOpen: boolean;
@@ -11,32 +15,56 @@ interface SearchOverlayProps {
   setQuery: (query: string) => void;
 }
 
-const TRENDING_SEARCHES = [
-  "One Piece",
-  "Harry Potter",
-  "Climax",
-  "The Boys",
-  "Bloodhounds",
-  "Avatar",
-  "High Potential",
-];
-
 export function SearchOverlay({ isOpen, onClose, query, setQuery }: SearchOverlayProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
+  const [allMovies, setAllMovies] = useState<Video[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  // Fetch all movies when the overlay opens
   useEffect(() => {
     if (isOpen) {
       inputRef.current?.focus();
       document.body.style.overflow = "hidden";
+      
+      setLoading(true);
+      api.get("/films?limit=100")
+        .then((res) => {
+          const dbFilms = res.data?.data || [];
+          const mapped = dbFilms.map((film: any): Video => ({
+            id: film.id,
+            title: film.title,
+            genre: film.genres && film.genres.length > 0 ? film.genres[0].name : "Other",
+            rating: "4.8",
+            quality: "4K UHD",
+            thumbnail: film.poster_url ? getMediaUrl(film.poster_url) : "",
+            backdrop: film.poster_url ? getMediaUrl(film.poster_url) : "",
+            description: film.description || "",
+            trailerUrl: film.trailer_url ? getMediaUrl(film.trailer_url) : "",
+            productionHouse: film.production_house || "",
+            productionHouseLogo: film.production_house_logo ? getMediaUrl(film.production_house_logo) : "",
+            director: film.director || "",
+            producer: film.producer || "",
+            actors: film.actors ? film.actors.map((a: any) => a.name) : [],
+          }));
+          setAllMovies(mapped);
+        })
+        .catch((err) => {
+          console.error("Failed to fetch films for search", err);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
     } else {
       document.body.style.overflow = "unset";
+      setQuery(""); // Clear search query on close
     }
     return () => {
       document.body.style.overflow = "unset";
     };
-  }, [isOpen]);
+  }, [isOpen, setQuery]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -46,18 +74,27 @@ export function SearchOverlay({ isOpen, onClose, query, setQuery }: SearchOverla
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
+  // Client-side real-time filtering
+  const filteredMovies = useMemo(() => {
+    if (!query.trim()) return [];
+    const searchLower = query.toLowerCase();
+    return allMovies.filter((m) => 
+      m.title.toLowerCase().includes(searchLower) ||
+      (m.description || "").toLowerCase().includes(searchLower) ||
+      (m.genre || "").toLowerCase().includes(searchLower) ||
+      (m.director || "").toLowerCase().includes(searchLower) ||
+      (m.producer || "").toLowerCase().includes(searchLower) ||
+      (m.productionHouse || "").toLowerCase().includes(searchLower) ||
+      (m.actors || []).some(actor => actor.toLowerCase().includes(searchLower))
+    );
+  }, [query, allMovies]);
+
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim()) {
       onClose();
       router.push(`/movies?search=${encodeURIComponent(query.trim())}`);
     }
-  };
-
-  const handleTrendingClick = (tag: string) => {
-    setQuery(tag);
-    onClose();
-    router.push(`/movies?search=${encodeURIComponent(tag)}`);
   };
 
   if (!isOpen) return null;
@@ -114,23 +151,70 @@ export function SearchOverlay({ isOpen, onClose, query, setQuery }: SearchOverla
           </div>
         </div>
 
-        {/* Trending Tags */}
-        <div className="mt-10 space-y-4">
-          <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-neutral-500 ml-1">
-            Top Searches Now
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {TRENDING_SEARCHES.map((tag) => (
-              <button
-                key={tag}
-                onClick={() => handleTrendingClick(tag)}
-                className="px-4 py-2 rounded-full bg-neutral-900 border border-white/5 text-xs font-semibold text-neutral-400 hover:text-white hover:border-brand/40 hover:bg-brand/5 transition-all"
-              >
-                {tag.toLowerCase()}
-              </button>
-            ))}
+        {/* Real-time Search Results */}
+        {query.trim() && (
+          <div className="mt-8 bg-neutral-900/60 border border-white/10 rounded-2xl p-4 backdrop-blur-xl max-h-[50vh] overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent animate-in fade-in slide-in-from-top-2 duration-300">
+            {loading ? (
+              <div className="py-12 flex flex-col items-center justify-center gap-3">
+                <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin" />
+                <span className="text-xs text-neutral-400 font-medium animate-pulse">Mencari film...</span>
+              </div>
+            ) : filteredMovies.length === 0 ? (
+              <div className="py-12 flex flex-col items-center justify-center text-neutral-500 gap-2">
+                <Icon name="search" className="w-8 h-8 text-neutral-600" />
+                <span className="text-sm font-medium">Tidak ada film yang cocok</span>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {filteredMovies.map((movie) => (
+                  <Link
+                    key={movie.id}
+                    href={`/movies/${movie.id}`}
+                    onClick={onClose}
+                    className="flex items-center gap-4 p-2.5 rounded-xl hover:bg-white/5 border border-transparent hover:border-white/5 transition-all duration-300 group"
+                  >
+                    {/* Small Poster */}
+                    <div className="relative w-14 h-20 rounded-lg overflow-hidden bg-neutral-800 flex-shrink-0 border border-white/5 shadow-md">
+                      {movie.thumbnail ? (
+                        <Image
+                          src={movie.thumbnail}
+                          alt={movie.title}
+                          fill
+                          sizes="56px"
+                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-neutral-800">
+                          <Icon name="play" className="w-4 h-4 text-neutral-600" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Movie Info */}
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <h4 className="text-sm font-bold text-white group-hover:text-brand transition-colors truncate">
+                        {movie.title}
+                      </h4>
+                      <p className="text-xs text-neutral-400 font-medium">
+                        {movie.genre}
+                      </p>
+                      {movie.productionHouse && (
+                        <p className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider truncate">
+                          {movie.productionHouse}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Arrow/Play Icon */}
+                    <div className="w-8 h-8 rounded-full bg-neutral-800 group-hover:bg-brand flex items-center justify-center text-neutral-400 group-hover:text-white transition-all duration-300 shadow-md">
+                      <Icon name="play" className="w-3.5 h-3.5 fill-current ml-0.5" />
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
