@@ -40,12 +40,7 @@ export function VideoCard({ video, priority = false, isFirst, isLast, basePath =
           </div>
         )}
 
-        {/* Quality Badge */}
-        {video.quality && (
-          <div className="absolute top-2 right-2 bg-brand/90 backdrop-blur-md text-white text-[7px] md:text-[9px] font-black px-1.5 py-0.5 rounded md:rounded-md tracking-wider pointer-events-none transform translate-y-0 group-hover:-translate-y-1 transition-transform z-10">
-            {video.quality}
-          </div>
-        )}
+
 
         {/* Play Icon on Hover */}
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">

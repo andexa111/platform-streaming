@@ -265,9 +265,6 @@ export default function MovieDetailPage() {
           <div className="space-y-2 md:space-y-4">
             {/* Metadata Tags */}
             <div className="flex flex-wrap items-center gap-1.5 md:gap-4">
-              <span className="px-1.5 py-0.5 md:px-3 md:py-1 rounded bg-brand/90 text-[8px] md:text-xs font-black uppercase tracking-widest text-white shadow-lg shadow-brand/20">
-                {mappedMovie.quality}
-              </span>
               {/* Commented out rating since the logic is not implemented yet
               <div className="flex items-center gap-1 md:gap-1.5 text-[10px] md:text-sm font-bold text-yellow-500">
                 <Icon

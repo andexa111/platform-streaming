@@ -191,18 +191,11 @@ export default function WatchPage() {
                 </>
               )}
               {movie.duration && (
-                <>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Durasi</span>
-                    <span className="text-sm font-bold text-foreground/80">{movie.duration} Menit</span>
-                  </div>
-                  <div className="w-1.5 h-1.5 rounded-full bg-border" />
-                </>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Durasi</span>
+                  <span className="text-sm font-bold text-foreground/80">{movie.duration} Menit</span>
+                </div>
               )}
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Kualitas</span>
-                <span className="text-sm font-bold text-brand">4K UHD</span>
-              </div>
             </div>
 
             <p className="text-lg md:text-xl text-neutral-400 leading-relaxed font-light max-w-4xl">
@@ -230,7 +223,6 @@ export default function WatchPage() {
                     <div className="absolute inset-0 bg-gradient-to-br from-muted to-background" />
                   )}
                   <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
-                  <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-black/80 text-[8px] font-black text-white">{m.quality}</div>
                 </div>
                 <div className="flex flex-col justify-center gap-1 min-w-0">
                   <h3 className="text-xs font-bold text-foreground line-clamp-2 group-hover:text-brand transition-colors uppercase tracking-tight leading-tight">{m.title}</h3>
