@@ -362,17 +362,35 @@ export default function MovieDetailPage() {
                 <span className="text-[8px] md:text-xs font-black uppercase tracking-widest text-muted-foreground">
                   Sutradara
                 </span>
-                <p className="font-bold text-[10px] md:text-base">
-                  {movie.director || '—'}
-                </p>
+                {movie.director ? (
+                  <Link
+                    href={`/movies?search=${encodeURIComponent(movie.director)}`}
+                    className="block font-bold text-[10px] md:text-base text-foreground hover:text-brand hover:underline transition-colors cursor-pointer"
+                  >
+                    {movie.director}
+                  </Link>
+                ) : (
+                  <p className="font-bold text-[10px] md:text-base">
+                    —
+                  </p>
+                )}
               </div>
               <div className="space-y-1 md:space-y-2">
                 <span className="text-[8px] md:text-xs font-black uppercase tracking-widest text-muted-foreground">
                   Produser
                 </span>
-                <p className="font-bold text-[10px] md:text-base">
-                  {movie.producer || '—'}
-                </p>
+                {movie.producer ? (
+                  <Link
+                    href={`/movies?search=${encodeURIComponent(movie.producer)}`}
+                    className="block font-bold text-[10px] md:text-base text-foreground hover:text-brand hover:underline transition-colors cursor-pointer"
+                  >
+                    {movie.producer}
+                  </Link>
+                ) : (
+                  <p className="font-bold text-[10px] md:text-base">
+                    —
+                  </p>
+                )}
               </div>
               <div className="space-y-1 md:space-y-2">
                 <span className="text-[8px] md:text-xs font-black uppercase tracking-widest text-muted-foreground">
@@ -380,17 +398,23 @@ export default function MovieDetailPage() {
                 </span>
                 <div className="flex items-center gap-2 md:gap-4">
                   {mappedMovie.productionHouseLogo && (
-                    <div className="w-8 h-8 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-white/5 border border-white/10 p-1.5 md:p-2 flex items-center justify-center overflow-hidden flex-shrink-0">
+                    <Link
+                      href={`/movies?search=${encodeURIComponent(mappedMovie.productionHouse || 'Lalakon Originals')}`}
+                      className="w-8 h-8 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-white/5 border border-white/10 p-1.5 md:p-2 flex items-center justify-center overflow-hidden flex-shrink-0 hover:border-brand/50 transition-colors"
+                    >
                       <img
                         src={mappedMovie.productionHouseLogo}
                         alt="Studio Logo"
                         className="w-full h-full object-contain"
                       />
-                    </div>
+                    </Link>
                   )}
-                  <p className="font-bold text-[10px] md:text-base leading-tight">
+                  <Link
+                    href={`/movies?search=${encodeURIComponent(mappedMovie.productionHouse || 'Lalakon Originals')}`}
+                    className="font-bold text-[10px] md:text-base leading-tight text-foreground hover:text-brand hover:underline transition-colors cursor-pointer"
+                  >
                     {mappedMovie.productionHouse || 'Lalakon Originals'}
-                  </p>
+                  </Link>
                 </div>
               </div>
               <div className="space-y-1 md:space-y-2">
@@ -412,16 +436,20 @@ export default function MovieDetailPage() {
             <div className="space-y-4 md:space-y-6 max-h-[250px] overflow-y-auto pr-4 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-brand/50 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-brand transition-colors">
               {movie.actors && movie.actors.length > 0 ? (
                 movie.actors.map((actor: any, i: number) => (
-                  <div key={i} className="group">
+                  <Link
+                    key={i}
+                    href={`/movies?search=${encodeURIComponent(actor.name)}`}
+                    className="block group cursor-pointer"
+                  >
                     <div className="space-y-0.5 md:space-y-1">
-                      <p className="text-xs md:text-sm font-bold group-hover:text-brand transition-colors">
+                      <p className="text-xs md:text-sm font-bold text-foreground group-hover:text-brand group-hover:underline transition-colors">
                         {actor.name}
                       </p>
                       <p className="text-[8px] md:text-[10px] text-muted-foreground uppercase tracking-widest font-bold">
                         Pemeran
                       </p>
                     </div>
-                  </div>
+                  </Link>
                 ))
               ) : (
                 <p className="text-xs text-muted-foreground italic">Tidak ada daftar pemeran.</p>

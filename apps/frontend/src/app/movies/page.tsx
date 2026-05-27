@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, Suspense, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
 import { VideoCard } from "@/components/video/VideoCard";
-import { MovieBanner } from "@/components/home/MovieBanner";
 import { useAuthStore } from "@/lib/auth-store";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -123,6 +122,41 @@ function CatalogContent() {
     return matchesGenre && matchesSearch;
   });
 
+  const firstMatch = filteredMovies[0];
+  const backdropUrl = firstMatch?.backdrop || "";
+
+  // Dynamically determine search query type
+  const searchType = useMemo(() => {
+    if (!searchVal) return "";
+    const searchLower = searchVal.toLowerCase();
+    
+    // Check if it matches an actor
+    const isActor = movies.some(m => 
+      (m.actors || []).some(actor => actor.toLowerCase() === searchLower)
+    );
+    if (isActor) return "Pemeran Utama";
+
+    // Check if it matches a director
+    const isDirector = movies.some(m => 
+      (m.director || "").toLowerCase() === searchLower
+    );
+    if (isDirector) return "Sutradara";
+
+    // Check if it matches a production house
+    const isPH = movies.some(m => 
+      (m.productionHouse || "").toLowerCase() === searchLower
+    );
+    if (isPH) return "Rumah Produksi";
+
+    // Check if it matches a producer
+    const isProducer = movies.some(m => 
+      (m.producer || "").toLowerCase() === searchLower
+    );
+    if (isProducer) return "Produser";
+
+    return "Pencarian";
+  }, [searchVal, movies]);
+
   const displayedMovies = isExpanded ? filteredMovies : filteredMovies.slice(0, 6);
   const hasMore = filteredMovies.length > 6;
 
@@ -139,29 +173,71 @@ function CatalogContent() {
 
   return (
     <main className="min-h-screen bg-background text-foreground font-sans selection:bg-brand/30">
-      {/* Dynamic Header Section */}
-      {mounted &&
-        (isAuthenticated ? (
-          <MovieBanner movies={movies.slice(0, 10)} />
-        ) : (
-          <section className="relative pt-32 pb-16 overflow-hidden flex flex-col items-center justify-center min-h-[40vh]">
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-brand/10 via-background to-background -z-10" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-brand/10 blur-[120px] rounded-full -z-10 pointer-events-none animate-pulse" />
-
-            <div className="text-center space-y-4 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-              <div className="flex flex-col items-center">
+      {/* Premium Hero Banner */}
+      {mounted && (
+        <section className="relative min-h-[35vh] md:min-h-[45vh] flex items-end pb-12 md:pb-16 overflow-hidden">
+          {/* Backdrop Image with Dark Gradients */}
+          <div className="absolute inset-0 bg-neutral-950">
+            {backdropUrl ? (
+              <>
                 <img
-                  src="/SINEA - Logo Horisontal.webp"
-                  alt="LALAKON"
-                  className="h-20 md:h-32 w-auto object-contain dark:brightness-[1.6] brightness-[1.1] contrast-[1.2] drop-shadow-[0_0_15px_rgba(0,0,0,0.1)] dark:drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]"
+                  src={backdropUrl}
+                  alt={searchVal || "Catalog"}
+                  className="w-full h-full object-cover opacity-30 blur-[2px] scale-105 transition-all duration-700"
                 />
+                {/* Overlay Gradients for Depth */}
+                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/65 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-transparent to-background/30" />
+              </>
+            ) : (
+              <>
+                {/* Fallback elegant gradient background */}
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-brand/20 via-background to-background" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-brand/10 blur-[120px] rounded-full animate-pulse" />
+              </>
+            )}
+          </div>
+
+          {/* Banner Content */}
+          <div className="relative w-full max-w-7xl mx-auto px-6 z-10 space-y-4 md:space-y-6">
+            {searchVal ? (
+              // Search Detail Hero Content
+              <div className="space-y-2 md:space-y-4 animate-in fade-in slide-in-from-bottom-6 duration-700">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand/15 border border-brand/35 text-[10px] md:text-xs font-black tracking-widest text-brand uppercase">
+                  <Icon name="tag" className="w-3.5 h-3.5" />
+                  <span>{searchType}</span>
+                </div>
+                <h1 className="text-4xl md:text-6xl font-black tracking-tight text-white uppercase italic drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
+                  {searchVal}
+                </h1>
+                <p className="text-sm md:text-base text-neutral-300 max-w-2xl font-light leading-relaxed">
+                  Menampilkan semua film yang diproduksi, disutradarai, atau diperankan oleh <strong className="text-white font-bold">{searchVal}</strong>. Temukan mahakarya terbaik mereka di Sinea.
+                </p>
+                <div className="flex items-center gap-3 text-xs text-muted-foreground font-semibold">
+                  <span className="text-brand font-black">{filteredMovies.length}</span> Judul Tersedia
+                </div>
               </div>
-            </div>
-          </section>
-        ))}
+            ) : (
+              // Standard Catalog Hero Content
+              <div className="space-y-2 md:space-y-4 animate-in fade-in slide-in-from-bottom-6 duration-700">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] md:text-xs font-bold tracking-widest text-neutral-400 uppercase">
+                  <Icon name="film" className="w-3.5 h-3.5" />
+                  <span>Katalog Film</span>
+                </div>
+                <h1 className="text-4xl md:text-6xl font-black tracking-tight text-white uppercase italic drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
+                  Semua Film & Acara
+                </h1>
+                <p className="text-sm md:text-base text-neutral-400 max-w-2xl font-light leading-relaxed">
+                  Jelajahi pustaka lengkap kami. Dari drama yang menyentuh hati hingga aksi yang memacu adrenalin, temukan cerita terbaik dari sineas tanah air.
+                </p>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* Grid Content Section */}
-      <section className={cn("pb-24 px-6 max-w-7xl mx-auto space-y-10", isAuthenticated ? "py-20" : "pt-10")}>
+      <section className="pb-24 px-6 max-w-7xl mx-auto space-y-10 pt-10">
         {/* Navigation & Filter Row */}
         <div className="space-y-6 border-b border-border pb-6">
           {/* Search Bar */}
