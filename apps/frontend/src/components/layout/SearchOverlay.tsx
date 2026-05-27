@@ -104,7 +104,6 @@ export function SearchOverlay({ isOpen, onClose, query, setQuery }: SearchOverla
     const searchLower = query.toLowerCase();
     return allMovies.filter((m) => 
       m.title.toLowerCase().includes(searchLower) ||
-      (m.description || "").toLowerCase().includes(searchLower) ||
       (m.genre || "").toLowerCase().includes(searchLower) ||
       (m.director || "").toLowerCase().includes(searchLower) ||
       (m.producer || "").toLowerCase().includes(searchLower) ||
