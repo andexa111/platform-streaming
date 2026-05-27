@@ -175,7 +175,7 @@ function CatalogContent() {
     <main className="min-h-screen bg-background text-foreground font-sans selection:bg-brand/30">
       {/* Premium Hero Banner */}
       {mounted && (
-        <section className="relative min-h-[35vh] md:min-h-[45vh] flex items-end pb-12 md:pb-16 overflow-hidden">
+        <section className="relative min-h-[40vh] md:min-h-[45vh] flex flex-col justify-end pt-28 md:pt-36 pb-12 md:pb-16 overflow-hidden">
           {/* Backdrop Image with Dark Gradients */}
           <div className="absolute inset-0 bg-neutral-950">
             {backdropUrl ? (
@@ -207,10 +207,10 @@ function CatalogContent() {
                   <Icon name="tag" className="w-3.5 h-3.5" />
                   <span>{searchType}</span>
                 </div>
-                <h1 className="text-4xl md:text-6xl font-black tracking-tight text-white uppercase italic drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
+                <h1 className="text-2xl sm:text-4xl md:text-6xl font-black tracking-tight text-white uppercase italic drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
                   {searchVal}
                 </h1>
-                <p className="text-sm md:text-base text-neutral-300 max-w-2xl font-light leading-relaxed">
+                <p className="text-xs md:text-base text-neutral-350 max-w-2xl font-light leading-relaxed">
                   Menampilkan semua film yang diproduksi, disutradarai, atau diperankan oleh <strong className="text-white font-bold">{searchVal}</strong>. Temukan mahakarya terbaik mereka di Sinea.
                 </p>
                 <div className="flex items-center gap-3 text-xs text-muted-foreground font-semibold">
@@ -224,10 +224,10 @@ function CatalogContent() {
                   <Icon name="film" className="w-3.5 h-3.5" />
                   <span>Katalog Film</span>
                 </div>
-                <h1 className="text-4xl md:text-6xl font-black tracking-tight text-white uppercase italic drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
+                <h1 className="text-2xl sm:text-4xl md:text-6xl font-black tracking-tight text-white uppercase italic drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
                   Semua Film & Acara
                 </h1>
-                <p className="text-sm md:text-base text-neutral-400 max-w-2xl font-light leading-relaxed">
+                <p className="text-xs md:text-base text-neutral-400 max-w-2xl font-light leading-relaxed">
                   Jelajahi pustaka lengkap kami. Dari drama yang menyentuh hati hingga aksi yang memacu adrenalin, temukan cerita terbaik dari sineas tanah air.
                 </p>
               </div>
