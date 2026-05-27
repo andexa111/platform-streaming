@@ -14,6 +14,31 @@ interface SearchOverlayProps {
   setQuery: (query: string) => void;
 }
 
+function escapeRegExp(string: string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function highlightText(text: string, highlight: string) {
+  if (!highlight.trim()) {
+    return <span>{text}</span>;
+  }
+  const regex = new RegExp(`(${escapeRegExp(highlight.trim())})`, "gi");
+  const parts = text.split(regex);
+  return (
+    <span>
+      {parts.map((part, i) =>
+        regex.test(part) ? (
+          <mark key={i} className="bg-brand/20 text-brand font-extrabold rounded px-0.5 border border-brand/10">
+            {part}
+          </mark>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </span>
+  );
+}
+
 export function SearchOverlay({ isOpen, onClose, query, setQuery }: SearchOverlayProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -87,6 +112,30 @@ export function SearchOverlay({ isOpen, onClose, query, setQuery }: SearchOverla
       (m.actors || []).some(actor => actor.toLowerCase().includes(searchLower))
     );
   }, [query, allMovies]);
+
+  const getMatchDetails = (movie: Video, queryStr: string) => {
+    if (!queryStr.trim()) return [];
+    const searchLower = queryStr.toLowerCase();
+    const result: { label: string; text: string }[] = [];
+
+    // Check director
+    if (movie.director && movie.director.toLowerCase().includes(searchLower)) {
+      result.push({ label: "Sutradara", text: movie.director });
+    }
+    // Check producer
+    if (movie.producer && movie.producer.toLowerCase().includes(searchLower)) {
+      result.push({ label: "Produser", text: movie.producer });
+    }
+    // Check actors
+    const matchingActors = (movie.actors || []).filter(actor =>
+      actor.toLowerCase().includes(searchLower)
+    );
+    matchingActors.forEach(actor => {
+      result.push({ label: "Pemeran Utama", text: actor });
+    });
+
+    return result;
+  };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -177,17 +226,25 @@ export function SearchOverlay({ isOpen, onClose, query, setQuery }: SearchOverla
                       <Icon name="film" className="w-4 h-4 text-neutral-500 group-hover:text-brand transition-colors flex-shrink-0" />
                       <div className="flex flex-col min-w-0">
                         <span className="text-sm font-bold text-white group-hover:text-brand transition-colors truncate">
-                          {movie.title}
+                          {highlightText(movie.title, query)}
                         </span>
-                        <div className="flex items-center gap-2 text-[11px] text-neutral-400 font-semibold mt-0.5">
-                          <span>{movie.genre}</span>
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-neutral-400 font-semibold mt-0.5">
+                          <span>{highlightText(movie.genre || "", query)}</span>
                           {movie.productionHouse && (
                             <>
                               <span className="text-neutral-600">•</span>
-                              <span className="text-neutral-500 uppercase tracking-wider truncate">{movie.productionHouse}</span>
+                              <span className="text-neutral-500 uppercase tracking-wider truncate">
+                                {highlightText(movie.productionHouse || "", query)}
+                              </span>
                             </>
                           )}
                         </div>
+                        {getMatchDetails(movie, query).map((match, idx) => (
+                          <div key={idx} className="text-[10px] text-neutral-400 mt-1 flex items-center gap-1.5">
+                            <span className="text-neutral-500 font-black uppercase tracking-widest text-[8px]">{match.label}:</span>
+                            <span className="text-neutral-300 font-bold">{highlightText(match.text, query)}</span>
+                          </div>
+                        ))}
                       </div>
                     </div>
 
