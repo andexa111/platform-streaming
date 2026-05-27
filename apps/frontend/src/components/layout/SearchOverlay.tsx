@@ -6,7 +6,6 @@ import { Icon } from "@/components/ui/Icon";
 import { api, getMediaUrl } from "@/lib/api";
 import { Video } from "@/types/video";
 import Link from "next/link";
-import Image from "next/image";
 
 interface SearchOverlayProps {
   isOpen: boolean;
@@ -165,49 +164,37 @@ export function SearchOverlay({ isOpen, onClose, query, setQuery }: SearchOverla
                 <span className="text-sm font-medium">Tidak ada film yang cocok</span>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1.5">
                 {filteredMovies.map((movie) => (
                   <Link
                     key={movie.id}
                     href={`/movies/${movie.id}`}
                     onClick={onClose}
-                    className="flex items-center gap-4 p-2.5 rounded-xl hover:bg-white/5 border border-transparent hover:border-white/5 transition-all duration-300 group"
+                    className="flex items-center justify-between gap-4 px-4 py-3 rounded-xl bg-neutral-900/40 hover:bg-white/5 border border-white/5 hover:border-brand/35 transition-all duration-300 group"
                   >
-                    {/* Small Poster */}
-                    <div className="relative w-14 h-20 rounded-lg overflow-hidden bg-neutral-800 flex-shrink-0 border border-white/5 shadow-md">
-                      {movie.thumbnail ? (
-                        <Image
-                          src={movie.thumbnail}
-                          alt={movie.title}
-                          fill
-                          sizes="56px"
-                          className="object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-neutral-800">
-                          <Icon name="play" className="w-4 h-4 text-neutral-600" />
-                        </div>
-                      )}
-                    </div>
-
                     {/* Movie Info */}
-                    <div className="flex-1 min-w-0 space-y-1">
-                      <h4 className="text-sm font-bold text-white group-hover:text-brand transition-colors truncate">
-                        {movie.title}
-                      </h4>
-                      <p className="text-xs text-neutral-400 font-medium">
-                        {movie.genre}
-                      </p>
-                      {movie.productionHouse && (
-                        <p className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider truncate">
-                          {movie.productionHouse}
-                        </p>
-                      )}
+                    <div className="flex-1 min-w-0 flex items-center gap-3">
+                      <Icon name="film" className="w-4 h-4 text-neutral-500 group-hover:text-brand transition-colors flex-shrink-0" />
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-sm font-bold text-white group-hover:text-brand transition-colors truncate">
+                          {movie.title}
+                        </span>
+                        <div className="flex items-center gap-2 text-[11px] text-neutral-400 font-semibold mt-0.5">
+                          <span>{movie.genre}</span>
+                          {movie.productionHouse && (
+                            <>
+                              <span className="text-neutral-600">•</span>
+                              <span className="text-neutral-500 uppercase tracking-wider truncate">{movie.productionHouse}</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
                     </div>
 
-                    {/* Arrow/Play Icon */}
-                    <div className="w-8 h-8 rounded-full bg-neutral-800 group-hover:bg-brand flex items-center justify-center text-neutral-400 group-hover:text-white transition-all duration-300 shadow-md">
-                      <Icon name="play" className="w-3.5 h-3.5 fill-current ml-0.5" />
+                    {/* Play Action Icon */}
+                    <div className="flex items-center gap-2 flex-shrink-0 text-xs font-bold text-neutral-500 group-hover:text-brand transition-colors">
+                      <span className="hidden sm:inline opacity-0 group-hover:opacity-100 transition-opacity">Tonton</span>
+                      <Icon name="play" className="w-3.5 h-3.5 fill-current" />
                     </div>
                   </Link>
                 ))}
