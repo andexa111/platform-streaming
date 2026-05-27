@@ -67,6 +67,14 @@ export function SearchOverlay({ isOpen, onClose, query, setQuery }: SearchOverla
       className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-xl animate-in fade-in duration-300 flex items-start justify-center pt-[10vh] md:pt-[15vh] px-4"
       onClick={onClose}
     >
+      {/* Close button for mobile */}
+      <button 
+        onClick={onClose}
+        className="absolute top-4 right-4 p-2 bg-neutral-900/50 rounded-full border border-white/10 text-neutral-400 hover:text-white transition-all md:hidden"
+      >
+        <Icon name="x" className="w-4 h-4" />
+      </button>
+
       <div 
         ref={containerRef}
         onClick={(e) => e.stopPropagation()}
@@ -123,14 +131,6 @@ export function SearchOverlay({ isOpen, onClose, query, setQuery }: SearchOverla
             ))}
           </div>
         </div>
-
-        {/* Close button for mobile */}
-        <button 
-          onClick={onClose}
-          className="absolute top-4 right-4 p-2 bg-neutral-900/50 rounded-full border border-white/10 text-neutral-400 hover:text-white transition-all md:hidden"
-        >
-          <Icon name="x" className="w-4 h-4" />
-        </button>
       </div>
     </div>
   );
