@@ -53,6 +53,12 @@ export default function AdminMoviesPage() {
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedMovies, setSelectedMovies] = useState<number[]>([]);
 
+  // Deletion Modal States
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [movieToDelete, setMovieToDelete] = useState<{ id: number; title: string } | null>(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+
   // Fetch films from API
   useEffect(() => {
     fetchFilms();
@@ -105,20 +111,28 @@ export default function AdminMoviesPage() {
     }
   };
 
-  const handleDelete = async (id: number, title: string) => {
-    const confirmation = prompt(
-      `PERINGATAN: Tindakan ini akan menghapus film "${title}" SECARA PERMANEN dari database dan Cloudflare R2!\n\nKetik kata "HAPUS" untuk mengonfirmasi:`
-    );
-    if (!confirmation || confirmation.toUpperCase() !== "HAPUS") {
-      alert("Penghapusan dibatalkan.");
-      return;
-    }
+  const handleDeleteClick = (id: number, title: string) => {
+    setMovieToDelete({ id, title });
+    setDeleteConfirmText("");
+    setDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!movieToDelete) return;
+    if (deleteConfirmText.toUpperCase() !== "HAPUS") return;
+
     try {
-      await api.delete(`/films/${id}`);
+      setIsDeleting(true);
+      await api.delete(`/films/${movieToDelete.id}`);
+      setDeleteModalOpen(false);
+      setMovieToDelete(null);
+      setDeleteConfirmText("");
       fetchFilms();
     } catch (err) {
       console.error("Gagal menghapus film:", err);
       alert("Gagal menghapus film");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -321,7 +335,7 @@ export default function AdminMoviesPage() {
                         <ButtonAction 
                           onView={() => handleTogglePublish(film.id, film.is_published)}
                           onEdit={() => router.push(`/admin/movies/edit/${film.id}`)}
-                          onDelete={() => handleDelete(film.id, film.title)}
+                          onDelete={() => handleDeleteClick(film.id, film.title)}
                         />
                       </td>
                     </tr>
@@ -349,6 +363,86 @@ export default function AdminMoviesPage() {
           <p className="text-xs text-muted-foreground">Menampilkan <span className="font-bold text-foreground">{filteredMovies.length}</span> dari <span className="font-bold text-foreground">{films.length}</span> film</p>
         </div>
       </div>
+
+      {/* Custom Deletion Modal with Premium Styling */}
+      {deleteModalOpen && movieToDelete && (
+        <div className="fixed inset-0 bg-neutral-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-card border border-border w-full max-w-md rounded-[2rem] overflow-hidden shadow-2xl p-6 md:p-8 space-y-6 animate-in zoom-in-95 duration-200">
+            {/* Header with warning icon */}
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-red-500/10 text-red-500 flex items-center justify-center flex-shrink-0 animate-pulse">
+                <Icon name="warning" className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-foreground uppercase tracking-wide">Hapus Film</h3>
+                <p className="text-xs text-muted-foreground font-semibold">Tindakan ini tidak dapat dibatalkan.</p>
+              </div>
+            </div>
+
+            {/* Warning Message Card */}
+            <div className="space-y-3">
+              <div className="p-4 rounded-2xl bg-red-500/5 border border-red-500/15 text-xs text-red-400 space-y-2 leading-relaxed">
+                <p className="font-bold uppercase tracking-wider text-[10px]">Peringatan Kritis:</p>
+                <p>
+                  Film <strong className="text-white font-black">"{movieToDelete.title}"</strong> akan dihapus secara permanen dari database. Seluruh folder video HLS dan kunci dekripsi di Cloudflare R2 juga akan dibersihkan.
+                </p>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Untuk melanjutkan penghapusan, silakan ketik kata kunci <strong className="text-foreground font-black">"HAPUS"</strong> di bawah ini:
+              </p>
+            </div>
+
+            {/* Input Box */}
+            <div className="space-y-2">
+              <input
+                type="text"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder='Ketik "HAPUS" di sini...'
+                className="w-full px-4 py-3 bg-secondary border border-border rounded-xl text-sm focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500/20 text-foreground placeholder:text-muted-foreground font-black transition-all text-center tracking-widest uppercase"
+                disabled={isDeleting}
+                autoFocus
+              />
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setDeleteModalOpen(false);
+                  setMovieToDelete(null);
+                  setDeleteConfirmText("");
+                }}
+                disabled={isDeleting}
+                className="flex-1 py-3 px-4 rounded-xl text-xs font-bold text-muted-foreground hover:text-foreground bg-secondary hover:bg-neutral-800 transition-colors uppercase tracking-widest"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={deleteConfirmText.toUpperCase() !== "HAPUS" || isDeleting}
+                className={cn(
+                  "flex-1 py-3 px-4 rounded-xl text-xs font-black text-white transition-all uppercase tracking-widest flex items-center justify-center gap-2",
+                  deleteConfirmText.toUpperCase() === "HAPUS" && !isDeleting
+                    ? "bg-red-600 hover:bg-red-700 shadow-lg shadow-red-600/25 active:scale-95 cursor-pointer"
+                    : "bg-neutral-800 text-neutral-500 cursor-not-allowed"
+                )}
+              >
+                {isDeleting ? (
+                  <>
+                    <div className="w-3.5 h-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                    <span>Menghapus...</span>
+                  </>
+                ) : (
+                  <span>Hapus Permanen</span>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
