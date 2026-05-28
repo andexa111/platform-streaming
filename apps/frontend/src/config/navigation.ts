@@ -15,7 +15,7 @@ export const NAV_LINKS = {
   // Menu untuk admin biasa
   adminBasic: [
     { name: "Home", href: "/admin", icon: "dashboard" },
-    { name: "Analytics", href: "/admin/analytics", icon: "analytics" },
+    // { name: "Analytics", href: "/admin/analytics", icon: "analytics" },
     { name: "Movies", href: "/admin/movies", icon: "film" },
     { name: "Genres", href: "/admin/genres", icon: "tag" },
     { name: "Banners", href: "/admin/banners", icon: "image" },
@@ -26,7 +26,7 @@ export const NAV_LINKS = {
   // Menu tambahan untuk superadmin (semua + management)
   adminSuper: [
     { name: "Home", href: "/superadmin", icon: "dashboard" },
-    { name: "Analytics", href: "/superadmin/analytics", icon: "analytics" },
+    // { name: "Analytics", href: "/superadmin/analytics", icon: "analytics" },
     { name: "Movies", href: "/superadmin/movies", icon: "film" },
     { name: "Genres", href: "/superadmin/genres", icon: "tag" },
     { name: "Banners", href: "/superadmin/banners", icon: "image" },
@@ -39,7 +39,7 @@ export const NAV_LINKS = {
   // Legacy alias — backward compatibility
   admin: [
     { name: "Home", href: "/admin", icon: "dashboard" },
-    { name: "Analytics", href: "/admin/analytics", icon: "analytics" },
+    // { name: "Analytics", href: "/admin/analytics", icon: "analytics" },
     { name: "Movies", href: "/admin/movies", icon: "film" },
     { name: "Genres", href: "/admin/genres", icon: "tag" },
     { name: "Banners", href: "/admin/banners", icon: "image" },
