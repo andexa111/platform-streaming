@@ -1,67 +1,48 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
 import { Icon } from "@/components/ui/Icon";
 import Link from "next/link";
 import { VideoSection } from "@/components/video/VideoSection";
 import { cn } from "@/lib/utils";
-
-import { ALL_MOVIES, GENRES } from "@/constants/video-data";
+import { api, getMediaUrl } from "@/lib/api";
+import { Video } from "@/types/video";
+import { GENRES } from "@/constants/video-data";
 import { Ads } from "@/components/home/Ads";
 
-const PLANS = [
-  {
-    name: "1 Bulan",
-    price: "50K",
-    period: "",
-    icon: "chess-pawn",
-    color: "text-brand",
-    borderColor: "border-brand/30",
-    bgColor: "bg-brand/5",
-    features: ["Akses Semua Film & Series", "Kualitas Full HD", "Tanpa Iklan", "Download untuk Offline"],
-    buttonText: "Pilih Paket",
-    popular: false,
-    buttonClass: "bg-brand/10 text-brand dark:text-white border border-brand/20 hover:bg-brand hover:text-white hover:border-brand shadow-brand/10",
-  },
-  {
-    name: "3 Bulan",
-    price: "150K",
-    period: "",
-    icon: "chess-rook",
-    color: "text-[#CD7F32]",
-    borderColor: "border-[#CD7F32]/30",
-    bgColor: "bg-[#CD7F32]/5",
-    features: ["Akses Semua Film & Series", "Kualitas Full HD", "Tanpa Iklan", "Download untuk Offline"],
-    buttonText: "Pilih Paket",
-    popular: false,
-    buttonClass: "bg-[#CD7F32]/10 text-[#CD7F32] dark:text-white border border-[#CD7F32]/20 hover:bg-[#CD7F32] hover:text-white hover:border-[#CD7F32] shadow-[#CD7F32]/10",
-  },
-  {
-    name: "6 Bulan",
-    price: "300K",
-    period: "",
-    icon: "chess-knight",
-    color: "text-neutral-400 dark:text-white",
-    borderColor: "border-neutral-300/80 dark:border-white/20",
-    bgColor: "bg-neutral-200/20 dark:bg-white/5",
-    features: ["Akses Semua Film & Series", "Kualitas Full HD", "Tanpa Iklan", "Download untuk Offline"],
-    buttonText: "Pilih Paket",
-    popular: true,
-    buttonClass: "bg-neutral-200/50 dark:bg-white/10 text-neutral-700 dark:text-white border border-neutral-300 dark:border-white/20 hover:bg-neutral-900 hover:text-white dark:hover:bg-white dark:hover:text-neutral-950 hover:border-neutral-900 dark:hover:border-white shadow-sm dark:shadow-white/5",
-  },
-  {
-    name: "1 Tahun",
-    price: "600K",
-    period: "",
-    icon: "chess-queen",
-    color: "text-[#FFD700]",
-    borderColor: "border-[#FFD700]/40 dark:border-[#FFD700]/30",
-    bgColor: "bg-[#FFD700]/5",
-    features: ["Akses Semua Film & Series", "Kualitas Full HD", "Tanpa Iklan", "Download untuk Offline"],
-    buttonText: "Pilih Paket",
-    popular: false,
-    buttonClass: "bg-[#FFD700]/10 text-[#B8860B] dark:text-white border border-[#FFD700]/20 dark:border-[#FFD700]/20 hover:bg-[#FFD700] hover:text-neutral-950 hover:border-[#FFD700] shadow-[#FFD700]/10",
-  },
-];
-
 export default function PublicPage() {
+  const [films, setFilms] = useState<Video[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.get("/films?limit=10")
+      .then((res) => {
+        const dbFilms = res.data?.data || [];
+        const mappedFilms = dbFilms.map((film: any): Video => ({
+          id: film.id,
+          title: film.title,
+          genre: film.genres && film.genres.length > 0 ? film.genres[0].name : "Other",
+          rating: "4.8",
+          quality: "4K UHD",
+          thumbnail: film.poster_url ? getMediaUrl(film.poster_url) : "",
+          backdrop: film.poster_url ? getMediaUrl(film.poster_url) : "",
+          description: film.description || "",
+          trailerUrl: film.trailer_url ? getMediaUrl(film.trailer_url) : "",
+          productionHouse: film.production_house || "",
+          productionHouseLogo: film.production_house_logo ? getMediaUrl(film.production_house_logo) : "",
+          clipStart: film.clip_start ?? undefined,
+          clipEnd: film.clip_end ?? undefined,
+        }));
+        setFilms(mappedFilms);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch public films", err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
+
   return (
     <main className="min-h-screen bg-background text-foreground font-sans selection:bg-brand/30">
       {/* Hero Section */}
@@ -100,10 +81,20 @@ export default function PublicPage() {
           </div>
         </div>
       </section>
-      <VideoSection title="Sedang Tayang" videos={ALL_MOVIES.slice(0, 10)} viewAllHref="/movies" />
+
+      {loading ? (
+        <div className="py-20 flex justify-center">
+          <div className="w-10 h-10 border-4 border-brand border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : (
+        <VideoSection title="Sedang Tayang" videos={films} viewAllHref="/movies" />
+      )}
+
       <VideoSection title="Segera Hadir" videos={[]} viewAllHref="/movies" className="bg-secondary/20" />
+      
       {/* Ads Section */}
       <Ads />
+
       {/* Genres Section */}
       <section className="py-24 px-6 bg-background relative border-t border-border overflow-hidden">
         <div className="absolute -left-1/4 top-0 w-[500px] h-[500px] bg-brand/10 blur-[120px] rounded-full mix-blend-screen pointer-events-none" />
@@ -140,6 +131,7 @@ export default function PublicPage() {
           </div>
         </div>
       </section>
+
       {/* Features Section */}
       <section className="py-24 px-6 bg-secondary/10 relative border-t border-border">
         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-8">
