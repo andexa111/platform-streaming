@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand, ListObjectsV2Command, DeleteObjectsCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Readable } from 'stream';
 import * as fs from 'fs';
@@ -108,10 +108,42 @@ export class BunnyService {
    * Menghapus seluruh folder video di R2
    */
   async deleteHlsFolder(r2FolderPath: string): Promise<void> {
-    // Di S3/R2, tidak ada konsep folder nyata, semua adalah key datar.
-    // Menghapus folder berarti menghapus semua objek dengan prefix folder tersebut.
-    // Untuk kesederhanaan, kita bisa biarkan kosong atau implementasikan list-and-delete jika diperlukan nanti.
-    this.logger.log(`Request delete folder R2 (ignored for prefix simplicity): ${r2FolderPath}`);
+    try {
+      const prefix = r2FolderPath.endsWith('/') ? r2FolderPath : `${r2FolderPath}/`;
+      this.logger.log(`Deleting all objects in R2 with prefix: ${prefix}`);
+
+      // 1. List all objects with prefix
+      const listCommand = new ListObjectsV2Command({
+        Bucket: this.bucketName,
+        Prefix: prefix,
+      });
+
+      const listResponse = await this.s3Client.send(listCommand);
+
+      if (!listResponse.Contents || listResponse.Contents.length === 0) {
+        this.logger.log(`No objects found in R2 with prefix: ${prefix}`);
+        return;
+      }
+
+      // 2. Prepare objects for deletion
+      const objectsToDelete = listResponse.Contents.map((obj) => ({
+        Key: obj.Key,
+      }));
+
+      // 3. Send delete objects command
+      const deleteCommand = new DeleteObjectsCommand({
+        Bucket: this.bucketName,
+        Delete: {
+          Objects: objectsToDelete,
+          Quiet: true,
+        },
+      });
+
+      await this.s3Client.send(deleteCommand);
+      this.logger.log(`Successfully deleted ${objectsToDelete.length} objects from R2 prefix: ${prefix}`);
+    } catch (err: any) {
+      this.logger.error(`Failed to delete folder HLS from R2 (${r2FolderPath}): ${err.message}`);
+    }
   }
 
   /**

@@ -106,7 +106,13 @@ export default function AdminMoviesPage() {
   };
 
   const handleDelete = async (id: number, title: string) => {
-    if (!confirm(`Hapus film "${title}"?`)) return;
+    const confirmation = prompt(
+      `PERINGATAN: Tindakan ini akan menghapus film "${title}" SECARA PERMANEN dari database dan Cloudflare R2!\n\nKetik kata "HAPUS" untuk mengonfirmasi:`
+    );
+    if (!confirmation || confirmation.toUpperCase() !== "HAPUS") {
+      alert("Penghapusan dibatalkan.");
+      return;
+    }
     try {
       await api.delete(`/films/${id}`);
       fetchFilms();

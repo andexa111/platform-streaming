@@ -3,15 +3,21 @@ import {
   NotFoundException,
   Logger,
 } from '@nestjs/common';
+import * as fs from 'fs';
+import * as path from 'path';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateFilmDto } from './dto/create-film.dto';
 import { UpdateFilmDto } from './dto/update-film.dto';
+import { BunnyService } from '../bunny/bunny.service';
 
 @Injectable()
 export class FilmService {
   private readonly logger = new Logger(FilmService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private bunnyService: BunnyService,
+  ) {}
 
   // ==================== CREATE ====================
 
@@ -242,23 +248,72 @@ export class FilmService {
     return film;
   }
 
-  // ==================== SOFT DELETE ====================
+  // ==================== HARD DELETE ====================
 
   /**
-   * Soft delete — film tidak dihapus dari database,
-   * tapi di-flag is_deleted = true
-   * Tidak muncul lagi di list user, tapi admin masih bisa lihat
+   * Helper untuk menghapus file lokal
+   */
+  private deleteLocalFile(relativeUrl: string | null) {
+    if (!relativeUrl) return;
+    if (relativeUrl.startsWith('http://') || relativeUrl.startsWith('https://')) return;
+
+    const absolutePath = path.resolve('./public', relativeUrl);
+    if (fs.existsSync(absolutePath)) {
+      try {
+        fs.unlinkSync(absolutePath);
+        this.logger.log(`Deleted local file: ${absolutePath}`);
+
+        // Bersihkan klip trailer jika menghapus trailer asli
+        if (relativeUrl.includes('uploads/trailers/')) {
+          const ext = path.extname(absolutePath);
+          const base = path.basename(absolutePath, ext);
+          const clipPath = path.join(path.dirname(absolutePath), `${base}-clip${ext}`);
+          if (fs.existsSync(clipPath)) {
+            fs.unlinkSync(clipPath);
+            this.logger.log(`Deleted local trailer clip: ${clipPath}`);
+          }
+        }
+      } catch (err: any) {
+        this.logger.error(`Failed to delete local file ${absolutePath}: ${err.message}`);
+      }
+    }
+  }
+
+  /**
+   * Hard Delete — Hapus film permanen dari database
+   * sekaligus membersihkan file video di Cloudflare R2
+   * dan file lokal (poster, trailer, logo)
    */
   async remove(id: number) {
-    await this.findOne(id);
+    const film = await this.findOne(id);
 
-    const film = await this.prisma.film.update({
+    // 1. Hapus file lokal (poster, trailer, logo)
+    this.deleteLocalFile(film.poster_url);
+    this.deleteLocalFile(film.trailer_url);
+    this.deleteLocalFile(film.production_house_logo);
+
+    // 2. Hapus file video di Cloudflare R2
+    // Hapus folder HLS 'films/<id>/'
+    await this.bunnyService.deleteHlsFolder(`films/${id}`);
+    // Hapus key dekripsi 'keys/film-<id>.key'
+    try {
+      await this.bunnyService.deleteFromStorage('keys', `film-${id}.key`);
+    } catch (e: any) {
+      this.logger.warn(`Could not delete key film-${id}.key from R2: ${e.message}`);
+    }
+
+    // 3. Bersihkan data relasi di database untuk menghindari foreign key constraint error
+    await this.prisma.filmView.deleteMany({ where: { filmId: id } });
+    await this.prisma.watchHistory.deleteMany({ where: { filmId: id } });
+    await this.prisma.featuredFilm.deleteMany({ where: { filmId: id } });
+
+    // 4. Hapus record film itu sendiri
+    await this.prisma.film.delete({
       where: { id },
-      data: { is_deleted: true, is_published: false },
     });
 
-    this.logger.log(`Film soft deleted: ${film.title} (ID: ${film.id})`);
-    return { message: `Film "${film.title}" berhasil dihapus` };
+    this.logger.log(`Film hard deleted: ${film.title} (ID: ${film.id})`);
+    return { message: `Film "${film.title}" berhasil dihapus secara permanen` };
   }
 
   // ==================== VIEWS ====================
