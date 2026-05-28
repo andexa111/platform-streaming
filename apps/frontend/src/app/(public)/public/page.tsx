@@ -100,8 +100,8 @@ export default function PublicPage() {
           </div>
         </div>
       </section>
-      <VideoSection title="Sedang Tayang" videos={ALL_MOVIES} viewAllHref="/movies" />
-      <VideoSection title="Segera Hadir" videos={[...ALL_MOVIES].reverse()} viewAllHref="/movies" className="bg-secondary/20" />
+      <VideoSection title="Sedang Tayang" videos={ALL_MOVIES.slice(0, 10)} viewAllHref="/movies" />
+      <VideoSection title="Segera Hadir" videos={[]} viewAllHref="/movies" className="bg-secondary/20" />
       {/* Ads Section */}
       <Ads />
       {/* Genres Section */}
