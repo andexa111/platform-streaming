@@ -254,3 +254,16 @@ model EmailToken {
 
   @@map("email_tokens")
 }
+
+// ==================== PARTNER LOGOS ====================
+model PartnerLogo {
+  id        Int      @id @default(autoincrement())
+  name      String   @default("")
+  logo_url  String   @default("")
+  slot      Int      @unique
+  is_active Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("partner_logos")
+}

@@ -18,6 +18,7 @@ import { MembershipPlanModule } from './membership-plan/membership-plan.module';
 import { DiscountModule } from './discount/discount.module';
 import { FeaturedFilmModule } from './featured-film/featured-film.module';
 import { SubscriptionModule } from './subscription/subscription.module';
+import { PartnerLogoModule } from './partner-logo/partner-logo.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { SubscriptionModule } from './subscription/subscription.module';
     DiscountModule,
     FeaturedFilmModule,
     SubscriptionModule,
+    PartnerLogoModule,
   ],
   controllers: [AppController],
   providers: [AppService],
