@@ -7,6 +7,7 @@ import { VideoSection } from "@/components/video/VideoSection";
 import { MovieBanner } from "@/components/home/MovieBanner";
 import { ALL_MOVIES, GENRES } from "@/constants/video-data";
 import { api } from "@/lib/api";
+import { Ads } from "@/components/home/Ads";
 
 export default function MemberHomePage() {
   const [plans, setPlans] = React.useState<any[]>([]);
@@ -27,6 +28,10 @@ export default function MemberHomePage() {
         <VideoSection title="Sedang Ditonton" subtitle="Lanjutkan menonton film favorit Anda" videos={ALL_MOVIES} viewAllHref="/movies" />
 
         <VideoSection title="Segera Hadir" subtitle="Film original eksklusif yang akan tayang bulan ini" videos={[...ALL_MOVIES].reverse()} viewAllHref="/movies" className="bg-muted/30" />
+
+
+        {/* Ads Section */}
+        <Ads />
 
         {/* Genres Section */}
         <section className="py-24 px-6 bg-background relative border-t border-border overflow-hidden">
@@ -66,7 +71,7 @@ export default function MemberHomePage() {
             </div>
           </div>
         </section>
-
+        
         {/* Pricing Section - For non-active members */}
         <section className="py-24 px-6 bg-background relative border-t border-border">
           <div className="max-w-7xl mx-auto space-y-16">

@@ -60,7 +60,8 @@ import {
   Smartphone,
   Download,
   ShieldCheck,
-  Clock
+  Clock,
+  Info
 } from "lucide-react";
 
 const ICON_MAP = {
@@ -121,6 +122,7 @@ const ICON_MAP = {
   "circle-dashed": CircleDashed,
   "chevron-left": ChevronLeft,
   warning: AlertTriangle,
+  info: Info,
   smartphone: Smartphone,
   download: Download,
   "shield-check": ShieldCheck,
