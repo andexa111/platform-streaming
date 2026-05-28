@@ -27,7 +27,7 @@ export default function MemberHomePage() {
       <div className="space-y-4 md:space-y-8 pb-20">
         <VideoSection title="Sedang Ditonton" subtitle="Lanjutkan menonton film favorit Anda" videos={ALL_MOVIES} viewAllHref="/movies" />
 
-        <VideoSection title="Segera Hadir" subtitle="Film original eksklusif yang akan tayang bulan ini" videos={[...ALL_MOVIES].reverse()} viewAllHref="/movies" className="bg-muted/30" />
+        <VideoSection title="Segera Hadir" subtitle="Film original eksklusif yang akan tayang bulan ini" videos={[].reverse()} viewAllHref="/movies" className="bg-muted/30" />
 
 
         {/* Ads Section */}

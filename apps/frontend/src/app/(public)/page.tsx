@@ -14,24 +14,24 @@
 // ═══════════════════════════════════════════════════════════════════
 // COMING SOON MODE (AKTIF)
 // ═══════════════════════════════════════════════════════════════════
-import ComingSoon from "@/components/coming-soon/ComingSoon";
+// import ComingSoon from "@/components/coming-soon/ComingSoon";
 
-export default function Home() {
-  return <ComingSoon />;
-}
+// export default function Home() {
+//   return <ComingSoon />;
+// }
 
 // ═══════════════════════════════════════════════════════════════════
 // HALAMAN UTAMA ASLI (NONAKTIF — Uncomment saat mau launch)
 // ═══════════════════════════════════════════════════════════════════
 
-/*
+
 import { Icon } from "@/components/ui/Icon";
 import Link from "next/link";
 import { VideoSection } from "@/components/video/VideoSection";
 
 import { ALL_MOVIES, GENRES } from "@/constants/video-data";
 
-export function RealHome() {
+export default function Home() {
   return (
     <main className="min-h-screen bg-background text-foreground font-sans selection:bg-brand/30">
       <section className="relative pt-40 pb-20 px-6 overflow-hidden flex flex-col items-center justify-center min-h-[85vh]">
@@ -224,4 +224,4 @@ export function RealHome() {
     </main>
   );
 }
-*/
+

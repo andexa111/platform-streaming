@@ -49,7 +49,16 @@ export function VideoSection({
         </div>
 
         {/* Content Row */}
-        <VideoRow videos={videos} viewAllHref={viewAllHref} basePath={basePath} />
+        {videos && videos.length > 0 ? (
+          <VideoRow videos={videos} viewAllHref={viewAllHref} basePath={basePath} />
+        ) : (
+          <div className="flex flex-col items-center justify-center py-12 md:py-20 px-4 text-center bg-secondary/10 rounded-2xl border border-dashed border-border/60">
+            <Icon name="film" className="w-10 h-10 md:w-12 md:h-12 text-muted-foreground/40 mb-3 md:mb-4" />
+            <p className="text-muted-foreground text-sm md:text-base font-medium">
+              Belum ada film
+            </p>
+          </div>
+        )}
       </div>
     </section>
   );
