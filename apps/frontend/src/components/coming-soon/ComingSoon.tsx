@@ -167,8 +167,6 @@ export default function ComingSoon() {
           {/* Description */}
           <p className="text-sm md:text-base text-neutral-500 max-w-md mx-auto leading-relaxed font-light">
             Nonton film & serial favorit kapan saja, di mana saja.
-            <br />
-            <span className="text-neutral-600">Streaming berkualitas tinggi, harga terjangkau.</span>
           </p>
 
           {/* Social links */}
