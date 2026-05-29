@@ -28,8 +28,16 @@ export class AuthService {
 
   async register(dto: RegisterDto) {
     if (process.env.BETA_TEST_MODE === 'true') {
-      const isDummyEmail = /^dummy\.sinea(10|[1-9])@gmail\.com$/i.test(dto.email);
-      if (!isDummyEmail) {
+      const match = /^dummy\.sinea(10|[1-9])@gmail\.com$/i.exec(dto.email);
+      if (match) {
+        const index = match[1];
+        const expectedPassword = `dummysinea${index}`;
+        if (dto.password !== expectedPassword) {
+          throw new ForbiddenException(
+            `Password untuk akun dummy ${dto.email} harus '${expectedPassword}'`,
+          );
+        }
+      } else {
         throw new ForbiddenException(
           'Registrasi dinonaktifkan sementara selama masa uji coba beta.',
         );

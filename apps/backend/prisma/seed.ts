@@ -142,6 +142,31 @@ async function seedMembershipPlans() {
   console.log(`   ✅ ${membershipPlans.length} membership plans seeded`);
 }
 
+async function seedDummyUsers() {
+  console.log('👥 Seeding dummy test users...');
+  for (let i = 1; i <= 10; i++) {
+    const email = `dummy.sinea${i}@gmail.com`;
+    const password = `dummysinea${i}`;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await prisma.user.upsert({
+      where: { email },
+      update: {
+        password: hashedPassword,
+        role: 'subscriber', // subscriber so they can stream without paying
+        email_verified_at: new Date(),
+      },
+      create: {
+        name: `Dummy Sinea ${i}`,
+        email,
+        password: hashedPassword,
+        role: 'subscriber',
+        email_verified_at: new Date(),
+      },
+    });
+  }
+  console.log('   ✅ 10 dummy test users seeded (dummy.sinea1@gmail.com s/d dummy.sinea10@gmail.com)');
+}
+
 // ==================== MAIN ====================
 
 async function main() {
@@ -151,11 +176,13 @@ async function main() {
   await seedSuperAdmin();
   await seedAdmin();
   await seedMembershipPlans();
+  await seedDummyUsers();
 
   console.log('\n✅ Seed completed!\n');
   console.log('📋 Akun yang tersedia:');
   console.log('   Super Admin : superadmin@sinea.id / SuperAdmin@2026');
   console.log('   Admin Biasa : admin@sinea.id / Admin@2026');
+  console.log('   Dummy Users : dummy.sinea1@gmail.com (dummysinea1) s/d dummy.sinea10@gmail.com (dummysinea10)');
 }
 
 main()
