@@ -27,6 +27,14 @@ export class AuthService {
   // ==================== REGISTER ====================
 
   async register(dto: RegisterDto) {
+    if (process.env.BETA_TEST_MODE === 'true') {
+      const isDummyEmail = /^dummy\.sinea(10|[1-9])@gmail\.com$/i.test(dto.email);
+      if (!isDummyEmail) {
+        throw new ForbiddenException(
+          'Registrasi dinonaktifkan sementara selama masa uji coba beta.',
+        );
+      }
+    }
 
     // 1. Cek apakah email sudah terdaftar
     const existingUser = await this.prisma.user.findUnique({
@@ -83,9 +91,17 @@ export class AuthService {
       throw new UnauthorizedException('Email atau password salah');
     }
 
-
-
-
+    // 3. Beta Test Mode login restriction
+    if (process.env.BETA_TEST_MODE === 'true') {
+      const isUser = user.role !== 'admin' && user.role !== 'superadmin';
+      const isBetaEmail = user.email.toLowerCase() === (process.env.BETA_TEST_EMAIL || '').toLowerCase();
+      const isDummyEmail = /^dummy\.sinea(10|[1-9])@gmail\.com$/i.test(user.email);
+      if (isUser && !isBetaEmail && !isDummyEmail) {
+        throw new ForbiddenException(
+          'Akses masuk dibatasi selama masa uji coba beta.',
+        );
+      }
+    }
 
     // 4. Generate JWT token
     const payload = {
@@ -142,7 +158,18 @@ export class AuthService {
         where: { email: profile.email },
       });
 
-
+      // Beta Test Mode OAuth restriction
+      if (process.env.BETA_TEST_MODE === 'true') {
+        const existingRole = user?.role || 'user';
+        const isUser = existingRole !== 'admin' && existingRole !== 'superadmin';
+        const isBetaEmail = profile.email.toLowerCase() === (process.env.BETA_TEST_EMAIL || '').toLowerCase();
+        const isDummyEmail = /^dummy\.sinea(10|[1-9])@gmail\.com$/i.test(profile.email);
+        if (isUser && !isBetaEmail && !isDummyEmail) {
+          throw new ForbiddenException(
+            'Akses masuk dibatasi selama masa uji coba beta.',
+          );
+        }
+      }
 
       if (!user) {
         // Buat user baru, langsung aktif sbg 'user' biasa
