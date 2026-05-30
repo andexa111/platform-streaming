@@ -12,7 +12,17 @@ export class GenreService {
   }
 
   async findOne(id: number) {
-    const genre = await this.prisma.genre.findUnique({ where: { id } });
+    const genre = await this.prisma.genre.findUnique({
+      where: { id },
+      include: {
+        films: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+      },
+    });
     if (!genre) throw new NotFoundException('Genre not found');
     return genre;
   }

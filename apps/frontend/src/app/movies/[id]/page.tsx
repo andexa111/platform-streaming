@@ -285,9 +285,22 @@ export default function MovieDetailPage() {
                 </span>
               )}
               <div className="w-0.5 h-0.5 md:w-1 md:h-1 rounded-full bg-muted mx-1 md:mx-2" />
-              <span className="text-brand text-[10px] md:text-sm font-bold uppercase tracking-wider">
-                {mappedMovie.genre}
-              </span>
+              {movie.categories && movie.categories.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5 items-center">
+                  {movie.categories.map((c: any) => (
+                    <span
+                      key={c.id}
+                      className="px-2 py-0.5 md:px-3 md:py-1 bg-brand/10 border border-brand/20 text-brand rounded-full text-[9px] md:text-xs font-bold uppercase tracking-wider"
+                    >
+                      {c.name}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <span className="text-brand text-[10px] md:text-sm font-bold uppercase tracking-wider">
+                  Tanpa Kategori
+                </span>
+              )}
             </div>
 
             {/* Title */}
@@ -354,23 +367,35 @@ export default function MovieDetailPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 pt-4 md:pt-6 border-t border-border">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-8 pt-4 md:pt-6 border-t border-border">
               <div className="space-y-1 md:space-y-2">
                 <span className="text-[8px] md:text-xs font-black uppercase tracking-widest text-muted-foreground">
                   Sutradara
                 </span>
-                {movie.director ? (
-                  <Link
-                    href={`/movies?search=${encodeURIComponent(movie.director)}`}
-                    className="block font-bold text-[10px] md:text-base text-foreground hover:text-brand hover:underline transition-colors cursor-pointer"
-                  >
-                    {movie.director}
-                  </Link>
-                ) : (
-                  <p className="font-bold text-[10px] md:text-base">
-                    —
-                  </p>
-                )}
+                <div className="font-bold text-[10px] md:text-base text-foreground flex flex-wrap gap-x-1">
+                  {movie.directors && movie.directors.length > 0 ? (
+                    movie.directors.map((d: any, idx: number) => (
+                      <React.Fragment key={d.id || idx}>
+                        {idx > 0 && ", "}
+                        <Link
+                          href={`/movies?search=${encodeURIComponent(d.name)}`}
+                          className="hover:text-brand hover:underline transition-colors inline"
+                        >
+                          {d.name}
+                        </Link>
+                      </React.Fragment>
+                    ))
+                  ) : movie.director ? (
+                    <Link
+                      href={`/movies?search=${encodeURIComponent(movie.director)}`}
+                      className="hover:text-brand hover:underline transition-colors inline"
+                    >
+                      {movie.director}
+                    </Link>
+                  ) : (
+                    <span>—</span>
+                  )}
+                </div>
               </div>
               <div className="space-y-1 md:space-y-2">
                 <span className="text-[8px] md:text-xs font-black uppercase tracking-widest text-muted-foreground">
@@ -416,6 +441,28 @@ export default function MovieDetailPage() {
               </div>
               <div className="space-y-1 md:space-y-2">
                 <span className="text-[8px] md:text-xs font-black uppercase tracking-widest text-muted-foreground">
+                  Genre
+                </span>
+                <div className="font-bold text-[10px] md:text-base text-foreground flex flex-wrap gap-x-1">
+                  {movie.genres && movie.genres.length > 0 ? (
+                    movie.genres.map((g: any, idx: number) => (
+                      <React.Fragment key={g.id}>
+                        {idx > 0 && ", "}
+                        <Link
+                          href={`/movies?search=${encodeURIComponent(g.name)}`}
+                          className="hover:text-brand hover:underline transition-colors inline"
+                        >
+                          {g.name}
+                        </Link>
+                      </React.Fragment>
+                    ))
+                  ) : (
+                    <span>—</span>
+                  )}
+                </div>
+              </div>
+              <div className="space-y-1 md:space-y-2">
+                <span className="text-[8px] md:text-xs font-black uppercase tracking-widest text-muted-foreground">
                   Tahun Rilis
                 </span>
                 <p className="font-bold text-[10px] md:text-base">
@@ -425,32 +472,108 @@ export default function MovieDetailPage() {
             </div>
           </div>
 
-          {/* Right: Cast / Sidebar Details */}
-          <div className="space-y-6 md:space-y-10 bg-muted/30 p-5 md:p-8 rounded-[1.5rem] md:rounded-3xl border border-border backdrop-blur-sm h-fit">
-            <h3 className="text-base md:text-xl font-bold border-b border-border pb-3 md:pb-4">
-              Pemeran Utama
-            </h3>
-            <div className="space-y-4 md:space-y-6 max-h-[250px] overflow-y-auto pr-4 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-brand/50 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-brand transition-colors">
-              {movie.actors && movie.actors.length > 0 ? (
-                movie.actors.map((actor: any, i: number) => (
+          {/* Right: Cast & Crew / Sidebar Details */}
+          <div className="space-y-8 bg-muted/20 p-6 md:p-8 rounded-[2rem] border border-border backdrop-blur-sm h-fit">
+            {/* Directors Group */}
+            <div className="space-y-4">
+              <h3 className="text-xs md:text-sm font-black uppercase tracking-wider text-muted-foreground border-b border-border/50 pb-2">
+                Sutradara
+              </h3>
+              <div className="grid grid-cols-1 gap-4">
+                {movie.directors && movie.directors.length > 0 ? (
+                  movie.directors.map((director: any, i: number) => (
+                    <Link
+                      key={director.id || i}
+                      href={`/movies?search=${encodeURIComponent(director.name)}`}
+                      className="flex items-center gap-3 group cursor-pointer"
+                    >
+                      <div className="w-12 h-12 rounded-full overflow-hidden border border-border bg-muted flex-shrink-0 relative group-hover:scale-105 transition-transform duration-300">
+                        {director.photo_url ? (
+                          <img
+                            src={getMediaUrl(director.photo_url)}
+                            alt={director.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-brand/10 text-brand font-black text-sm uppercase">
+                            {director.name.slice(0, 2)}
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-0.5">
+                        <p className="text-xs md:text-sm font-bold text-foreground group-hover:text-brand group-hover:underline transition-all">
+                          {director.name}
+                        </p>
+                        <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-black">
+                          Sutradara
+                        </p>
+                      </div>
+                    </Link>
+                  ))
+                ) : movie.director ? (
+                  // Fallback to legacy director text
                   <Link
-                    key={i}
-                    href={`/movies?search=${encodeURIComponent(actor.name)}`}
-                    className="block group cursor-pointer"
+                    href={`/movies?search=${encodeURIComponent(movie.director)}`}
+                    className="flex items-center gap-3 group cursor-pointer"
                   >
-                    <div className="space-y-0.5 md:space-y-1">
-                      <p className="text-xs md:text-sm font-bold text-foreground group-hover:text-brand group-hover:underline transition-colors">
-                        {actor.name}
+                    <div className="w-12 h-12 rounded-full overflow-hidden border border-border bg-muted flex-shrink-0 flex items-center justify-center bg-brand/10 text-brand font-black text-sm uppercase group-hover:scale-105 transition-transform duration-300">
+                      {movie.director.slice(0, 2)}
+                    </div>
+                    <div className="space-y-0.5">
+                      <p className="text-xs md:text-sm font-bold text-foreground group-hover:text-brand group-hover:underline transition-all">
+                        {movie.director}
                       </p>
-                      <p className="text-[8px] md:text-[10px] text-muted-foreground uppercase tracking-widest font-bold">
-                        Pemeran
+                      <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-black">
+                        Sutradara
                       </p>
                     </div>
                   </Link>
-                ))
-              ) : (
-                <p className="text-xs text-muted-foreground italic">Tidak ada daftar pemeran.</p>
-              )}
+                ) : (
+                  <p className="text-xs text-muted-foreground italic">Informasi sutradara tidak tersedia.</p>
+                )}
+              </div>
+            </div>
+
+            {/* Actors Group */}
+            <div className="space-y-4">
+              <h3 className="text-xs md:text-sm font-black uppercase tracking-wider text-muted-foreground border-b border-border/50 pb-2">
+                Pemeran / Aktor
+              </h3>
+              <div className="grid grid-cols-1 gap-4 max-h-[350px] overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-brand/35 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-brand transition-colors">
+                {movie.actors && movie.actors.length > 0 ? (
+                  movie.actors.map((actor: any, i: number) => (
+                    <Link
+                      key={actor.id || i}
+                      href={`/movies?search=${encodeURIComponent(actor.name)}`}
+                      className="flex items-center gap-3 group cursor-pointer"
+                    >
+                      <div className="w-12 h-12 rounded-full overflow-hidden border border-border bg-muted flex-shrink-0 relative group-hover:scale-105 transition-transform duration-300">
+                        {actor.photo_url ? (
+                          <img
+                            src={getMediaUrl(actor.photo_url)}
+                            alt={actor.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-brand/10 text-brand font-black text-sm uppercase">
+                            {actor.name.slice(0, 2)}
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-0.5">
+                        <p className="text-xs md:text-sm font-bold text-foreground group-hover:text-brand group-hover:underline transition-all">
+                          {actor.name}
+                        </p>
+                        <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-black">
+                          Aktor
+                        </p>
+                      </div>
+                    </Link>
+                  ))
+                ) : (
+                  <p className="text-xs text-muted-foreground italic">Tidak ada daftar pemeran.</p>
+                )}
+              </div>
             </div>
           </div>
         </div>

@@ -25,9 +25,10 @@ export default function AddMoviePage() {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    director: "",
     producer: "",
-    genre: "",
+    genreIds: [] as number[],
+    genreNames: [] as string[],
+    categories: [] as string[],
     release_year: "",
     video_id: "",
     trailer_url: "",
@@ -35,33 +36,90 @@ export default function AddMoviePage() {
     production_house: "",
     production_house_logo: "",
     is_published: false,
-    actors: [] as string[],
+    directors: [{ name: "", photo_url: "" }] as { name: string; photo_url: string }[],
+    actors: [{ name: "", photo_url: "" }] as { name: string; photo_url: string }[],
   });
 
-  const [actorInput, setActorInput] = useState("");
+  const [genreInput, setGenreInput] = useState("");
+  const [categoryInput, setCategoryInput] = useState("");
   const [genresList, setGenresList] = useState<{ id: number; name: string }[]>([]);
+  const [categoriesList, setCategoriesList] = useState<{ id: number; name: string }[]>([]);
 
   React.useEffect(() => {
     api.get("/genre").then((res) => setGenresList(res.data)).catch(console.error);
+    api.get("/category").then((res) => setCategoriesList(res.data)).catch(console.error);
   }, []);
 
   const updateField = (field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleAddActor = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      const newActor = actorInput.trim();
-      if (newActor && !formData.actors.includes(newActor)) {
-        updateField("actors", [...formData.actors, newActor]);
-      }
-      setActorInput("");
+  const handlePhotoUpload = async (file: File): Promise<string> => {
+    const data = new FormData();
+    data.append("file", file);
+    try {
+      const res = await api.post("/upload/image", data);
+      return res.data.url;
+    } catch (err: any) {
+      console.error("Gagal upload foto:", err);
+      alert(err.response?.data?.message || "Gagal mengunggah foto. Pastikan formatnya jpg/png/webp.");
+      return "";
     }
   };
 
-  const handleRemoveActor = (actorToRemove: string) => {
-    updateField("actors", formData.actors.filter(a => a !== actorToRemove));
+  const handleAddGenre = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const val = genreInput.trim();
+      if (!val) return;
+
+      const existing = genresList.find(g => g.name.toLowerCase() === val.toLowerCase());
+      if (existing) {
+        if (!formData.genreIds.includes(existing.id)) {
+          updateField("genreIds", [...formData.genreIds, existing.id]);
+        }
+      } else {
+        if (!formData.genreNames.includes(val)) {
+          updateField("genreNames", [...formData.genreNames, val]);
+        }
+      }
+      setGenreInput("");
+    }
+  };
+
+  const handleSelectGenreDropdown = (genreId: number) => {
+    if (!formData.genreIds.includes(genreId)) {
+      updateField("genreIds", [...formData.genreIds, genreId]);
+    }
+  };
+
+  const handleRemoveGenreId = (idToRemove: number) => {
+    updateField("genreIds", formData.genreIds.filter(id => id !== idToRemove));
+  };
+
+  const handleRemoveGenreName = (nameToRemove: string) => {
+    updateField("genreNames", formData.genreNames.filter(name => name !== nameToRemove));
+  };
+
+  const handleAddCategory = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const newCat = categoryInput.trim();
+      if (newCat && !formData.categories.includes(newCat)) {
+        updateField("categories", [...formData.categories, newCat]);
+      }
+      setCategoryInput("");
+    }
+  };
+
+  const handleRemoveCategory = (catToRemove: string) => {
+    updateField("categories", formData.categories.filter(c => c !== catToRemove));
+  };
+
+  const handleSelectCategoryDropdown = (catName: string) => {
+    if (!formData.categories.includes(catName)) {
+      updateField("categories", [...formData.categories, catName]);
+    }
   };
 
   const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, 3));
@@ -116,13 +174,18 @@ export default function AddMoviePage() {
     setError("");
 
     try {
+      const cleanDirectors = formData.directors.filter(d => d.name.trim() !== "");
+      const cleanActors = formData.actors.filter(a => a.name.trim() !== "");
+
       const payload: any = {
         title: formData.title,
         description: formData.description || undefined,
-        director: formData.director || undefined,
         producer: formData.producer || undefined,
-        actorNames: formData.actors.length > 0 ? formData.actors : undefined,
-        genreIds: formData.genre ? [parseInt(formData.genre)] : undefined,
+        directorsInput: cleanDirectors.length > 0 ? cleanDirectors : undefined,
+        actorsInput: cleanActors.length > 0 ? cleanActors : undefined,
+        genreIds: formData.genreIds.length > 0 ? formData.genreIds : undefined,
+        genreNames: formData.genreNames.length > 0 ? formData.genreNames : undefined,
+        categoryNames: formData.categories.length > 0 ? formData.categories : undefined,
         release_year: formData.release_year ? parseInt(formData.release_year) : undefined,
         video_id: formData.video_id || undefined,
         trailer_url: formData.trailer_url || undefined,
@@ -239,15 +302,78 @@ export default function AddMoviePage() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase text-foreground">Sutradara</label>
-                  <input
-                    type="text"
-                    placeholder="Nama sutradara"
-                    className="w-full px-5 py-3.5 bg-secondary border border-border rounded-2xl focus:outline-none focus:border-brand transition-all text-sm text-foreground placeholder:text-muted-foreground"
-                    value={formData.director}
-                    onChange={(e) => updateField("director", e.target.value)}
-                  />
+                {/* Directors Section */}
+                <div className="space-y-4 md:col-span-2">
+                  <label className="text-xs font-black uppercase text-foreground">Sutradara (Maks. 2)</label>
+                  <div className="space-y-3">
+                    {formData.directors.map((director, index) => (
+                      <div key={index} className="flex flex-col md:flex-row items-stretch md:items-center gap-4 p-4 bg-secondary/35 border border-border/50 rounded-2xl">
+                        <div className="flex-1">
+                          <input
+                            type="text"
+                            placeholder={`Nama sutradara ${index + 1}`}
+                            className="w-full px-5 py-3.5 bg-secondary border border-border rounded-2xl focus:outline-none focus:border-brand transition-all text-sm text-foreground placeholder:text-muted-foreground"
+                            value={director.name}
+                            onChange={(e) => {
+                              const newDirs = [...formData.directors];
+                              newDirs[index].name = e.target.value;
+                              updateField("directors", newDirs);
+                            }}
+                          />
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <label className="cursor-pointer flex-shrink-0">
+                            <div className="h-[54px] px-5 bg-secondary border border-border rounded-2xl flex items-center gap-2 hover:border-brand transition-all text-xs font-black uppercase tracking-wider text-muted-foreground hover:text-foreground">
+                              <Icon name="image" className="w-4 h-4" />
+                              {director.photo_url ? "Ganti Foto" : "Upload Foto"}
+                            </div>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  const url = await handlePhotoUpload(file);
+                                  const newDirs = [...formData.directors];
+                                  newDirs[index].photo_url = url;
+                                  updateField("directors", newDirs);
+                                }
+                              }}
+                            />
+                          </label>
+                          {director.photo_url && (
+                            <div className="w-[54px] h-[54px] rounded-2xl border border-border overflow-hidden bg-secondary flex-shrink-0">
+                              <img src={director.photo_url} alt="Sutradara" className="w-full h-full object-cover" />
+                            </div>
+                          )}
+                          {formData.directors.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                updateField("directors", formData.directors.filter((_, i) => i !== index));
+                              }}
+                              className="p-3.5 hover:bg-red-500/10 text-muted-foreground hover:text-red-500 rounded-2xl transition-colors border border-transparent hover:border-red-500/20"
+                            >
+                              <Icon name="trash" className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    {formData.directors.length < 2 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          updateField("directors", [...formData.directors, { name: "", photo_url: "" }]);
+                        }}
+                        className="flex items-center gap-2 px-4 py-2.5 bg-secondary hover:bg-muted border border-border rounded-xl text-xs font-black uppercase tracking-wider transition-all"
+                      >
+                        <Icon name="plus" className="w-3.5 h-3.5" />
+                        Tambah Sutradara
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -261,54 +387,189 @@ export default function AddMoviePage() {
                   />
                 </div>
 
+                {/* Actors Section */}
+                <div className="space-y-4 md:col-span-2">
+                  <label className="text-xs font-black uppercase text-foreground">Aktor / Pemeran</label>
+                  <div className="space-y-3">
+                    {formData.actors.map((actor, index) => (
+                      <div key={index} className="flex flex-col md:flex-row items-stretch md:items-center gap-4 p-4 bg-secondary/35 border border-border/50 rounded-2xl">
+                        <div className="flex-1">
+                          <input
+                            type="text"
+                            placeholder={`Nama aktor ${index + 1}`}
+                            className="w-full px-5 py-3.5 bg-secondary border border-border rounded-2xl focus:outline-none focus:border-brand transition-all text-sm text-foreground placeholder:text-muted-foreground"
+                            value={actor.name}
+                            onChange={(e) => {
+                              const newActs = [...formData.actors];
+                              newActs[index].name = e.target.value;
+                              updateField("actors", newActs);
+                            }}
+                          />
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <label className="cursor-pointer flex-shrink-0">
+                            <div className="h-[54px] px-5 bg-secondary border border-border rounded-2xl flex items-center gap-2 hover:border-brand transition-all text-xs font-black uppercase tracking-wider text-muted-foreground hover:text-foreground">
+                              <Icon name="image" className="w-4 h-4" />
+                              {actor.photo_url ? "Ganti Foto" : "Upload Foto"}
+                            </div>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  const url = await handlePhotoUpload(file);
+                                  const newActs = [...formData.actors];
+                                  newActs[index].photo_url = url;
+                                  updateField("actors", newActs);
+                                }
+                              }}
+                            />
+                          </label>
+                          {actor.photo_url && (
+                            <div className="w-[54px] h-[54px] rounded-2xl border border-border overflow-hidden bg-secondary flex-shrink-0">
+                              <img src={actor.photo_url} alt="Aktor" className="w-full h-full object-cover" />
+                            </div>
+                          )}
+                          {formData.actors.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                updateField("actors", formData.actors.filter((_, i) => i !== index));
+                              }}
+                              className="p-3.5 hover:bg-red-500/10 text-muted-foreground hover:text-red-500 rounded-2xl transition-colors border border-transparent hover:border-red-500/20"
+                            >
+                              <Icon name="trash" className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateField("actors", [...formData.actors, { name: "", photo_url: "" }]);
+                      }}
+                      className="flex items-center gap-2 px-4 py-2.5 bg-secondary hover:bg-muted border border-border rounded-xl text-xs font-black uppercase tracking-wider transition-all"
+                    >
+                      <Icon name="plus" className="w-3.5 h-3.5" />
+                      Tambah Aktor
+                    </button>
+                  </div>
+                </div>
                 <div className="space-y-2 md:col-span-2">
-                  <label className="text-xs font-black uppercase text-foreground">Aktor</label>
-                  <div className="p-3 bg-secondary border border-border rounded-2xl focus-within:border-brand transition-all">
-                    {formData.actors.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-2">
-                        {formData.actors.map((actor) => (
-                          <span key={actor} className="inline-flex items-center gap-1 px-3 py-1.5 bg-brand text-white rounded-xl text-xs font-bold">
-                            {actor}
-                            <button type="button" onClick={() => handleRemoveActor(actor)} className="hover:text-red-400 ml-1 transition-colors">
+                  <label className="text-xs font-black uppercase text-foreground">Genre</label>
+                  <div className="p-3 bg-secondary border border-border rounded-2xl focus-within:border-brand transition-all space-y-3">
+                    {/* Selected genre tags */}
+                    {(formData.genreIds.length > 0 || formData.genreNames.length > 0) && (
+                      <div className="flex flex-wrap gap-2">
+                        {formData.genreIds.map((id) => {
+                          const gName = genresList.find((g) => g.id === id)?.name || `ID: ${id}`;
+                          return (
+                            <span key={`id-${id}`} className="inline-flex items-center gap-1 px-3 py-1.5 bg-brand text-white rounded-xl text-xs font-bold">
+                              {gName}
+                              <button type="button" onClick={() => handleRemoveGenreId(id)} className="hover:text-red-400 ml-1 transition-colors">
+                                <Icon name="x" className="w-3 h-3" />
+                              </button>
+                            </span>
+                          );
+                        })}
+                        {formData.genreNames.map((name) => (
+                          <span key={`name-${name}`} className="inline-flex items-center gap-1 px-3 py-1.5 bg-indigo-600 text-white rounded-xl text-xs font-bold">
+                            {name} (Baru)
+                            <button type="button" onClick={() => handleRemoveGenreName(name)} className="hover:text-red-400 ml-1 transition-colors">
                               <Icon name="x" className="w-3 h-3" />
                             </button>
                           </span>
                         ))}
                       </div>
                     )}
-                    <input
-                      type="text"
-                      placeholder={formData.actors.length === 0 ? "Ketik nama aktor lalu tekan Enter..." : "Tambah aktor lain..."}
-                      className="w-full bg-transparent focus:outline-none text-sm px-2 py-1.5 text-foreground placeholder:text-muted-foreground"
-                      value={actorInput}
-                      onChange={(e) => setActorInput(e.target.value)}
-                      onKeyDown={handleAddActor}
-                    />
+                    
+                    <div className="flex flex-col md:flex-row gap-2">
+                      <div className="relative flex-1">
+                        <select
+                          className="w-full px-4 py-2 bg-card border border-border rounded-xl focus:outline-none focus:border-brand transition-all text-xs appearance-none pr-10 text-foreground"
+                          value=""
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (val) handleSelectGenreDropdown(parseInt(val));
+                          }}
+                        >
+                          <option value="">Pilih dari daftar...</option>
+                          {genresList
+                            .filter((g) => !formData.genreIds.includes(g.id))
+                            .map((g) => (
+                              <option key={g.id} value={g.id.toString()}>
+                                {g.name}
+                              </option>
+                            ))}
+                        </select>
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-foreground">
+                          <Icon name="chevron-down" className="w-4 h-4" />
+                        </div>
+                      </div>
+                      <div className="flex-[1.5]">
+                        <input
+                          type="text"
+                          placeholder="Atau ketik genre baru lalu tekan Enter..."
+                          className="w-full px-4 py-2 bg-card border border-border rounded-xl focus:outline-none focus:border-brand transition-all text-xs text-foreground placeholder:text-muted-foreground"
+                          value={genreInput}
+                          onChange={(e) => setGenreInput(e.target.value)}
+                          onKeyDown={handleAddGenre}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase text-foreground">Genre</label>
-                  <div className="relative">
-                    <select
-                      className={cn(
-                        "w-full px-5 py-3.5 bg-secondary border border-border rounded-2xl focus:outline-none focus:border-brand transition-all text-sm appearance-none pr-12 text-foreground",
-                        !formData.genre ? "opacity-50" : "opacity-100",
-                      )}
-                      value={formData.genre}
-                      onChange={(e) => updateField("genre", e.target.value)}
-                    >
-                      <option value="" disabled>
-                        Pilih Genre
-                      </option>
-                      {genresList.map((g) => (
-                        <option key={g.id} value={g.id.toString()} className="bg-card text-foreground">
-                          {g.name}
-                        </option>
-                      ))}
-                    </select>
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-foreground">
-                      <Icon name="chevron-down" className="w-5 h-5" />
+                 <div className="space-y-2 md:col-span-2">
+                  <label className="text-xs font-black uppercase text-foreground">Kategori (Tags)</label>
+                  <div className="p-3 bg-secondary border border-border rounded-2xl focus-within:border-brand transition-all space-y-3">
+                    {formData.categories.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {formData.categories.map((cat) => (
+                          <span key={cat} className="inline-flex items-center gap-1 px-3 py-1.5 bg-brand text-white rounded-xl text-xs font-bold">
+                            {cat}
+                            <button type="button" onClick={() => handleRemoveCategory(cat)} className="hover:text-red-400 ml-1 transition-colors">
+                              <Icon name="x" className="w-3 h-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    <div className="flex flex-col md:flex-row gap-2">
+                      <div className="relative flex-1">
+                        <select
+                          className="w-full px-4 py-2 bg-card border border-border rounded-xl focus:outline-none focus:border-brand transition-all text-xs appearance-none pr-10 text-foreground"
+                          value=""
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (val) handleSelectCategoryDropdown(val);
+                          }}
+                        >
+                          <option value="">Pilih dari daftar...</option>
+                          {categoriesList
+                            .filter((c) => !formData.categories.includes(c.name))
+                            .map((c) => (
+                              <option key={c.id} value={c.name}>
+                                {c.name}
+                              </option>
+                            ))}
+                        </select>
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-foreground">
+                          <Icon name="chevron-down" className="w-4 h-4" />
+                        </div>
+                      </div>
+                      <div className="flex-[1.5]">
+                        <input
+                          type="text"
+                          placeholder="Atau ketik kategori baru lalu tekan Enter..."
+                          className="w-full px-4 py-2 bg-card border border-border rounded-xl focus:outline-none focus:border-brand transition-all text-xs text-foreground placeholder:text-muted-foreground"
+                          value={categoryInput}
+                          onChange={(e) => setCategoryInput(e.target.value)}
+                          onKeyDown={handleAddCategory}
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -521,10 +782,17 @@ export default function AddMoviePage() {
                     {[
                       { label: "Judul", value: formData.title },
                       { label: "Rumah Produksi", value: formData.production_house },
-                      { label: "Sutradara", value: formData.director },
+                      { label: "Sutradara", value: formData.directors.map(d => d.name).filter(Boolean).join(", ") },
                       { label: "Produser", value: formData.producer },
-                      { label: "Aktor", value: formData.actors.length > 0 ? formData.actors.join(", ") : "" },
-                      { label: "Genre", value: genresList.find(g => g.id.toString() === formData.genre)?.name || formData.genre },
+                      { label: "Aktor", value: formData.actors.map(a => a.name).filter(Boolean).join(", ") },
+                      {
+                        label: "Genre",
+                        value: [
+                          ...formData.genreIds.map((id) => genresList.find((g) => g.id === id)?.name).filter(Boolean),
+                          ...formData.genreNames.map((name) => `${name} (Baru)`),
+                        ].join(", "),
+                      },
+                      { label: "Kategori", value: formData.categories.join(", ") },
                       { label: "Tahun Rilis", value: formData.release_year },
                       { label: "Video Utama", value: selectedVideoFile ? selectedVideoFile.name : formData.video_id },
                       { label: "Trailer ID", value: formData.trailer_url },

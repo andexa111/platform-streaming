@@ -27,20 +27,50 @@ export class FilmService {
    * - Actor dibuat baru jika belum ada (connectOrCreate)
    */
   async create(dto: CreateFilmDto) {
-    const { genreIds, actorNames, scheduled_at, ...filmData } = dto;
+    const { genreIds, genreNames, actorNames, categoryNames, scheduled_at, directorsInput, actorsInput, ...filmData } = dto;
+
+    if (directorsInput?.length) {
+      filmData.director = directorsInput.map(d => d.name).join(', ');
+    }
 
     const film = await this.prisma.film.create({
       data: {
         ...filmData,
         scheduled_at: scheduled_at ? new Date(scheduled_at) : null,
 
-        // Hubungkan genre (many-to-many)
-        genres: genreIds?.length
-          ? { connect: genreIds.map((id) => ({ id })) }
+        // Hubungkan genre (bisa pilih yang ada atau buat baru)
+        genres: (genreIds?.length || genreNames?.length)
+          ? {
+              connect: genreIds?.map((id) => ({ id })) || [],
+              connectOrCreate: genreNames?.map((name) => {
+                const slug = name.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '').replace(/\-\-+/g, '-');
+                return {
+                  where: { slug },
+                  create: { name, slug },
+                };
+              }) || [],
+            }
+          : undefined,
+
+        // Hubungkan/buat directors
+        directors: directorsInput?.length
+          ? {
+              create: directorsInput.map((dir) => ({
+                name: dir.name,
+                photo_url: dir.photo_url,
+              })),
+            }
           : undefined,
 
         // Buat actor baru atau hubungkan yang sudah ada
-        actors: actorNames?.length
+        actors: actorsInput?.length
+          ? {
+              create: actorsInput.map((act) => ({
+                name: act.name,
+                photo_url: act.photo_url,
+              })),
+            }
+          : actorNames?.length
           ? {
               connectOrCreate: actorNames.map((name) => ({
                 where: { id: 0 }, // Force create karena actor tidak punya unique name
@@ -48,10 +78,25 @@ export class FilmService {
               })),
             }
           : undefined,
+
+        // Buat kategori baru atau hubungkan yang sudah ada
+        categories: categoryNames?.length
+          ? {
+              connectOrCreate: categoryNames.map((name) => {
+                const slug = name.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '').replace(/\-\-+/g, '-');
+                return {
+                  where: { slug },
+                  create: { name, slug },
+                };
+              }),
+            }
+          : undefined,
       },
       include: {
         genres: true,
+        directors: true,
         actors: true,
+        categories: true,
       },
     });
 
@@ -70,14 +115,26 @@ export class FilmService {
     genre?: string;
     page?: number;
     limit?: number;
+    upcoming?: boolean;
   }) {
-    const { search, genre, page = 1, limit = 10 } = query;
+    const { search, genre, page = 1, limit = 10, upcoming = false } = query;
     const skip = (page - 1) * limit;
 
     const where: any = {
       is_published: true,
       is_deleted: false,
     };
+
+    if (upcoming) {
+      // Hanya film yang dijadwalkan di masa depan (Coming Soon)
+      where.scheduled_at = { gt: new Date() };
+    } else {
+      // Hanya film yang tidak dijadwalkan atau jadwalnya sudah lewat (Sedang Tayang)
+      where.OR = [
+        { scheduled_at: null },
+        { scheduled_at: { lte: new Date() } }
+      ];
+    }
 
     // Filter pencarian berdasarkan judul
     if (search) {
@@ -97,7 +154,9 @@ export class FilmService {
         orderBy: { createdAt: 'desc' },
         include: {
           genres: true,
+          directors: true,
           actors: true,
+          categories: true,
         },
       }),
       this.prisma.film.count({ where }),
@@ -153,7 +212,9 @@ export class FilmService {
         orderBy: { createdAt: 'desc' },
         include: {
           genres: true,
+          directors: true,
           actors: true,
+          categories: true,
         },
       }),
       this.prisma.film.count({ where }),
@@ -180,7 +241,9 @@ export class FilmService {
       where: { id },
       include: {
         genres: true,
+        directors: true,
         actors: true,
+        categories: true,
       },
     });
 
@@ -203,26 +266,60 @@ export class FilmService {
     // Pastikan film ada
     await this.findOne(id);
 
-    const { genreIds, actorNames, scheduled_at, ...filmData } = dto;
+    const { genreIds, genreNames, actorNames, categoryNames, scheduled_at, directorsInput, actorsInput, ...filmData } = dto;
 
     const updateData: any = {
       ...filmData,
     };
+
+    if (directorsInput?.length) {
+      updateData.director = directorsInput.map(d => d.name).join(', ');
+    }
 
     if (scheduled_at !== undefined) {
       updateData.scheduled_at = scheduled_at ? new Date(scheduled_at) : null;
     }
 
     // Update genre: hapus semua relasi lama, hubungkan yang baru
-    if (genreIds !== undefined) {
+    if (genreIds !== undefined || genreNames !== undefined) {
       updateData.genres = {
         set: [], // Disconnect semua genre lama
-        connect: genreIds.map((id) => ({ id })), // Connect genre baru
+        connect: genreIds?.map((id) => ({ id })) || [],
+        connectOrCreate: genreNames?.map((name) => {
+          const slug = name.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '').replace(/\-\-+/g, '-');
+          return {
+            where: { slug },
+            create: { name, slug },
+          };
+        }) || [],
+      };
+    }
+
+    // Update directors: hapus semua relasi lama, buat yang baru
+    if (directorsInput !== undefined) {
+      updateData.directors = {
+        set: [],
+        ...(directorsInput.length > 0 && {
+          create: directorsInput.map((dir) => ({
+            name: dir.name,
+            photo_url: dir.photo_url,
+          })),
+        }),
       };
     }
 
     // Update actor: hapus semua relasi lama, buat/hubungkan yang baru
-    if (actorNames !== undefined) {
+    if (actorsInput !== undefined) {
+      updateData.actors = {
+        set: [],
+        ...(actorsInput.length > 0 && {
+          create: actorsInput.map((act) => ({
+            name: act.name,
+            photo_url: act.photo_url,
+          })),
+        }),
+      };
+    } else if (actorNames !== undefined) {
       updateData.actors = {
         set: [], // Disconnect semua actor lama
         ...(actorNames.length > 0 && {
@@ -234,12 +331,30 @@ export class FilmService {
       };
     }
 
+    // Update kategori: hapus semua relasi lama, buat/hubungkan yang baru
+    if (categoryNames !== undefined) {
+      updateData.categories = {
+        set: [], // Disconnect semua kategori lama
+        ...(categoryNames.length > 0 && {
+          connectOrCreate: categoryNames.map((name) => {
+            const slug = name.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '').replace(/\-\-+/g, '-');
+            return {
+              where: { slug },
+              create: { name, slug },
+            };
+          }),
+        }),
+      };
+    }
+
     const film = await this.prisma.film.update({
       where: { id },
       data: updateData,
       include: {
         genres: true,
+        directors: true,
         actors: true,
+        categories: true,
       },
     });
 

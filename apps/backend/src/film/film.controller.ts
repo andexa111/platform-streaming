@@ -137,12 +137,14 @@ export class FilmController {
     @Query('genre') genre?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
+    @Query('upcoming') upcoming?: string,
   ) {
     return this.filmService.findAll({
       search,
       genre,
       page: page ? parseInt(page) : 1,
       limit: limit ? parseInt(limit) : 10,
+      upcoming: upcoming === 'true',
     });
   }
 

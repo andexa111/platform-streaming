@@ -77,6 +77,24 @@ export class CreateFilmDto {
 
   @IsOptional()
   @IsArray()
+  @IsString({ each: true, message: 'Nama genre baru harus berupa string' })
+  genreNames?: string[]; // Array of new genre names to create on the fly
+
+  @IsOptional()
+  @IsArray()
   @IsString({ each: true, message: 'Nama aktor harus berupa string' })
   actorNames?: string[]; // Array of actor names
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true, message: 'Nama kategori harus berupa string' })
+  categoryNames?: string[]; // Array of category names
+
+  @IsOptional()
+  @IsArray()
+  directorsInput?: { name: string; photo_url?: string }[];
+
+  @IsOptional()
+  @IsArray()
+  actorsInput?: { name: string; photo_url?: string }[];
 }

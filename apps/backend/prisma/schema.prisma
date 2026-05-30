@@ -78,7 +78,9 @@ model Film {
   updatedAt    DateTime  @updatedAt
 
   genres         Genre[]        @relation("FilmGenres")
+  directors      Director[]     @relation("FilmDirectors")
   actors         Actor[]        @relation("FilmActors")
+  categories     Category[]     @relation("FilmCategories")
   filmViews      FilmView[]
   watchHistories WatchHistory[]
   featuredFilms  FeaturedFilm[]
@@ -86,7 +88,7 @@ model Film {
   @@map("films")
 }
 
-// ==================== GENRE & ACTOR ====================
+// ==================== GENRE, ACTOR & CATEGORY ====================
 
 model Genre {
   id    Int    @id @default(autoincrement())
@@ -99,13 +101,35 @@ model Genre {
 }
 
 model Actor {
-  id   Int    @id @default(autoincrement())
-  name String
+  id        Int      @id @default(autoincrement())
+  name      String
+  photo_url String?
 
   films Film[] @relation("FilmActors")
 
   @@map("actors")
 }
+
+model Director {
+  id        Int      @id @default(autoincrement())
+  name      String
+  photo_url String?
+
+  films Film[] @relation("FilmDirectors")
+
+  @@map("directors")
+}
+
+model Category {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  slug  String @unique
+
+  films Film[] @relation("FilmCategories")
+
+  @@map("categories")
+}
+
 
 // ==================== VIEWS & WATCH HISTORY ====================
 

@@ -20,6 +20,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { exec } from 'child_process';
 
+import sharp from 'sharp';
+
 @Controller('upload')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('admin', 'superadmin')
@@ -28,7 +30,7 @@ export class UploadController {
 
   /**
    * POST /upload/poster
-   * Upload gambar poster film (Disimpan Lokal)
+   * Upload gambar poster film (Disimpan Lokal & Dikompres)
    */
   @Post('poster')
   @UseInterceptors(
@@ -64,13 +66,29 @@ export class UploadController {
     )
     file: Express.Multer.File,
   ) {
+    // Compress image in-place
+    try {
+      const tempPath = file.path + '-temp';
+      fs.renameSync(file.path, tempPath);
+      await sharp(tempPath)
+        .resize({ width: 1200, height: 1600, fit: 'inside', withoutEnlargement: true })
+        .jpeg({ quality: 80, progressive: true })
+        .toFile(file.path);
+      fs.unlinkSync(tempPath);
+    } catch (err) {
+      console.error('Poster compression failed, using original file:', err);
+      if (fs.existsSync(file.path + '-temp')) {
+        fs.renameSync(file.path + '-temp', file.path);
+      }
+    }
+
     const url = `uploads/posters/${file.filename}`;
     return { url, fileName: file.filename };
   }
 
   /**
    * POST /upload/image
-   * Upload gambar umum (Avatar, Iklan, Favicon) (Disimpan Lokal)
+   * Upload gambar umum (Avatar, Iklan, Favicon, Foto Sutradara/Aktor) (Disimpan Lokal & Dikompres)
    */
   @Post('image')
   @UseInterceptors(
@@ -106,6 +124,22 @@ export class UploadController {
     )
     file: Express.Multer.File,
   ) {
+    // Compress image in-place
+    try {
+      const tempPath = file.path + '-temp';
+      fs.renameSync(file.path, tempPath);
+      await sharp(tempPath)
+        .resize({ width: 800, height: 800, fit: 'inside', withoutEnlargement: true })
+        .jpeg({ quality: 80, progressive: true })
+        .toFile(file.path);
+      fs.unlinkSync(tempPath);
+    } catch (err) {
+      console.error('Image compression failed, using original file:', err);
+      if (fs.existsSync(file.path + '-temp')) {
+        fs.renameSync(file.path + '-temp', file.path);
+      }
+    }
+
     const url = `uploads/images/${file.filename}`;
     return { url, fileName: file.filename };
   }
