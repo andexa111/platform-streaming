@@ -137,4 +137,40 @@ export class MailService {
       throw error;
     }
   }
+
+  /**
+   * Kirim email support / bantuan ke sinea.hub@gmail.com
+   */
+  async sendSupportEmail(
+    senderName: string,
+    senderEmail: string,
+    messageContent: string,
+  ): Promise<void> {
+    try {
+      await this.resend.emails.send({
+        from: this.fromEmail,
+        to: 'sinea.hub@gmail.com',
+        subject: `Pusat Bantuan: Laporan dari ${senderName}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+            <h2 style="color: #024D94; border-bottom: 2px solid #024D94; padding-bottom: 10px; margin-top: 0;">Laporan Pusat Bantuan Baru</h2>
+            <p><strong>Nama Pengirim:</strong> ${senderName}</p>
+            <p><strong>Email Pengirim:</strong> <a href="mailto:${senderEmail}">${senderEmail}</a></p>
+            <div style="background-color: #f9f9f9; padding: 15px; border-radius: 6px; margin-top: 20px; border-left: 4px solid #024D94;">
+              <p style="white-space: pre-wrap; margin: 0; color: #333; font-size: 14px; line-height: 1.6;">${messageContent}</p>
+            </div>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 25px 0;" />
+            <p style="color: #999; font-size: 11px; text-align: center; margin: 0;">
+              Pesan ini dikirimkan secara otomatis dari sistem Pusat Bantuan Sinea.
+            </p>
+          </div>
+        `,
+      });
+
+      this.logger.log(`Email support dari ${senderEmail} terkirim ke sinea.hub@gmail.com`);
+    } catch (error) {
+      this.logger.error(`Gagal kirim email support dari ${senderEmail}:`, error);
+      throw error;
+    }
+  }
 }

@@ -19,6 +19,8 @@ import { DiscountModule } from './discount/discount.module';
 import { FeaturedFilmModule } from './featured-film/featured-film.module';
 import { SubscriptionModule } from './subscription/subscription.module';
 import { PartnerLogoModule } from './partner-logo/partner-logo.module';
+import { CategoryModule } from './category/category.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -42,6 +44,8 @@ import { PartnerLogoModule } from './partner-logo/partner-logo.module';
     FeaturedFilmModule,
     SubscriptionModule,
     PartnerLogoModule,
+    CategoryModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService],
