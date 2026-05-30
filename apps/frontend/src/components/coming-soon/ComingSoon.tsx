@@ -96,9 +96,48 @@ function ParticleCanvas() {
 }
 
 // ─── Main Component ─────────────────────────────────────────────────
-export default function ComingSoon() {
+export default function ComingSoon({ onComplete }: { onComplete?: () => void }) {
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const [timeLeft, setTimeLeft] = useState<{
+    days: number;
+    hours: number;
+    minutes: number;
+    seconds: number;
+  } | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+
+    const targetDate = new Date("2026-06-01T00:00:00+07:00");
+
+    const calculateTimeLeft = () => {
+      const difference = +targetDate - +new Date();
+      if (difference <= 0) {
+        return null;
+      }
+      return {
+        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+        minutes: Math.floor((difference / 1000 / 60) % 60),
+        seconds: Math.floor((difference / 1000) % 60),
+      };
+    };
+
+    setTimeLeft(calculateTimeLeft());
+
+    const timer = setInterval(() => {
+      const remaining = calculateTimeLeft();
+      setTimeLeft(remaining);
+      if (!remaining) {
+        clearInterval(timer);
+        if (onComplete) {
+          onComplete();
+        }
+      }
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [onComplete]);
 
   return (
     <main className="relative min-h-screen bg-neutral-950 text-white overflow-hidden flex flex-col">
@@ -168,6 +207,30 @@ export default function ComingSoon() {
           <p className="text-sm md:text-base text-neutral-500 max-w-md mx-auto leading-relaxed font-light">
             Nonton film & serial favorit kapan saja, di mana saja.
           </p>
+
+          {/* Countdown Timer */}
+          {timeLeft && (
+            <div className="flex items-center justify-center gap-3 md:gap-6 pt-4 pb-2 animate-in fade-in zoom-in-95 duration-1000">
+              {[
+                { label: "Hari", value: timeLeft.days },
+                { label: "Jam", value: timeLeft.hours },
+                { label: "Menit", value: timeLeft.minutes },
+                { label: "Detik", value: timeLeft.seconds },
+              ].map((item, index) => (
+                <div key={index} className="flex flex-col items-center">
+                  <div className="w-16 h-16 md:w-24 md:h-24 rounded-2xl bg-white/[0.03] border border-white/[0.06] backdrop-blur-md flex items-center justify-center shadow-[0_0_30px_rgba(2,77,148,0.05)] relative group overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-brand/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <span className="text-xl md:text-4xl font-extrabold tracking-wider text-white font-mono z-10">
+                      {String(item.value).padStart(2, "0")}
+                    </span>
+                  </div>
+                  <span className="text-[9px] md:text-[11px] font-black uppercase tracking-widest text-neutral-600 mt-2.5">
+                    {item.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Social links */}
           <div className="pt-4 flex items-center justify-center gap-3">

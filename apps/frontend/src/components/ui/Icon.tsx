@@ -58,7 +58,8 @@ import {
   CircleDashed,
   Pencil,
   ChevronLeft,
-  AlertTriangle
+  AlertTriangle,
+  Info
 } from "lucide-react";
 
 const ICON_MAP = {
@@ -99,6 +100,7 @@ const ICON_MAP = {
   dashboard: LayoutDashboard,
   analytics: BarChart3,
   tag: Tag,
+  info: Info,
   image: ImageIcon,
   subscription: CreditCard,
   ads: Megaphone,
