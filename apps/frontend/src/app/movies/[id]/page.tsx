@@ -119,7 +119,7 @@ export default function MovieDetailPage() {
     productionHouseLogo: movie.production_house_logo ? getMediaUrl(movie.production_house_logo) : "",
   };
 
-  const isTrailerLocal = movie.trailer_url?.startsWith("http") || movie.trailer_url?.includes("/uploads");
+  const isTrailerLocal = movie.trailer_url?.startsWith("http") || movie.trailer_url?.includes("uploads/") || movie.trailer_url?.includes("/uploads");
 
   return (
     <main className="min-h-screen bg-background text-foreground selection:bg-brand/30">
