@@ -317,7 +317,7 @@ export default function SecretWatchPage() {
                     <img src={getMediaUrl(movie.production_house_logo)} alt="Studio Logo" className="w-full h-full object-contain" />
                   </div>
                 )}
-                <p className="font-bold text-sm md:text-base text-foreground">{movie?.production_house || "Lalakon Originals"}</p>
+                <p className="font-bold text-sm md:text-base text-foreground">{movie?.production_house || ""}</p>
               </div>
             </div>
             <div className="space-y-2">
