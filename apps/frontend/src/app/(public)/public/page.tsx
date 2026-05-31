@@ -15,7 +15,7 @@ export default function PublicPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get("/films?limit=10")
+    api.get("/films?limit=10&category=Lolos Kurasi FFAB 2026")
       .then((res) => {
         const dbFilms = res.data?.data || [];
         const mappedFilms = dbFilms.map((film: any): Video => ({
@@ -87,7 +87,7 @@ export default function PublicPage() {
           <div className="w-10 h-10 border-4 border-brand border-t-transparent rounded-full animate-spin" />
         </div>
       ) : (
-        <VideoSection title="Sedang Tayang" videos={films} viewAllHref="/movies" />
+        <VideoSection title="Lolos Kurasi FFAB 2026" videos={films} viewAllHref="/movies?category=Lolos Kurasi FFAB 2026" />
       )}
 
       <VideoSection title="Segera Hadir" videos={[]} viewAllHref="/movies" className="bg-secondary/20" />

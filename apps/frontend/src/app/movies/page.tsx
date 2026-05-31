@@ -30,17 +30,22 @@ function CatalogContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // Read search query parameter
+  // Read search & category query parameter
   const searchVal = searchParams.get("search") || "";
+  const categoryParam = searchParams.get("category") || "";
   const [searchInput, setSearchInput] = useState(searchVal);
 
   useEffect(() => {
     setMounted(true);
     setLoading(true);
 
+    const filmsUrl = categoryParam
+      ? `/films?limit=100&category=${encodeURIComponent(categoryParam)}`
+      : "/films?limit=100";
+
     Promise.all([
       api.get("/genre").catch(() => ({ data: [] })),
-      api.get("/films?limit=100").catch(() => ({ data: { data: [] } })),
+      api.get(filmsUrl).catch(() => ({ data: { data: [] } })),
     ])
       .then(([genreRes, filmsRes]) => {
         // Parse Genres
@@ -73,7 +78,7 @@ function CatalogContent() {
       .finally(() => {
         setLoading(false);
       });
-  }, []);
+  }, [categoryParam]);
 
   // Update selected genre from search params if any
   useEffect(() => {
@@ -212,6 +217,23 @@ function CatalogContent() {
                 </h1>
                 <p className="text-xs md:text-base text-neutral-350 max-w-2xl font-light leading-relaxed">
                   Menampilkan semua film yang diproduksi, disutradarai, atau diperankan oleh <strong className="text-white font-bold">{searchVal}</strong>. Temukan mahakarya terbaik mereka di Sinea.
+                </p>
+                <div className="flex items-center gap-3 text-xs text-muted-foreground font-semibold">
+                  <span className="text-brand font-black">{filteredMovies.length}</span> Judul Tersedia
+                </div>
+              </div>
+             ) : categoryParam ? (
+              // Category Catalog Hero Content
+              <div className="space-y-2 md:space-y-4 animate-in fade-in slide-in-from-bottom-6 duration-700">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand/15 border border-brand/35 text-[10px] md:text-xs font-black tracking-widest text-brand uppercase">
+                  <Icon name="tag" className="w-3.5 h-3.5" />
+                  <span>Kategori</span>
+                </div>
+                <h1 className="text-2xl sm:text-4xl md:text-6xl font-black tracking-tight text-white uppercase italic drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
+                  {categoryParam}
+                </h1>
+                <p className="text-xs md:text-base text-neutral-400 max-w-2xl font-light leading-relaxed">
+                  Menampilkan semua film pilihan yang masuk dalam kategori <strong className="text-white font-bold">{categoryParam}</strong>. Temukan mahakarya terbaik mereka di Sinea.
                 </p>
                 <div className="flex items-center gap-3 text-xs text-muted-foreground font-semibold">
                   <span className="text-brand font-black">{filteredMovies.length}</span> Judul Tersedia

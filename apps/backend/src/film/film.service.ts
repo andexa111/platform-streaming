@@ -115,11 +115,12 @@ export class FilmService {
   async findAll(query: {
     search?: string;
     genre?: string;
+    category?: string;
     page?: number;
     limit?: number;
     upcoming?: boolean;
   }) {
-    const { search, genre, page = 1, limit = 10, upcoming = false } = query;
+    const { search, genre, category, page = 1, limit = 10, upcoming = false } = query;
     const skip = (page - 1) * limit;
 
     const where: any = {
@@ -167,6 +168,18 @@ export class FilmService {
     // Filter berdasarkan genre slug
     if (genre) {
       where.genres = { some: { slug: genre } };
+    }
+
+    // Filter berdasarkan category name / slug
+    if (category) {
+      where.categories = {
+        some: {
+          OR: [
+            { slug: category },
+            { name: category }
+          ]
+        }
+      };
     }
 
     const [films, total] = await Promise.all([
