@@ -23,6 +23,8 @@ interface Film {
   is_published: boolean;
   is_deleted: boolean;
   scheduled_at?: string;
+  published_start?: string;
+  published_end?: string;
   createdAt: string;
   updatedAt: string;
   genres: { id: number; name: string; slug: string }[];
@@ -58,6 +60,13 @@ export default function AdminMoviesPage() {
   const [movieToDelete, setMovieToDelete] = useState<{ id: number; title: string } | null>(null);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Scheduling Modal States
+  const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
+  const [movieToSchedule, setMovieToSchedule] = useState<Film | null>(null);
+  const [publishedStart, setPublishedStart] = useState("");
+  const [publishedEnd, setPublishedEnd] = useState("");
+  const [isSavingSchedule, setIsSavingSchedule] = useState(false);
 
   // Fetch films from API
   useEffect(() => {
@@ -146,13 +155,62 @@ export default function AdminMoviesPage() {
     }
   };
 
+  const handleScheduleClick = (film: Film) => {
+    setMovieToSchedule(film);
+    const formatToDatetimeLocal = (dateStr?: string) => {
+      if (!dateStr) return "";
+      const date = new Date(dateStr);
+      const offset = date.getTimezoneOffset();
+      const localDate = new Date(date.getTime() - offset * 60 * 1000);
+      return localDate.toISOString().slice(0, 16);
+    };
+
+    setPublishedStart(formatToDatetimeLocal(film.published_start));
+    setPublishedEnd(formatToDatetimeLocal(film.published_end));
+    setScheduleModalOpen(true);
+  };
+
+  const handleSaveSchedule = async () => {
+    if (!movieToSchedule) return;
+
+    try {
+      setIsSavingSchedule(true);
+      await api.patch(`/films/${movieToSchedule.id}`, {
+        published_start: publishedStart ? new Date(publishedStart).toISOString() : null,
+        published_end: publishedEnd ? new Date(publishedEnd).toISOString() : null,
+      });
+      setScheduleModalOpen(false);
+      setMovieToSchedule(null);
+      fetchFilms();
+    } catch (err) {
+      console.error("Gagal menyimpan jadwal:", err);
+      alert("Gagal menyimpan jadwal tayang.");
+    } finally {
+      setIsSavingSchedule(false);
+    }
+  };
+
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
   };
 
   const getStatusBadge = (film: Film) => {
     if (film.is_deleted) return { label: "Dihapus", dotColor: "bg-red-500", textColor: "text-red-700" };
-    if (film.is_published) return { label: "Published", dotColor: "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]", textColor: "text-neutral-700" };
+    
+    if (film.is_published) {
+      const now = new Date();
+      const start = film.published_start ? new Date(film.published_start) : null;
+      const end = film.published_end ? new Date(film.published_end) : null;
+
+      if (start && start > now) {
+        return { label: "Terjadwal", dotColor: "bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]", textColor: "text-blue-500" };
+      }
+      if (end && end < now) {
+        return { label: "Kedaluwarsa", dotColor: "bg-neutral-500 shadow-[0_0_8px_rgba(107,114,128,0.5)]", textColor: "text-neutral-500" };
+      }
+      return { label: "Published", dotColor: "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]", textColor: "text-emerald-500" };
+    }
+    
     return { label: "Draft", dotColor: "bg-amber-500", textColor: "text-amber-700" };
   };
 
@@ -303,7 +361,17 @@ export default function AdminMoviesPage() {
                           </div>
                           <div>
                             <p className="text-sm font-black text-foreground group-hover:text-brand transition-colors">{film.title}</p>
-                            <p className="text-xs text-muted-foreground font-bold">{formatDate(film.createdAt)}{film.director ? ` • ${film.director}` : ""}</p>
+                            <p className="text-xs text-muted-foreground font-bold">
+                              {formatDate(film.createdAt)}{film.director ? ` • ${film.director}` : ""}
+                            </p>
+                            {(film.published_start || film.published_end) && (
+                              <div className="text-[10px] text-amber-500 font-bold flex items-center gap-1 mt-1 bg-amber-500/5 px-2 py-0.5 rounded-md border border-amber-500/10 w-fit">
+                                <Icon name="calendar" className="w-3 h-3" />
+                                <span>
+                                  Jadwal: {film.published_start ? formatDate(film.published_start) : "Sekarang"} s/d {film.published_end ? formatDate(film.published_end) : "Selamanya"}
+                                </span>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </td>
@@ -332,11 +400,21 @@ export default function AdminMoviesPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <ButtonAction 
-                          onView={() => handleTogglePublish(film.id, film.is_published)}
-                          onEdit={() => router.push(`/admin/movies/edit/${film.id}`)}
-                          onDelete={() => handleDeleteClick(film.id, film.title)}
-                        />
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={(e) => { e.preventDefault(); handleScheduleClick(film); }}
+                            className="p-2.5 bg-amber-500 text-white hover:bg-amber-600 rounded-xl transition-all shadow-md shadow-amber-200/50 border-none flex items-center justify-center cursor-pointer active:scale-95"
+                            title="Atur Jadwal Tayang"
+                          >
+                            <Icon name="calendar" className="w-4 h-4" />
+                          </button>
+                          <ButtonAction 
+                            onView={() => handleTogglePublish(film.id, film.is_published)}
+                            onEdit={() => router.push(`/admin/movies/edit/${film.id}`)}
+                            onDelete={() => handleDeleteClick(film.id, film.title)}
+                          />
+                        </div>
                       </td>
                     </tr>
                   );
@@ -437,6 +515,100 @@ export default function AdminMoviesPage() {
                   </>
                 ) : (
                   <span>Hapus Permanen</span>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Premium Scheduling Modal */}
+      {scheduleModalOpen && movieToSchedule && (
+        <div className="fixed inset-0 bg-neutral-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-card border border-border w-full max-w-md rounded-[2rem] overflow-hidden shadow-2xl p-6 md:p-8 space-y-6 animate-in zoom-in-95 duration-200">
+            {/* Header with calendar icon */}
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center flex-shrink-0">
+                <Icon name="calendar" className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-foreground uppercase tracking-wide">Jadwal Tayang Film</h3>
+                <p className="text-xs text-muted-foreground font-semibold">Atur masa publikasi otomatis film Anda.</p>
+              </div>
+            </div>
+
+            {/* Info text */}
+            <div className="space-y-4">
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Anda sedang menjadwalkan penayangan untuk film <strong className="text-foreground font-black">"{movieToSchedule.title}"</strong>. Jika dikosongkan, film akan langsung tayang tanpa batasan waktu (indefinite).
+              </p>
+
+              {/* Start Date */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Mulai Tayang (Awal)</label>
+                <input
+                  type="datetime-local"
+                  value={publishedStart}
+                  onChange={(e) => setPublishedStart(e.target.value)}
+                  className="w-full px-4 py-3 bg-secondary border border-border rounded-xl text-sm focus:outline-none focus:border-brand text-foreground placeholder:text-muted-foreground font-medium transition-all"
+                  disabled={isSavingSchedule}
+                />
+              </div>
+
+              {/* End Date */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Selesai Tayang (Akhir)</label>
+                <input
+                  type="datetime-local"
+                  value={publishedEnd}
+                  onChange={(e) => setPublishedEnd(e.target.value)}
+                  className="w-full px-4 py-3 bg-secondary border border-border rounded-xl text-sm focus:outline-none focus:border-brand text-foreground placeholder:text-muted-foreground font-medium transition-all"
+                  disabled={isSavingSchedule}
+                />
+              </div>
+
+              {/* Clear button */}
+              {(publishedStart || publishedEnd) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPublishedStart("");
+                    setPublishedEnd("");
+                  }}
+                  className="text-xs font-bold text-amber-500 hover:text-amber-600 transition-colors flex items-center gap-1 cursor-pointer"
+                >
+                  <Icon name="trash" className="w-3.5 h-3.5" />
+                  <span>Kosongkan / Reset Jadwal</span>
+                </button>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setScheduleModalOpen(false);
+                  setMovieToSchedule(null);
+                }}
+                disabled={isSavingSchedule}
+                className="flex-1 py-3 px-4 rounded-xl text-xs font-bold text-muted-foreground hover:text-foreground bg-secondary hover:bg-neutral-800 transition-colors uppercase tracking-widest cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveSchedule}
+                disabled={isSavingSchedule}
+                className="flex-1 py-3 px-4 rounded-xl text-xs font-black text-white bg-brand hover:bg-brand-dark shadow-lg shadow-brand/20 active:scale-95 transition-all uppercase tracking-widest flex items-center justify-center gap-2 cursor-pointer"
+              >
+                {isSavingSchedule ? (
+                  <>
+                    <div className="w-3.5 h-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                    <span>Menyimpan...</span>
+                  </>
+                ) : (
+                  <span>Simpan Jadwal</span>
                 )}
               </button>
             </div>

@@ -64,6 +64,14 @@ export class CreateFilmDto {
 
   @IsOptional()
   @IsString()
+  published_start?: string; // ISO date string
+
+  @IsOptional()
+  @IsString()
+  published_end?: string; // ISO date string
+
+  @IsOptional()
+  @IsString()
   production_house?: string;
 
   @IsOptional()
