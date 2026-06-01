@@ -68,13 +68,28 @@ export default function AdminSectionsPage() {
   }, []);
 
   const handleChange = (sectionNum: number, field: string, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      [sectionNum]: {
-        ...prev[sectionNum],
-        [field]: value,
-      },
-    }));
+    setFormData((prev) => {
+      const updated = {
+        ...prev,
+        [sectionNum]: {
+          ...prev[sectionNum],
+          [field]: value,
+        },
+      };
+
+      // If categorySlug changed for section 1 or 3, automatically update title to Category Name!
+      if (field === "categorySlug" && (sectionNum === 1 || sectionNum === 3)) {
+        const selectedCat = categories.find((c) => c.slug === value);
+        if (selectedCat) {
+          updated[sectionNum].title = selectedCat.name;
+        } else {
+          updated[sectionNum].title = "";
+        }
+      }
+
+      return updated;
+    });
+
     // Clear success message when user edits again
     if (successMap[sectionNum]) {
       setSuccessMap((prev) => ({ ...prev, [sectionNum]: "" }));
@@ -162,7 +177,7 @@ export default function AdminSectionsPage() {
                     </h2>
                   </div>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    {sectionNum === 1 && "Section kurasi utama. Default menampilkan 'Lolos Kurasi FFAB 2026'."}
+                    {sectionNum === 1 && "Section kurasi utama. Menampilkan film berdasarkan Kategori Film yang dipilih."}
                     {sectionNum === 2 && "Section Segera Hadir (Locked). Hanya menampilkan film Coming Soon yang rilis H-1."}
                     {sectionNum === 3 && "Section Kategori Dinamis. Bebas memilih kategori film apa saja untuk ditampilkan."}
                   </p>
@@ -199,10 +214,20 @@ export default function AdminSectionsPage() {
                   <input
                     type="text"
                     value={local.title}
-                    onChange={(e) => handleChange(sectionNum, "title", e.target.value)}
-                    placeholder="Contoh: Lolos Kurasi FFAB 2026"
-                    className="w-full px-5 py-3.5 bg-secondary border border-border rounded-2xl focus:outline-none focus:border-brand transition-all text-sm font-bold text-foreground placeholder:text-muted-foreground/60"
+                    readOnly
+                    disabled
+                    placeholder={
+                      sectionNum === 2
+                        ? "Segera Hadir"
+                        : "Pilih Kategori untuk menetapkan Judul"
+                    }
+                    className="w-full px-5 py-3.5 bg-secondary/40 border border-border/70 rounded-2xl text-sm font-bold text-muted-foreground/80 select-none cursor-not-allowed"
                   />
+                  <p className="text-[10px] text-muted-foreground/60 font-medium">
+                    {sectionNum === 2
+                      ? "Terkunci secara logika untuk film Segera Hadir (Coming Soon)"
+                      : "Diambil otomatis secara dinamis berdasarkan Kategori Film yang dipilih"}
+                  </p>
                 </div>
 
                 {/* Description */}
