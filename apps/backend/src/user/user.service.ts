@@ -89,7 +89,10 @@ export class UserService {
 
   // Admin/Superadmin: get users
   async findAllUsers(requesterRole?: string) {
-    const whereClause: any = requesterRole === 'admin' ? { role: 'subscriber' } : {};
+    // Admin hanya bisa melihat subscriber/user/guest, superadmin bisa lihat semua
+    const whereClause: any = requesterRole === 'admin'
+      ? { role: { in: ['guest', 'user', 'subscriber'] } }
+      : {};
 
     const users = await this.prisma.user.findMany({
       where: whereClause,
@@ -99,11 +102,62 @@ export class UserService {
         email: true,
         role: true,
         avatar_url: true,
+        email_verified_at: true,
         createdAt: true,
+        subscriptions: {
+          where: { status: 'active' },
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+          select: {
+            id: true,
+            status: true,
+            expired_at: true,
+            plan: {
+              select: {
+                name: true,
+                slug: true,
+              },
+            },
+          },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });
-    return users;
+
+    // Flatten subscription data for easier frontend consumption
+    return users.map((u) => {
+      const activeSub = u.subscriptions[0] || null;
+      return {
+        ...u,
+        subscriptions: undefined,
+        activePlan: activeSub ? activeSub.plan.name : null,
+        activePlanSlug: activeSub ? activeSub.plan.slug : null,
+        subExpiredAt: activeSub ? activeSub.expired_at : null,
+      };
+    });
+  }
+
+  async updateUser(userId: number, data: { name?: string; email?: string; role?: string }) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+
+    // Check email uniqueness if changing email
+    if (data.email && data.email !== user.email) {
+      const existing = await this.prisma.user.findUnique({ where: { email: data.email } });
+      if (existing) throw new BadRequestException('Email sudah digunakan oleh user lain');
+    }
+
+    const updateData: any = {};
+    if (data.name) updateData.name = data.name;
+    if (data.email) updateData.email = data.email;
+    if (data.role) updateData.role = data.role;
+
+    const updated = await this.prisma.user.update({
+      where: { id: userId },
+      data: updateData,
+      select: { id: true, name: true, email: true, role: true },
+    });
+    return updated;
   }
 
   async updateUserRole(userId: number, role: string) {
@@ -118,10 +172,30 @@ export class UserService {
     return updated;
   }
 
+  async resetPassword(userId: number) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+
+    const defaultPassword = 'SINEA123!';
+    const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    });
+
+    return { message: 'Password berhasil direset', defaultPassword };
+  }
+
   async deleteUser(userId: number) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
 
+    // Delete related data first to avoid FK constraint errors
+    await this.prisma.watchHistory.deleteMany({ where: { userId } });
+    await this.prisma.filmView.deleteMany({ where: { userId } });
+    await this.prisma.emailToken.deleteMany({ where: { userId } });
+    await this.prisma.payment.deleteMany({ where: { userId } });
+    await this.prisma.subscription.deleteMany({ where: { userId } });
     await this.prisma.user.delete({ where: { id: userId } });
     return { message: 'User deleted successfully' };
   }

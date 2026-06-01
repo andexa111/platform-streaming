@@ -48,11 +48,25 @@ export class UsersAdminController {
     return this.userService.findAllUsers(req.user.role);
   }
 
+  /** PATCH /users/:id — Update user details (superadmin only) */
+  @Roles('superadmin')
+  @Patch(':id')
+  async updateUser(@Param('id', ParseIntPipe) id: number, @Body() body: { name?: string; email?: string; role?: string }) {
+    return this.userService.updateUser(id, body);
+  }
+
   /** PATCH /users/:id/role — Change user role (superadmin only) */
   @Roles('superadmin')
   @Patch(':id/role')
   async updateRole(@Param('id', ParseIntPipe) id: number, @Body('role') role: string) {
     return this.userService.updateUserRole(id, role);
+  }
+
+  /** POST /users/:id/reset-password — Reset password (superadmin only) */
+  @Roles('superadmin')
+  @Post(':id/reset-password')
+  async resetPassword(@Param('id', ParseIntPipe) id: number) {
+    return this.userService.resetPassword(id);
   }
 
   /** DELETE /users/:id — Delete user (superadmin only) */
