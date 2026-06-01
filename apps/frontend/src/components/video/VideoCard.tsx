@@ -40,7 +40,18 @@ export function VideoCard({ video, priority = false, isFirst, isLast, basePath =
           </div>
         )}
 
-
+        {/* Coming Soon Logic */}
+        {video.publishedStart && (
+          <>
+            {/* Gradient from top to bottom - dark at top, fades to transparent */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black via-black/60 to-transparent z-10 pointer-events-none" />
+            
+            {/* Release Date Badge */}
+            <div className="absolute top-2 right-2 z-20 bg-brand/90 backdrop-blur-sm text-white text-[9px] md:text-xs font-bold px-2 py-1 rounded-md shadow-lg border border-white/10">
+              {new Date(video.publishedStart).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+            </div>
+          </>
+        )}
 
         {/* Play Icon on Hover */}
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">

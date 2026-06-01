@@ -128,12 +128,29 @@ export default function MemberHomePage() {
         <VideoSection 
           title="Segera Hadir" 
           subtitle="Nantikan penayangan perdana segera"
-          videos={[]} 
+          videos={[{
+            id: "dummy-soon-1",
+            title: "Karya Misterius",
+            thumbnail: "/login_bg.png",
+            genre: "Thriller",
+            publishedStart: "2099-12-31T00:00:00.000Z",
+          }]} 
           viewAllHref="/movies" 
           className="bg-secondary/20" 
         />
 
-        {genreSections.map((section, idx) => (
+         {films.length > 0 && (
+          <VideoSection 
+            title="Lolos Kurasi FFAB 2026" 
+            subtitle="Koleksi film pilihan yang lolos kurasi FFAB 2026" 
+            videos={films} 
+            viewAllHref="/movies?category=Lolos Kurasi FFAB 2026" 
+          />
+        )}
+
+
+
+        {/* {genreSections.map((section, idx) => (
           <VideoSection
             key={section.slug}
             title={section.title}
@@ -152,7 +169,7 @@ export default function MemberHomePage() {
             viewAllHref="/movies"
             className={genreSections.length % 2 === 1 ? "bg-muted/30" : ""}
           />
-        )}
+        )} */}
 
         {/* Ads Section */}
         <Ads />

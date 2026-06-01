@@ -87,10 +87,41 @@ export default function PublicPage() {
           <div className="w-10 h-10 border-4 border-brand border-t-transparent rounded-full animate-spin" />
         </div>
       ) : (
-        <VideoSection title="Lolos Kurasi FFAB 2026" videos={films} viewAllHref="/movies?category=Lolos Kurasi FFAB 2026" />
-      )}
+        <div className="space-y-4 md:space-y-8 pb-20">
+          {films.length > 0 && (
+            <VideoSection 
+              title="Lolos Kurasi FFAB 2026" 
+              subtitle="Koleksi film pilihan yang lolos kurasi FFAB 2026" 
+              videos={films} 
+              viewAllHref="/movies?category=Lolos Kurasi FFAB 2026" 
+            />
+          )}
 
-      <VideoSection title="Segera Hadir" videos={[]} viewAllHref="/movies" className="bg-secondary/20" />
+          <VideoSection 
+            title="Segera Hadir" 
+            subtitle="Nantikan penayangan perdana segera"
+            videos={[{
+              id: "dummy-soon-1",
+              title: "Karya Misterius",
+              thumbnail: "/login_bg.png",
+              genre: "Thriller",
+              publishedStart: "2099-12-31T00:00:00.000Z",
+            }]} 
+            viewAllHref="/movies" 
+            className="bg-secondary/20" 
+          />
+
+          {films.length > 0 && (
+            <VideoSection 
+              title="Lolos Kurasi FFAB 2026" 
+              subtitle="Koleksi film pilihan yang lolos kurasi FFAB 2026" 
+              videos={films} 
+              viewAllHref="/movies?category=Lolos Kurasi FFAB 2026" 
+            />
+
+          )}
+        </div>
+      )}
       
       {/* Ads Section */}
       <Ads />
