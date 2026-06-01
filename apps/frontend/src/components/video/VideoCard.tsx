@@ -13,29 +13,15 @@ interface VideoCardProps {
 }
 
 export function VideoCard({ video, priority = false, isFirst, isLast, basePath = "/movies", isComingSoon = false }: VideoCardProps) {
-  const CardContainer = isComingSoon ? "div" : Link;
-  const containerProps = isComingSoon 
-    ? {
-        onClick: (e: any) => {
-          e.preventDefault();
-          const releaseDate = video.publishedStart 
-            ? new Date(video.publishedStart).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })
-            : "segera";
-          alert(`Film ini baru akan tayang pada tanggal ${releaseDate}!`);
-        },
-        className: "group block snap-start flex-shrink-0 w-full cursor-not-allowed hover:z-20 transition-all duration-300"
-      }
-    : {
-        href: `${basePath}/${video.id}`,
-        className: "group block snap-start flex-shrink-0 w-full cursor-pointer hover:z-20 transition-all duration-300"
-      };
-
   return (
-    <CardContainer {...(containerProps as any)}>
+    <Link
+      href={`${basePath}/${video.id}`}
+      className="group block snap-start flex-shrink-0 w-full cursor-pointer hover:z-20 transition-all duration-300"
+    >
       <div className={`relative aspect-[2/3] rounded-xl overflow-hidden bg-secondary border border-border group-hover:border-brand/50 transition-all duration-500 shadow-lg group-hover:shadow-brand/20 group-hover:scale-[1.02] ${
         isFirst ? "origin-left" : isLast ? "origin-right" : "origin-center"
       }`}>
-        {/* Lock Overlay Badge */}
+        {/* Coming Soon Badge */}
         {isComingSoon && (
           <div className="absolute top-3 left-3 bg-neutral-950/80 backdrop-blur-md border border-amber-500/30 text-amber-400 px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-wider flex items-center gap-1 z-10">
             <Icon name="lock" className="w-2.5 h-2.5" />
@@ -63,7 +49,7 @@ export function VideoCard({ video, priority = false, isFirst, isLast, basePath =
           </div>
         )}
 
-        {/* Play Icon on Hover */}
+        {/* Play / Lock Icon on Hover */}
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
            {isComingSoon ? (
              <div className="w-10 h-10 rounded-full bg-amber-500/90 flex items-center justify-center scale-75 group-hover:scale-100 transition-transform duration-300 shadow-xl backdrop-blur-sm">
@@ -93,6 +79,7 @@ export function VideoCard({ video, priority = false, isFirst, isLast, basePath =
           </span>
         )}
       </div>
-    </CardContainer>
+    </Link>
   );
 }
+
