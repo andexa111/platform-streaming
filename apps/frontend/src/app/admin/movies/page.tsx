@@ -157,16 +157,17 @@ export default function AdminMoviesPage() {
 
   const handleScheduleClick = (film: Film) => {
     setMovieToSchedule(film);
-    const formatToDatetimeLocal = (dateStr?: string) => {
+    const formatToDateString = (dateStr?: string) => {
       if (!dateStr) return "";
       const date = new Date(dateStr);
-      const offset = date.getTimezoneOffset();
-      const localDate = new Date(date.getTime() - offset * 60 * 1000);
-      return localDate.toISOString().slice(0, 16);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
     };
 
-    setPublishedStart(formatToDatetimeLocal(film.published_start));
-    setPublishedEnd(formatToDatetimeLocal(film.published_end));
+    setPublishedStart(formatToDateString(film.published_start));
+    setPublishedEnd(formatToDateString(film.published_end));
     setScheduleModalOpen(true);
   };
 
@@ -175,9 +176,34 @@ export default function AdminMoviesPage() {
 
     try {
       setIsSavingSchedule(true);
+      
+      let startISO: string | null = null;
+      if (publishedStart) {
+        const startParts = publishedStart.split("-");
+        const startDate = new Date(
+          Number(startParts[0]),
+          Number(startParts[1]) - 1,
+          Number(startParts[2]),
+          0, 0, 0, 0
+        );
+        startISO = startDate.toISOString();
+      }
+
+      let endISO: string | null = null;
+      if (publishedEnd) {
+        const endParts = publishedEnd.split("-");
+        const endDate = new Date(
+          Number(endParts[0]),
+          Number(endParts[1]) - 1,
+          Number(endParts[2]),
+          0, 0, 0, 0
+        );
+        endISO = endDate.toISOString();
+      }
+
       await api.patch(`/films/${movieToSchedule.id}`, {
-        published_start: publishedStart ? new Date(publishedStart).toISOString() : null,
-        published_end: publishedEnd ? new Date(publishedEnd).toISOString() : null,
+        published_start: startISO,
+        published_end: endISO,
       });
       setScheduleModalOpen(false);
       setMovieToSchedule(null);
@@ -547,7 +573,7 @@ export default function AdminMoviesPage() {
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Mulai Tayang (Awal)</label>
                 <input
-                  type="datetime-local"
+                  type="date"
                   value={publishedStart}
                   onChange={(e) => setPublishedStart(e.target.value)}
                   className="w-full px-4 py-3 bg-secondary border border-border rounded-xl text-sm focus:outline-none focus:border-brand text-foreground placeholder:text-muted-foreground font-medium transition-all"
@@ -559,7 +585,7 @@ export default function AdminMoviesPage() {
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Selesai Tayang (Akhir)</label>
                 <input
-                  type="datetime-local"
+                  type="date"
                   value={publishedEnd}
                   onChange={(e) => setPublishedEnd(e.target.value)}
                   className="w-full px-4 py-3 bg-secondary border border-border rounded-xl text-sm focus:outline-none focus:border-brand text-foreground placeholder:text-muted-foreground font-medium transition-all"
