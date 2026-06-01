@@ -19,7 +19,6 @@ export const NAV_LINKS = {
     { name: "Home", href: "/admin", icon: "dashboard" },
     { name: "Movies", href: "/admin/movies", icon: "film" },
     { name: "Home Sections", href: "/admin/sections", icon: "sliders-horizontal" },
-    { name: "Cards", href: "/admin/cards", icon: "layout" },
     { name: "Informasi", href: "/admin/info", icon: "info" },
     { name: "Banners", href: "/admin/banners", icon: "image" },
     { name: "Ads", href: "/admin/ads", icon: "ads" },
@@ -31,7 +30,7 @@ export const NAV_LINKS = {
     { name: "Home", href: "/superadmin", icon: "dashboard" },
     { name: "Movies", href: "/superadmin/movies", icon: "film" },
     { name: "Home Sections", href: "/admin/sections", icon: "sliders-horizontal" },
-    { name: "Cards", href: "/admin/cards", icon: "layout" },
+
     { name: "Informasi", href: "/superadmin/info", icon: "info" },
     { name: "Banners", href: "/superadmin/banners", icon: "image" },
     { name: "Ads", href: "/superadmin/ads", icon: "ads" },
@@ -45,7 +44,7 @@ export const NAV_LINKS = {
     { name: "Home", href: "/admin", icon: "dashboard" },
     { name: "Movies", href: "/admin/movies", icon: "film" },
     { name: "Home Sections", href: "/admin/sections", icon: "sliders-horizontal" },
-    { name: "Cards", href: "/admin/cards", icon: "layout" },
+
     { name: "Informasi", href: "/admin/info", icon: "info" },
     { name: "Banners", href: "/admin/banners", icon: "image" },
     { name: "Subscriptions", href: "/admin/subscriptions", icon: "subscription" },
