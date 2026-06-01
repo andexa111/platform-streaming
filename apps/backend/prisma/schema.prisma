@@ -293,3 +293,16 @@ model PartnerLogo {
 
   @@map("partner_logos")
 }
+
+// ==================== HOME SECTIONS ====================
+model HomeSection {
+  id           Int      @id @default(autoincrement())
+  sectionNum   Int      @unique // 1, 2, or 3
+  title        String
+  description  String?
+  categorySlug String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("home_sections")
+}

@@ -20,6 +20,7 @@ export default function WatchPage() {
   const [mounted, setMounted] = useState(false);
   const [movie, setMovie] = useState<any>(null);
   const [streamUrl, setStreamUrl] = useState<string | null>(null);
+  const [streamError, setStreamError] = useState<string | null>(null);
   const [relatedMovies, setRelatedMovies] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -52,6 +53,7 @@ export default function WatchPage() {
     if (!movieId) return;
     setLoading(true);
     setError(null);
+    setStreamError(null);
 
     Promise.all([
       api.get(`/films/${movieId}`, { withCredentials: true }).catch((err) => {
@@ -66,6 +68,7 @@ export default function WatchPage() {
       .then(([movieRes, streamRes, relatedRes]) => {
         setMovie(movieRes.data);
         setStreamUrl(streamRes.data?.stream_url || null);
+        setStreamError(streamRes.data?.error || null);
         
         const all = relatedRes.data?.data || [];
         const mapped = all
@@ -150,12 +153,16 @@ export default function WatchPage() {
               />
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center text-center p-6 space-y-4">
-                <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center justify-center text-red-500">
-                  <Icon name="film" className="w-8 h-8" />
+                <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center justify-center text-red-500 animate-pulse">
+                  <Icon name="lock" className="w-8 h-8" />
                 </div>
-                <h3 className="text-xl font-bold text-white">Stream Tidak Tersedia</h3>
+                <h3 className="text-xl font-bold text-white">
+                  {streamError || "Stream Tidak Tersedia"}
+                </h3>
                 <p className="text-sm text-neutral-400 max-w-md leading-relaxed">
-                  Video asli belum ditautkan ke film ini di Cloudflare R2, atau sesi otentikasi Anda telah berakhir.
+                  {streamError 
+                    ? "Film ini belum memasuki jadwal tayang resminya. Silakan kembali lagi saat film telah dirilis." 
+                    : "Video asli belum ditautkan ke film ini di Cloudflare R2, atau sesi otentikasi Anda telah berakhir."}
                 </p>
               </div>
             )}

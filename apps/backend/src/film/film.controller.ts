@@ -182,6 +182,17 @@ export class FilmController {
 
     const film = await this.filmService.findOne(id);
 
+    const user = req.user;
+    const now = new Date();
+    if (
+      film.published_start &&
+      new Date(film.published_start) > now &&
+      user?.role !== 'admin' &&
+      user?.role !== 'superadmin'
+    ) {
+      throw new BadRequestException('Film ini belum dirilis');
+    }
+
     if (!film.video_id) {
       throw new BadRequestException('Film ini belum memiliki video');
     }

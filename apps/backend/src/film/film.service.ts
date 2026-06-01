@@ -37,8 +37,8 @@ export class FilmService {
       data: {
         ...filmData,
         scheduled_at: scheduled_at ? new Date(scheduled_at) : null,
-        published_start: published_start ? new Date(published_start) : null,
-        published_end: published_end ? new Date(published_end) : null,
+        published_start: published_start ? this.getWibStart(published_start) : null,
+        published_end: published_end ? this.getWibEnd(published_end) : null,
 
         // Hubungkan genre (bisa pilih yang ada atau buat baru)
         genres: (genreIds?.length || genreNames?.length)
@@ -317,11 +317,11 @@ export class FilmService {
     }
 
     if (published_start !== undefined) {
-      updateData.published_start = published_start ? new Date(published_start) : null;
+      updateData.published_start = published_start ? this.getWibStart(published_start) : null;
     }
 
     if (published_end !== undefined) {
-      updateData.published_end = published_end ? new Date(published_end) : null;
+      updateData.published_end = published_end ? this.getWibEnd(published_end) : null;
     }
 
     // Update genre: hapus semua relasi lama, hubungkan yang baru
@@ -519,5 +519,24 @@ export class FilmService {
     });
 
     return { message: 'View successfully counted', counted: true };
+  }
+
+  private getWibStart(dateInput: string | Date): Date {
+    const dateStr = typeof dateInput === 'string' ? dateInput : dateInput.toISOString();
+    const datePart = dateStr.substring(0, 10);
+    return new Date(`${datePart}T00:01:00+07:00`);
+  }
+
+  private getWibEnd(dateInput: string | Date): Date {
+    const dateStr = typeof dateInput === 'string' ? dateInput : dateInput.toISOString();
+    const datePart = dateStr.substring(0, 10);
+    const [year, month, day] = datePart.split('-').map(Number);
+    const d = new Date(Date.UTC(year, month - 1, day));
+    d.setUTCDate(d.getUTCDate() - 1);
+    const prevYear = d.getUTCFullYear();
+    const prevMonth = String(d.getUTCMonth() + 1).padStart(2, '0');
+    const prevDay = String(d.getUTCDate()).padStart(2, '0');
+    const prevDatePart = `${prevYear}-${prevMonth}-${prevDay}`;
+    return new Date(`${prevDatePart}T23:59:59+07:00`);
   }
 }

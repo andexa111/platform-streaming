@@ -11,32 +11,38 @@ import { GENRES } from "@/constants/video-data";
 import { Ads } from "@/components/home/Ads";
 
 export default function PublicPage() {
-  const [films, setFilms] = useState<Video[]>([]);
+  const [sections, setSections] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get("/films?limit=10&category=Lolos Kurasi FFAB 2026")
+    api.get("/home-sections/content")
       .then((res) => {
-        const dbFilms = res.data?.data || [];
-        const mappedFilms = dbFilms.map((film: any): Video => ({
-          id: film.id,
-          title: film.title,
-          genre: film.genres && film.genres.length > 0 ? film.genres[0].name : "Other",
-          rating: "4.8",
-          quality: "4K UHD",
-          thumbnail: film.poster_url ? getMediaUrl(film.poster_url) : "",
-          backdrop: film.poster_url ? getMediaUrl(film.poster_url) : "",
-          description: film.description || "",
-          trailerUrl: film.trailer_url ? getMediaUrl(film.trailer_url) : "",
-          productionHouse: film.production_house || "",
-          productionHouseLogo: film.production_house_logo ? getMediaUrl(film.production_house_logo) : "",
-          clipStart: film.clip_start ?? undefined,
-          clipEnd: film.clip_end ?? undefined,
+        const sectionsData = res.data || [];
+        const mapped = sectionsData.map((sec: any) => ({
+          sectionNum: sec.sectionNum,
+          title: sec.title,
+          description: sec.description || "",
+          categorySlug: sec.categorySlug || "",
+          films: (sec.films || []).map((film: any): Video => ({
+            id: film.id,
+            title: film.title,
+            genre: film.genres && film.genres.length > 0 ? film.genres[0].name : "Other",
+            rating: "4.8",
+            quality: "4K UHD",
+            thumbnail: film.poster_url ? getMediaUrl(film.poster_url) : "",
+            backdrop: film.poster_url ? getMediaUrl(film.poster_url) : "",
+            description: film.description || "",
+            trailerUrl: film.trailer_url ? getMediaUrl(film.trailer_url) : "",
+            productionHouse: film.production_house || "",
+            productionHouseLogo: film.production_house_logo ? getMediaUrl(film.production_house_logo) : "",
+            clipStart: film.clip_start ?? undefined,
+            clipEnd: film.clip_end ?? undefined,
+          })),
         }));
-        setFilms(mappedFilms);
+        setSections(mapped);
       })
       .catch((err) => {
-        console.error("Failed to fetch public films", err);
+        console.error("Failed to fetch public home sections", err);
       })
       .finally(() => {
         setLoading(false);
@@ -87,10 +93,22 @@ export default function PublicPage() {
           <div className="w-10 h-10 border-4 border-brand border-t-transparent rounded-full animate-spin" />
         </div>
       ) : (
-        <VideoSection title="Lolos Kurasi FFAB 2026" videos={films} viewAllHref="/movies?category=Lolos Kurasi FFAB 2026" />
+        <div className="space-y-4 md:space-y-8 pb-20">
+          {sections.map((sec) => (
+            <VideoSection
+              key={sec.sectionNum}
+              title={sec.title}
+              videos={sec.films}
+              viewAllHref={
+                sec.categorySlug
+                  ? `/movies?category=${encodeURIComponent(sec.categorySlug)}`
+                  : "/movies"
+              }
+              className={sec.sectionNum % 2 === 0 ? "bg-secondary/20" : ""}
+            />
+          ))}
+        </div>
       )}
-
-      <VideoSection title="Segera Hadir" videos={[]} viewAllHref="/movies" className="bg-secondary/20" />
       
       {/* Ads Section */}
       <Ads />

@@ -182,29 +182,38 @@ export class UploadController {
     )
     file: Express.Multer.File,
   ) {
-    const url = `uploads/trailers/${file.filename}`;
+    const ext = extname(file.originalname);
+    const filenameWithoutExt = path.basename(file.filename, ext);
+    const targetFilename = `${filenameWithoutExt}.mp4`;
+    const url = `uploads/trailers/${targetFilename}`;
     
     // Trigger background compression
-    compressVideoInBackground(file.path);
+    compressVideoInBackground(file.path, targetFilename);
 
-    return { url, fileName: file.filename };
+    return { url, fileName: targetFilename };
   }
 }
 
 // Background helper for FFmpeg video compression (CRF 24, AAC audio)
-function compressVideoInBackground(filePath: string) {
+function compressVideoInBackground(filePath: string, targetFilename: string) {
   const absoluteFilePath = path.resolve(filePath);
+  const dir = path.dirname(absoluteFilePath);
+  const targetPath = path.join(dir, targetFilename);
 
   exec('ffmpeg -version', (err) => {
     if (err) {
       console.warn('⚠️ FFmpeg tidak terdeteksi pada sistem. File video disimpan tanpa kompresi.');
+      if (absoluteFilePath !== targetPath) {
+        try {
+          fs.renameSync(absoluteFilePath, targetPath);
+        } catch (renameErr) {
+          console.error('❌ Gagal merename file asli ke target:', renameErr);
+        }
+      }
       return;
     }
 
-    const dir = path.dirname(absoluteFilePath);
-    const ext = path.extname(absoluteFilePath);
-    const base = path.basename(absoluteFilePath, ext);
-    const tempPath = path.join(dir, `${base}-temp.mp4`);
+    const tempPath = path.join(dir, `temp-${targetFilename}`);
 
     console.log(`🎬 Mulai kompresi video di background: ${absoluteFilePath} -> ${tempPath}`);
 
@@ -217,15 +226,28 @@ function compressVideoInBackground(filePath: string) {
         if (fs.existsSync(tempPath)) {
           fs.unlinkSync(tempPath);
         }
+        if (absoluteFilePath !== targetPath) {
+          try {
+            fs.renameSync(absoluteFilePath, targetPath);
+          } catch (renameErr) {
+            console.error('❌ Gagal merename file asli ke target setelah error:', renameErr);
+          }
+        }
         return;
       }
 
       console.log('✅ Kompresi video selesai. Menggantikan file asli...');
       try {
-        fs.renameSync(tempPath, absoluteFilePath);
-        console.log('🎉 Sukses menggantikan file asli dengan file terkompresi.');
+        if (fs.existsSync(targetPath) && absoluteFilePath !== targetPath) {
+          fs.unlinkSync(targetPath);
+        }
+        fs.renameSync(tempPath, targetPath);
+        if (absoluteFilePath !== targetPath && fs.existsSync(absoluteFilePath)) {
+          fs.unlinkSync(absoluteFilePath);
+        }
+        console.log('🎉 Sukses membuat file terkompresi.');
       } catch (renameErr) {
-        console.error('❌ Gagal mengganti file asli:', renameErr);
+        console.error('❌ Gagal memproses file kompresi:', renameErr);
         if (fs.existsSync(tempPath)) {
           fs.unlinkSync(tempPath);
         }

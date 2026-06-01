@@ -10,7 +10,7 @@ import { Video } from "@/types/video";
 import { Ads } from "@/components/home/Ads";
 
 export default function MemberHomePage() {
-  const [films, setFilms] = useState<Video[]>([]);
+  const [sections, setSections] = useState<any[]>([]);
   const [featuredFilms, setFeaturedFilms] = useState<Video[]>([]);
   const [genres, setGenres] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -18,10 +18,10 @@ export default function MemberHomePage() {
   useEffect(() => {
     Promise.all([
       api.get("/genre").catch(() => ({ data: [] })),
-      api.get("/films?limit=100&category=Lolos Kurasi FFAB 2026").catch(() => ({ data: { data: [] } })),
+      api.get("/home-sections/content").catch(() => ({ data: [] })),
       api.get("/featured-films").catch(() => ({ data: [] })),
     ])
-      .then(([genreRes, filmsRes, featuredRes]) => {
+      .then(([genreRes, sectionsRes, featuredRes]) => {
         // Genres
         const dbGenres = genreRes.data || [];
         // Map to UI friendly colors
@@ -58,10 +58,16 @@ export default function MemberHomePage() {
           clipEnd: film.clip_end ?? undefined,
         });
 
-        // Set films
-        const dbFilms = filmsRes.data?.data || [];
-        const mappedFilms = dbFilms.map(mapFilm);
-        setFilms(mappedFilms);
+        // Set sections
+        const dbSections = sectionsRes.data || [];
+        const mappedSections = dbSections.map((sec: any) => ({
+          sectionNum: sec.sectionNum,
+          title: sec.title,
+          description: sec.description || "",
+          categorySlug: sec.categorySlug || "",
+          films: (sec.films || []).map(mapFilm),
+        }));
+        setSections(mappedSections);
 
         // Featured films
         const dbFeatured = featuredRes.data || [];
@@ -88,20 +94,7 @@ export default function MemberHomePage() {
   }
 
   // Fallback to normal films for banner if no featured films
-  const bannerMovies = featuredFilms.length > 0 ? featuredFilms : films.slice(0, 5);
-
-  // Dynamically group films by genre
-  const genreSections = genres.map(g => {
-    const genreFilms = films.filter(f => f.genre === g.title);
-    return {
-      title: g.title,
-      slug: g.slug,
-      films: genreFilms
-    };
-  }).filter(section => section.films.length > 0);
-
-  const genreTitles = genres.map(g => g.title);
-  const uncategorizedFilms = films.filter(f => !genreTitles.includes(f.genre));
+  const bannerMovies = featuredFilms.length > 0 ? featuredFilms : (sections[0]?.films || []).slice(0, 5);
 
   return (
     <main className="min-h-screen bg-background text-foreground font-sans selection:bg-brand/30">
@@ -116,35 +109,20 @@ export default function MemberHomePage() {
 
       {/* Content Sections */}
       <div className="space-y-4 md:space-y-8 pb-20">
-        {films.length > 0 && (
-          <VideoSection 
-            title="Lolos Kurasi FFAB 2026" 
-            subtitle="Koleksi film pilihan yang lolos kurasi FFAB 2026" 
-            videos={films} 
-            viewAllHref="/movies?category=Lolos Kurasi FFAB 2026" 
-          />
-        )}
-
-        {genreSections.map((section, idx) => (
+        {sections.map((sec) => (
           <VideoSection
-            key={section.slug}
-            title={section.title}
-            subtitle={`Koleksi film ${section.title.toLowerCase()} terbaik`}
-            videos={section.films}
-            viewAllHref={`/movies?genre=${encodeURIComponent(section.title)}`}
-            className={idx % 2 === 1 ? "bg-muted/30" : ""}
+            key={sec.sectionNum}
+            title={sec.title}
+            subtitle={sec.description}
+            videos={sec.films}
+            viewAllHref={
+              sec.categorySlug
+                ? `/movies?category=${encodeURIComponent(sec.categorySlug)}`
+                : "/movies"
+            }
+            className={sec.sectionNum % 2 === 0 ? "bg-muted/30" : ""}
           />
         ))}
-
-        {uncategorizedFilms.length > 0 && (
-          <VideoSection
-            title="Film Lainnya"
-            subtitle="Pilihan film menarik lainnya"
-            videos={uncategorizedFilms}
-            viewAllHref="/movies"
-            className={genreSections.length % 2 === 1 ? "bg-muted/30" : ""}
-          />
-        )}
 
         {/* Ads Section */}
         <Ads />

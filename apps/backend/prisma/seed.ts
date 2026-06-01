@@ -167,16 +167,71 @@ async function seedDummyUsers() {
   console.log('   ✅ 10 dummy test users seeded (dummy.sinea1@gmail.com s/d dummy.sinea10@gmail.com)');
 }
 
+async function seedCategories() {
+  console.log('🏷️ Seeding categories...');
+  const categories = [
+    { name: 'Lolos Kurasi FFAB 2026', slug: 'lolos-kurasi-ffab-2026' },
+    { name: 'Film Terpopuler', slug: 'film-terpopuler' },
+    { name: 'Sedang Tayang', slug: 'sedang-tayang' },
+  ];
+  for (const cat of categories) {
+    await prisma.category.upsert({
+      where: { slug: cat.slug },
+      update: { name: cat.name },
+      create: cat,
+    });
+  }
+  console.log(`   ✅ ${categories.length} categories seeded`);
+}
+
+async function seedHomeSections() {
+  console.log('🏠 Seeding home sections...');
+  const sections = [
+    {
+      sectionNum: 1,
+      title: 'Lolos Kurasi FFAB 2026',
+      description: 'Koleksi film pilihan yang lolos kurasi FFAB 2026',
+      categorySlug: 'lolos-kurasi-ffab-2026',
+    },
+    {
+      sectionNum: 2,
+      title: 'Segera Hadir',
+      description: 'Film-film menarik yang akan segera tayang di Sinea',
+      categorySlug: null,
+    },
+    {
+      sectionNum: 3,
+      title: 'Film Pilihan',
+      description: 'Rekomendasi film terbaik minggu ini',
+      categorySlug: 'lolos-kurasi-ffab-2026',
+    },
+  ];
+  for (const sec of sections) {
+    await prisma.homeSection.upsert({
+      where: { sectionNum: sec.sectionNum },
+      update: {
+        title: sec.title,
+        description: sec.description,
+        categorySlug: sec.categorySlug,
+      },
+      create: sec,
+    });
+  }
+  console.log('   ✅ 3 home sections seeded');
+}
+
 // ==================== MAIN ====================
 
 async function main() {
   console.log('\n🌱 Starting seed...\n');
 
   await seedGenres();
+  await seedCategories();
   await seedSuperAdmin();
   await seedAdmin();
   await seedMembershipPlans();
   await seedDummyUsers();
+  await seedHomeSections();
 
   console.log('\n✅ Seed completed!\n');
   console.log('📋 Akun yang tersedia:');

@@ -42,7 +42,7 @@ export const Player = forwardRef<MediaPlayerInstance, PlayerProps>(
         className="w-full h-full object-cover"
         onTimeUpdate={onTimeUpdate}
         onEnded={onEnded}
-        crossOrigin="use-credentials"
+        crossOrigin={variant === "movie" ? "use-credentials" : undefined}
         onProviderChange={(provider) => {
           if (isHLSProvider(provider)) {
             provider.config = {

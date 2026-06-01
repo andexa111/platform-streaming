@@ -120,6 +120,7 @@ export default function MovieDetailPage() {
   };
 
   const isTrailerLocal = movie.trailer_url?.startsWith("http") || movie.trailer_url?.includes("uploads/") || movie.trailer_url?.includes("/uploads");
+  const isReleased = !movie.published_start || new Date(movie.published_start) <= new Date();
 
   return (
     <main className="min-h-screen bg-background text-foreground selection:bg-brand/30">
@@ -313,16 +314,29 @@ export default function MovieDetailPage() {
 
           {/* Action Buttons */}
           <div className="flex flex-row items-center gap-2 md:gap-4 pt-2 md:pt-4">
-            <button
-              onClick={handleWatchNow}
-              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-3 px-3 py-2 md:px-8 md:py-4 bg-brand hover:bg-brand-dark text-white rounded-full text-[10px] md:text-base font-bold transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(2,77,148,0.3)] group"
-            >
-              <Icon
-                name="play"
-                className="w-2.5 h-2.5 md:w-5 md:h-5 fill-current transition-transform group-hover:scale-110"
-              />
-              Tonton Sekarang
-            </button>
+            {isReleased ? (
+              <button
+                onClick={handleWatchNow}
+                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-3 px-3 py-2 md:px-8 md:py-4 bg-brand hover:bg-brand-dark text-white rounded-full text-[10px] md:text-base font-bold transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(2,77,148,0.3)] group"
+              >
+                <Icon
+                  name="play"
+                  className="w-2.5 h-2.5 md:w-5 md:h-5 fill-current transition-transform group-hover:scale-110"
+                />
+                Tonton Sekarang
+              </button>
+            ) : (
+              <button
+                disabled
+                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-3 px-3 py-2 md:px-8 md:py-4 bg-neutral-800 text-neutral-500 border border-neutral-700 rounded-full text-[10px] md:text-base font-bold cursor-not-allowed"
+              >
+                <Icon
+                  name="lock"
+                  className="w-2.5 h-2.5 md:w-5 md:h-5 fill-current"
+                />
+                Segera Hadir
+              </button>
+            )}
             {movie.trailer_url && (
               <button
                 onClick={handleWatchTrailer}
