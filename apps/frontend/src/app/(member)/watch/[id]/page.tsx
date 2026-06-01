@@ -228,8 +228,6 @@ export default function WatchPage() {
                   <h3 className="text-xs font-bold text-foreground line-clamp-2 group-hover:text-brand transition-colors uppercase tracking-tight leading-tight">{m.title}</h3>
                   <div className="flex items-center gap-2">
                     <span className="text-[9px] font-bold text-muted-foreground">{m.genre}</span>
-                    <div className="w-1 h-1 rounded-full bg-border" />
-                    <span className="text-[9px] font-bold text-yellow-500">{m.rating}</span>
                   </div>
                 </div>
               </div>

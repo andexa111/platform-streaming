@@ -72,6 +72,8 @@ model Film {
   is_published          Boolean   @default(false)
   is_deleted            Boolean   @default(false)
   scheduled_at          DateTime?
+  published_start       DateTime?
+  published_end         DateTime?
   production_house      String?
   production_house_logo String?
   createdAt             DateTime  @default(now())

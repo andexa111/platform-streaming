@@ -119,7 +119,7 @@ export default function MovieDetailPage() {
     productionHouseLogo: movie.production_house_logo ? getMediaUrl(movie.production_house_logo) : "",
   };
 
-  const isTrailerLocal = movie.trailer_url?.startsWith("http") || movie.trailer_url?.includes("/uploads");
+  const isTrailerLocal = movie.trailer_url?.startsWith("http") || movie.trailer_url?.includes("uploads/") || movie.trailer_url?.includes("/uploads");
 
   return (
     <main className="min-h-screen bg-background text-foreground selection:bg-brand/30">
@@ -421,7 +421,7 @@ export default function MovieDetailPage() {
                 <div className="flex items-center gap-2 md:gap-4">
                   {mappedMovie.productionHouseLogo && (
                     <Link
-                      href={`/movies?search=${encodeURIComponent(mappedMovie.productionHouse || 'Lalakon Originals')}`}
+                      href={`/movies?search=${encodeURIComponent(mappedMovie.productionHouse || '')}`}
                       className="w-8 h-8 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-white/5 border border-white/10 p-1.5 md:p-2 flex items-center justify-center overflow-hidden flex-shrink-0 hover:border-brand/50 transition-colors"
                     >
                       <img
@@ -432,10 +432,10 @@ export default function MovieDetailPage() {
                     </Link>
                   )}
                   <Link
-                    href={`/movies?search=${encodeURIComponent(mappedMovie.productionHouse || 'Lalakon Originals')}`}
+                    href={`/movies?search=${encodeURIComponent(mappedMovie.productionHouse || '')}`}
                     className="font-bold text-[10px] md:text-base leading-tight text-foreground hover:text-brand hover:underline transition-colors cursor-pointer"
                   >
-                    {mappedMovie.productionHouse || 'Lalakon Originals'}
+                    {mappedMovie.productionHouse || ''}
                   </Link>
                 </div>
               </div>

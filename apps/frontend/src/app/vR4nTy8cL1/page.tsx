@@ -34,7 +34,7 @@ export default function SecretUserHomePage() {
       description: f.description,
       director: f.director,
       producer: f.producer,
-      productionHouse: f.production_house || "LALAKON",
+      productionHouse: f.production_house || "",
       productionHouseLogo: getMediaUrl(f.production_house_logo) || undefined,
       trailerUrl: getMediaUrl(f.trailer_url) || undefined,
       clipStart: f.clip_start || undefined,

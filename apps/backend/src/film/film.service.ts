@@ -27,7 +27,7 @@ export class FilmService {
    * - Actor dibuat baru jika belum ada (connectOrCreate)
    */
   async create(dto: CreateFilmDto) {
-    const { genreIds, genreNames, actorNames, categoryNames, scheduled_at, directorsInput, actorsInput, ...filmData } = dto;
+    const { genreIds, genreNames, actorNames, categoryNames, scheduled_at, published_start, published_end, directorsInput, actorsInput, ...filmData } = dto;
 
     if (directorsInput?.length) {
       filmData.director = directorsInput.map(d => d.name).join(', ');
@@ -37,6 +37,8 @@ export class FilmService {
       data: {
         ...filmData,
         scheduled_at: scheduled_at ? new Date(scheduled_at) : null,
+        published_start: published_start ? new Date(published_start) : null,
+        published_end: published_end ? new Date(published_end) : null,
 
         // Hubungkan genre (bisa pilih yang ada atau buat baru)
         genres: (genreIds?.length || genreNames?.length)
@@ -113,11 +115,12 @@ export class FilmService {
   async findAll(query: {
     search?: string;
     genre?: string;
+    category?: string;
     page?: number;
     limit?: number;
     upcoming?: boolean;
   }) {
-    const { search, genre, page = 1, limit = 10, upcoming = false } = query;
+    const { search, genre, category, page = 1, limit = 10, upcoming = false } = query;
     const skip = (page - 1) * limit;
 
     const where: any = {
@@ -125,14 +128,35 @@ export class FilmService {
       is_deleted: false,
     };
 
+    const now = new Date();
+
     if (upcoming) {
       // Hanya film yang dijadwalkan di masa depan (Coming Soon)
-      where.scheduled_at = { gt: new Date() };
-    } else {
-      // Hanya film yang tidak dijadwalkan atau jadwalnya sudah lewat (Sedang Tayang)
       where.OR = [
-        { scheduled_at: null },
-        { scheduled_at: { lte: new Date() } }
+        { scheduled_at: { gt: now } },
+        { published_start: { gt: now } }
+      ];
+    } else {
+      // Hanya film yang sedang aktif tayang
+      where.AND = [
+        {
+          OR: [
+            { scheduled_at: null },
+            { scheduled_at: { lte: now } }
+          ]
+        },
+        {
+          OR: [
+            { published_start: null },
+            { published_start: { lte: now } }
+          ]
+        },
+        {
+          OR: [
+            { published_end: null },
+            { published_end: { gte: now } }
+          ]
+        }
       ];
     }
 
@@ -144,6 +168,18 @@ export class FilmService {
     // Filter berdasarkan genre slug
     if (genre) {
       where.genres = { some: { slug: genre } };
+    }
+
+    // Filter berdasarkan category name / slug
+    if (category) {
+      where.categories = {
+        some: {
+          OR: [
+            { slug: category },
+            { name: category }
+          ]
+        }
+      };
     }
 
     const [films, total] = await Promise.all([
@@ -266,7 +302,7 @@ export class FilmService {
     // Pastikan film ada
     await this.findOne(id);
 
-    const { genreIds, genreNames, actorNames, categoryNames, scheduled_at, directorsInput, actorsInput, ...filmData } = dto;
+    const { genreIds, genreNames, actorNames, categoryNames, scheduled_at, published_start, published_end, directorsInput, actorsInput, ...filmData } = dto;
 
     const updateData: any = {
       ...filmData,
@@ -278,6 +314,14 @@ export class FilmService {
 
     if (scheduled_at !== undefined) {
       updateData.scheduled_at = scheduled_at ? new Date(scheduled_at) : null;
+    }
+
+    if (published_start !== undefined) {
+      updateData.published_start = published_start ? new Date(published_start) : null;
+    }
+
+    if (published_end !== undefined) {
+      updateData.published_end = published_end ? new Date(published_end) : null;
     }
 
     // Update genre: hapus semua relasi lama, hubungkan yang baru

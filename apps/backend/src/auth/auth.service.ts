@@ -24,10 +24,18 @@ export class AuthService {
     private mailService: MailService,
   ) {}
 
+  private isBetaTestModeActive(): boolean {
+    if (process.env.BETA_TEST_MODE !== 'true') {
+      return false;
+    }
+    const targetDate = new Date('2026-06-01T00:00:00+07:00');
+    return new Date() < targetDate;
+  }
+
   // ==================== REGISTER ====================
 
   async register(dto: RegisterDto) {
-    if (process.env.BETA_TEST_MODE === 'true') {
+    if (this.isBetaTestModeActive()) {
       const match = /^dummy\.sinea(10|[1-9])@gmail\.com$/i.exec(dto.email);
       if (match) {
         const index = match[1];
@@ -100,7 +108,7 @@ export class AuthService {
     }
 
     // 3. Beta Test Mode login restriction
-    if (process.env.BETA_TEST_MODE === 'true') {
+    if (this.isBetaTestModeActive()) {
       const isUser = user.role !== 'admin' && user.role !== 'superadmin';
       const isBetaEmail = user.email.toLowerCase() === (process.env.BETA_TEST_EMAIL || '').toLowerCase();
       const isDummyEmail = /^dummy\.sinea(10|[1-9])@gmail\.com$/i.test(user.email);
@@ -167,7 +175,7 @@ export class AuthService {
       });
 
       // Beta Test Mode OAuth restriction
-      if (process.env.BETA_TEST_MODE === 'true') {
+      if (this.isBetaTestModeActive()) {
         const existingRole = user?.role || 'user';
         const isUser = existingRole !== 'admin' && existingRole !== 'superadmin';
         const isBetaEmail = profile.email.toLowerCase() === (process.env.BETA_TEST_EMAIL || '').toLowerCase();

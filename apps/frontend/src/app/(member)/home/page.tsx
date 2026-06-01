@@ -18,7 +18,7 @@ export default function MemberHomePage() {
   useEffect(() => {
     Promise.all([
       api.get("/genre").catch(() => ({ data: [] })),
-      api.get("/films?limit=100").catch(() => ({ data: { data: [] } })),
+      api.get("/films?limit=100&category=Lolos Kurasi FFAB 2026").catch(() => ({ data: { data: [] } })),
       api.get("/featured-films").catch(() => ({ data: [] })),
     ])
       .then(([genreRes, filmsRes, featuredRes]) => {
@@ -118,10 +118,10 @@ export default function MemberHomePage() {
       <div className="space-y-4 md:space-y-8 pb-20">
         {films.length > 0 && (
           <VideoSection 
-            title="Film Terpopuler" 
-            subtitle="Koleksi film terbaik pilihan kami untuk Anda" 
+            title="Lolos Kurasi FFAB 2026" 
+            subtitle="Koleksi film pilihan yang lolos kurasi FFAB 2026" 
             videos={films} 
-            viewAllHref="/movies" 
+            viewAllHref="/movies?category=Lolos Kurasi FFAB 2026" 
           />
         )}
 
