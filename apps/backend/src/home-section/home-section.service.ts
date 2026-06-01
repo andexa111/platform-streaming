@@ -33,11 +33,7 @@ export class HomeSectionService {
       where: { sectionNum },
     });
 
-    if (!section) {
-      throw new NotFoundException(`Section ${sectionNum} tidak ditemukan`);
-    }
-
-    let titleToSave = dto.title || section.title;
+    let titleToSave = dto.title || (section ? section.title : '');
     if ((sectionNum === 1 || sectionNum === 3) && dto.categorySlug) {
       const category = await this.prisma.category.findUnique({
         where: { slug: dto.categorySlug },
@@ -47,9 +43,21 @@ export class HomeSectionService {
       }
     }
 
-    return this.prisma.homeSection.update({
+    if (!titleToSave) {
+      if (sectionNum === 2) titleToSave = 'Segera Hadir';
+      else if (sectionNum === 1) titleToSave = 'Lolos Kurasi FFAB 2026';
+      else titleToSave = 'Film Pilihan';
+    }
+
+    return this.prisma.homeSection.upsert({
       where: { sectionNum },
-      data: {
+      update: {
+        title: titleToSave,
+        description: dto.description ?? null,
+        categorySlug: dto.categorySlug ?? null,
+      },
+      create: {
+        sectionNum,
         title: titleToSave,
         description: dto.description ?? null,
         categorySlug: dto.categorySlug ?? null,
