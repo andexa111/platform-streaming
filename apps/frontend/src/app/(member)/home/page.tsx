@@ -125,6 +125,14 @@ export default function MemberHomePage() {
           />
         )}
 
+        <VideoSection 
+          title="Segera Hadir" 
+          subtitle="Nantikan penayangan perdana segera"
+          videos={[]} 
+          viewAllHref="/movies" 
+          className="bg-secondary/20" 
+        />
+
         {genreSections.map((section, idx) => (
           <VideoSection
             key={section.slug}

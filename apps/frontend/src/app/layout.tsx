@@ -27,7 +27,7 @@ export default function RootLayout({
       <head>
         <link href="https://api.fontshare.com/v2/css?f[]=sentient@200,300,400,500,700&display=swap" rel="stylesheet" />
       </head>
-      <body className="font-body bg-background text-foreground transition-colors duration-300">
+      <body className="font-body bg-background text-foreground transition-colors duration-300" suppressHydrationWarning>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
