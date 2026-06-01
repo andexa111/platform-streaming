@@ -33,15 +33,20 @@ function CatalogContent() {
   // Read search & category query parameter
   const searchVal = searchParams.get("search") || "";
   const categoryParam = searchParams.get("category") || "";
+  const upcomingParam = searchParams.get("upcoming") === "true";
   const [searchInput, setSearchInput] = useState(searchVal);
 
   useEffect(() => {
     setMounted(true);
     setLoading(true);
 
-    const filmsUrl = categoryParam
-      ? `/films?limit=100&category=${encodeURIComponent(categoryParam)}`
-      : "/films?limit=100";
+    let filmsUrl = "/films?limit=100";
+    if (categoryParam) {
+      filmsUrl += `&category=${encodeURIComponent(categoryParam)}`;
+    }
+    if (upcomingParam) {
+      filmsUrl += `&upcoming=true`;
+    }
 
     Promise.all([
       api.get("/genre").catch(() => ({ data: [] })),
@@ -69,6 +74,7 @@ function CatalogContent() {
           director: film.director || "",
           producer: film.producer || "",
           actors: film.actors ? film.actors.map((a: any) => a.name) : [],
+          publishedStart: film.published_start,
         }));
         setMovies(mapped);
       })
@@ -78,7 +84,7 @@ function CatalogContent() {
       .finally(() => {
         setLoading(false);
       });
-  }, [categoryParam]);
+  }, [categoryParam, upcomingParam]);
 
   // Update selected genre from search params if any
   useEffect(() => {
@@ -222,6 +228,23 @@ function CatalogContent() {
                   <span className="text-brand font-black">{filteredMovies.length}</span> Judul Tersedia
                 </div>
               </div>
+             ) : upcomingParam ? (
+              // Upcoming Catalog Hero Content
+              <div className="space-y-2 md:space-y-4 animate-in fade-in slide-in-from-bottom-6 duration-700">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/35 text-[10px] md:text-xs font-black tracking-widest text-amber-500 uppercase animate-pulse">
+                  <Icon name="lock" className="w-3.5 h-3.5" />
+                  <span>Segera Hadir</span>
+                </div>
+                <h1 className="text-2xl sm:text-4xl md:text-6xl font-black tracking-tight text-white uppercase italic drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
+                  Segera Hadir di Sinea
+                </h1>
+                <p className="text-xs md:text-base text-neutral-400 max-w-2xl font-light leading-relaxed">
+                  Daftar karya pilihan yang dijadwalkan tayang dalam waktu dekat. Tandai kalender Anda untuk menyaksikan mahakarya ini secara eksklusif.
+                </p>
+                <div className="flex items-center gap-3 text-xs text-muted-foreground font-semibold">
+                  <span className="text-amber-500 font-black">{filteredMovies.length}</span> Judul Segera Hadir
+                </div>
+              </div>
              ) : categoryParam ? (
               // Category Catalog Hero Content
               <div className="space-y-2 md:space-y-4 animate-in fade-in slide-in-from-bottom-6 duration-700">
@@ -338,11 +361,14 @@ function CatalogContent() {
         {/* Responsive Grid */}
         <div className="relative">
           <div className={cn("grid grid-cols-3 md:grid-cols-5 xl:grid-cols-6 gap-x-3 md:gap-x-4 gap-y-10 transition-all duration-700 ease-in-out", !isExpanded && "max-h-[800px] overflow-hidden")}>
-            {displayedMovies.map((movie, index) => (
-              <div key={movie.id} className={cn("w-full animate-in fade-in slide-in-from-bottom-4 duration-500")} style={{ animationDelay: `${(index % 6) * 100}ms` }}>
-                <VideoCard video={movie} />
-              </div>
-            ))}
+            {displayedMovies.map((movie, index) => {
+              const isComingSoon = upcomingParam || (!!movie.publishedStart && new Date(movie.publishedStart) > new Date());
+              return (
+                <div key={movie.id} className={cn("w-full animate-in fade-in slide-in-from-bottom-4 duration-500")} style={{ animationDelay: `${(index % 6) * 100}ms` }}>
+                  <VideoCard video={movie} isComingSoon={isComingSoon} />
+                </div>
+              );
+            })}
           </div>
 
           {/* Expand Button */}

@@ -102,7 +102,9 @@ export default function PublicPage() {
               videos={sec.films}
               isComingSoon={sec.sectionNum === 2}
               viewAllHref={
-                sec.categorySlug
+                sec.sectionNum === 2
+                  ? "/movies?upcoming=true"
+                  : sec.categorySlug
                   ? `/movies?category=${encodeURIComponent(sec.categorySlug)}`
                   : "/movies"
               }
