@@ -40,7 +40,7 @@ export default function EditMoviePage() {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    producer: "",
+    producers: [{ name: "", photo_url: "" }] as { name: string; photo_url: string }[],
     genreIds: [] as number[],
     genreNames: [] as string[],
     categories: [] as string[],
@@ -79,7 +79,9 @@ export default function EditMoviePage() {
         setFormData({
           title: film.title || "",
           description: film.description || "",
-          producer: film.producer || "",
+          producers: (film as any).producers && (film as any).producers.length > 0
+            ? (film as any).producers.map((p: any) => ({ name: p.name, photo_url: p.photo_url || "" }))
+            : [{ name: film.producer || "", photo_url: "" }],
           genreIds: film.genres ? film.genres.map((g) => g.id) : [],
           genreNames: [] as string[],
           categories: film.categories ? film.categories.map((c) => c.name) : [],
@@ -231,13 +233,15 @@ export default function EditMoviePage() {
     try {
       const cleanDirectors = formData.directors.filter(d => d.name.trim() !== "");
       const cleanActors = formData.actors.filter(a => a.name.trim() !== "");
+      const cleanProducers = formData.producers.filter(p => p.name.trim() !== "");
 
       const payload: any = {
         title: formData.title,
         description: formData.description || undefined,
-        producer: formData.producer || undefined,
+        producer: cleanProducers.map(p => p.name).join(', ') || undefined,
         directorsInput: cleanDirectors.length > 0 ? cleanDirectors : undefined,
         actorsInput: cleanActors.length > 0 ? cleanActors : undefined,
+        producersInput: cleanProducers.length > 0 ? cleanProducers : undefined,
         release_year: formData.release_year ? parseInt(formData.release_year) : undefined,
         video_id: formData.video_id || undefined,
         trailer_url: formData.trailer_url || undefined,
@@ -437,15 +441,76 @@ export default function EditMoviePage() {
               </div>
             </div>
 
-            <div className="space-y-2">
+            {/* Producers Section */}
+            <div className="space-y-4 md:col-span-2">
               <label className="text-xs font-black uppercase text-neutral-400">Produser</label>
-              <input 
-                type="text" 
-                placeholder="Nama produser"
-                className="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm"
-                value={formData.producer}
-                onChange={(e) => updateField("producer", e.target.value)}
-              />
+              <div className="space-y-3">
+                {formData.producers.map((producer, index) => (
+                  <div key={index} className="flex flex-col md:flex-row items-stretch md:items-center gap-4 p-4 bg-neutral-50 border border-neutral-200 rounded-2xl">
+                    <div className="flex-1">
+                      <input
+                        type="text"
+                        placeholder={`Nama produser ${index + 1}`}
+                        className="w-full px-5 py-3.5 bg-white border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm text-neutral-900 placeholder:text-neutral-400"
+                        value={producer.name}
+                        onChange={(e) => {
+                          const newProds = [...formData.producers];
+                          newProds[index].name = e.target.value;
+                          updateField("producers", newProds);
+                        }}
+                      />
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <label className="cursor-pointer flex-shrink-0">
+                        <div className="h-[54px] px-5 bg-white border border-neutral-200 rounded-2xl flex items-center gap-2 hover:border-brand transition-all text-xs font-black uppercase tracking-wider text-neutral-500 hover:text-neutral-900">
+                          <Icon name="image" className="w-4 h-4" />
+                          {producer.photo_url ? "Ganti Foto" : "Upload Foto"}
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const url = await handlePhotoUpload(file);
+                              const newProds = [...formData.producers];
+                              newProds[index].photo_url = url;
+                              updateField("producers", newProds);
+                            }
+                          }}
+                        />
+                      </label>
+                      {producer.photo_url && (
+                        <div className="w-[54px] h-[54px] rounded-2xl border border-neutral-200 overflow-hidden bg-neutral-100 flex-shrink-0">
+                          <img src={producer.photo_url} alt="Produser" className="w-full h-full object-cover" />
+                        </div>
+                      )}
+                      {formData.producers.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            updateField("producers", formData.producers.filter((_, i) => i !== index));
+                          }}
+                          className="p-3.5 hover:bg-red-50 text-neutral-400 hover:text-red-500 rounded-2xl transition-colors border border-transparent hover:border-red-100"
+                        >
+                          <Icon name="trash" className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => {
+                    updateField("producers", [...formData.producers, { name: "", photo_url: "" }]);
+                  }}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 rounded-xl text-xs font-black uppercase tracking-wider transition-all"
+                >
+                  <Icon name="plus" className="w-3.5 h-3.5" />
+                  Tambah Produser
+                </button>
+              </div>
             </div>
 
             <div className="space-y-2 md:col-span-2">

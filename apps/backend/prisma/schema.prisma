@@ -82,6 +82,7 @@ model Film {
   genres         Genre[]        @relation("FilmGenres")
   directors      Director[]     @relation("FilmDirectors")
   actors         Actor[]        @relation("FilmActors")
+  producers      Producer[]     @relation("FilmProducers")
   categories     Category[]     @relation("FilmCategories")
   filmViews      FilmView[]
   watchHistories WatchHistory[]
@@ -120,6 +121,16 @@ model Director {
   films Film[] @relation("FilmDirectors")
 
   @@map("directors")
+}
+
+model Producer {
+  id        Int      @id @default(autoincrement())
+  name      String
+  photo_url String?
+
+  films Film[] @relation("FilmProducers")
+
+  @@map("producers")
 }
 
 model Category {

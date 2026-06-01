@@ -1,9 +1,18 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { IsString, IsOptional } from 'class-validator';
 
 export class UpdateHomeSectionDto {
-  title: string;
+  @IsOptional()
+  @IsString()
+  title?: string;
+
+  @IsOptional()
+  @IsString()
   description?: string;
+
+  @IsOptional()
+  @IsString()
   categorySlug?: string;
 }
 
@@ -28,10 +37,20 @@ export class HomeSectionService {
       throw new NotFoundException(`Section ${sectionNum} tidak ditemukan`);
     }
 
+    let titleToSave = dto.title || section.title;
+    if ((sectionNum === 1 || sectionNum === 3) && dto.categorySlug) {
+      const category = await this.prisma.category.findUnique({
+        where: { slug: dto.categorySlug },
+      });
+      if (category) {
+        titleToSave = category.name;
+      }
+    }
+
     return this.prisma.homeSection.update({
       where: { sectionNum },
       data: {
-        title: dto.title,
+        title: titleToSave,
         description: dto.description ?? null,
         categorySlug: dto.categorySlug ?? null,
       },
@@ -89,10 +108,18 @@ export class HomeSectionService {
 
     for (const config of sectionsConfig) {
       let films: any[] = [];
+      let title = config.title;
 
       if (config.sectionNum === 1 || config.sectionNum === 3) {
         // Fetch films in the specified category
         if (config.categorySlug) {
+          const category = await this.prisma.category.findUnique({
+            where: { slug: config.categorySlug },
+          });
+          if (category) {
+            title = category.name;
+          }
+
           films = await this.prisma.film.findMany({
             where: {
               ...activeFilter,
@@ -124,7 +151,7 @@ export class HomeSectionService {
 
       results.push({
         sectionNum: config.sectionNum,
-        title: config.title,
+        title,
         description: config.description,
         categorySlug: config.categorySlug,
         films,

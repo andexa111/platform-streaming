@@ -27,10 +27,14 @@ export class FilmService {
    * - Actor dibuat baru jika belum ada (connectOrCreate)
    */
   async create(dto: CreateFilmDto) {
-    const { genreIds, genreNames, actorNames, categoryNames, scheduled_at, published_start, published_end, directorsInput, actorsInput, ...filmData } = dto;
+    const { genreIds, genreNames, actorNames, categoryNames, scheduled_at, published_start, published_end, directorsInput, actorsInput, producersInput, ...filmData } = dto;
 
     if (directorsInput?.length) {
       filmData.director = directorsInput.map(d => d.name).join(', ');
+    }
+
+    if (producersInput?.length) {
+      filmData.producer = producersInput.map(p => p.name).join(', ');
     }
 
     const film = await this.prisma.film.create({
@@ -60,6 +64,16 @@ export class FilmService {
               create: directorsInput.map((dir) => ({
                 name: dir.name,
                 photo_url: dir.photo_url,
+              })),
+            }
+          : undefined,
+
+        // Hubungkan/buat producers
+        producers: producersInput?.length
+          ? {
+              create: producersInput.map((prod) => ({
+                name: prod.name,
+                photo_url: prod.photo_url,
               })),
             }
           : undefined,
@@ -98,6 +112,7 @@ export class FilmService {
         genres: true,
         directors: true,
         actors: true,
+        producers: true,
         categories: true,
       },
     });
@@ -192,6 +207,7 @@ export class FilmService {
           genres: true,
           directors: true,
           actors: true,
+          producers: true,
           categories: true,
         },
       }),
@@ -250,6 +266,7 @@ export class FilmService {
           genres: true,
           directors: true,
           actors: true,
+          producers: true,
           categories: true,
         },
       }),
@@ -279,6 +296,7 @@ export class FilmService {
         genres: true,
         directors: true,
         actors: true,
+        producers: true,
         categories: true,
       },
     });
@@ -302,7 +320,7 @@ export class FilmService {
     // Pastikan film ada
     await this.findOne(id);
 
-    const { genreIds, genreNames, actorNames, categoryNames, scheduled_at, published_start, published_end, directorsInput, actorsInput, ...filmData } = dto;
+    const { genreIds, genreNames, actorNames, categoryNames, scheduled_at, published_start, published_end, directorsInput, actorsInput, producersInput, ...filmData } = dto;
 
     const updateData: any = {
       ...filmData,
@@ -310,6 +328,10 @@ export class FilmService {
 
     if (directorsInput?.length) {
       updateData.director = directorsInput.map(d => d.name).join(', ');
+    }
+
+    if (producersInput?.length) {
+      updateData.producer = producersInput.map(p => p.name).join(', ');
     }
 
     if (scheduled_at !== undefined) {
@@ -347,6 +369,19 @@ export class FilmService {
           create: directorsInput.map((dir) => ({
             name: dir.name,
             photo_url: dir.photo_url,
+          })),
+        }),
+      };
+    }
+
+    // Update producers: hapus semua relasi lama, buat yang baru
+    if (producersInput !== undefined) {
+      updateData.producers = {
+        set: [],
+        ...(producersInput.length > 0 && {
+          create: producersInput.map((prod) => ({
+            name: prod.name,
+            photo_url: prod.photo_url,
           })),
         }),
       };
