@@ -10,9 +10,10 @@ interface VideoRowProps {
   videos: Video[];
   viewAllHref?: string;
   basePath?: string;
+  isComingSoon?: boolean;
 }
 
-export function VideoRow({ videos, viewAllHref, basePath = "/movies" }: VideoRowProps) {
+export function VideoRow({ videos, viewAllHref, basePath = "/movies", isComingSoon = false }: VideoRowProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
@@ -77,6 +78,7 @@ export function VideoRow({ videos, viewAllHref, basePath = "/movies" }: VideoRow
               video={video} 
               isFirst={index === 0}
               basePath={basePath}
+              isComingSoon={isComingSoon}
             />
           </div>
         ))}

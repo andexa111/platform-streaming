@@ -142,14 +142,27 @@ export class HomeSectionService {
           });
         }
       } else if (config.sectionNum === 2) {
-        // Coming Soon: active but published_start in future <= 24 hours
+        const localNow = new Date();
+        const startOfTomorrow = new Date(
+          localNow.getFullYear(),
+          localNow.getMonth(),
+          localNow.getDate() + 1,
+          0, 0, 0, 0
+        );
+        const endOfTomorrow = new Date(
+          localNow.getFullYear(),
+          localNow.getMonth(),
+          localNow.getDate() + 1,
+          23, 59, 59, 999
+        );
+
         films = await this.prisma.film.findMany({
           where: {
             is_published: true,
             is_deleted: false,
             published_start: {
-              gt: now,
-              lte: oneDayLater,
+              gte: startOfTomorrow,
+              lte: endOfTomorrow,
             },
           },
           select: filmSelect,

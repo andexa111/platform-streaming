@@ -56,6 +56,7 @@ export default function MemberHomePage() {
           productionHouseLogo: film.production_house_logo ? getMediaUrl(film.production_house_logo) : "",
           clipStart: film.clip_start ?? undefined,
           clipEnd: film.clip_end ?? undefined,
+          publishedStart: film.published_start || undefined,
         });
 
         // Set sections
@@ -115,6 +116,7 @@ export default function MemberHomePage() {
             title={sec.title}
             subtitle={sec.description}
             videos={sec.films}
+            isComingSoon={sec.sectionNum === 2}
             viewAllHref={
               sec.categorySlug
                 ? `/movies?category=${encodeURIComponent(sec.categorySlug)}`

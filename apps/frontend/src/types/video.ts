@@ -17,4 +17,5 @@ export interface Video {
   actors?: string[];
   clipStart?: number;
   clipEnd?: number;
+  publishedStart?: string;
 }

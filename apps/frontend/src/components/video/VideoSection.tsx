@@ -10,6 +10,7 @@ interface VideoSectionProps {
   viewAllHref?: string;
   className?: string;
   basePath?: string;
+  isComingSoon?: boolean;
 }
 
 export function VideoSection({ 
@@ -18,7 +19,8 @@ export function VideoSection({
   videos, 
   viewAllHref = "/browse",
   className = "",
-  basePath = "/movies"
+  basePath = "/movies",
+  isComingSoon = false
 }: VideoSectionProps) {
   return (
     <section className={`py-8 md:py-12 px-6 ${className}`}>
@@ -50,7 +52,7 @@ export function VideoSection({
 
         {/* Content Row */}
         {videos && videos.length > 0 ? (
-          <VideoRow videos={videos} viewAllHref={viewAllHref} basePath={basePath} />
+          <VideoRow videos={videos} viewAllHref={viewAllHref} basePath={basePath} isComingSoon={isComingSoon} />
         ) : (
           <div className="flex flex-col items-center justify-center py-12 md:py-20 px-4 text-center bg-secondary/10 rounded-2xl border border-dashed border-border/60">
             <Icon name="film" className="w-10 h-10 md:w-12 md:h-12 text-muted-foreground/40 mb-3 md:mb-4" />

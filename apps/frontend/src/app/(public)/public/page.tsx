@@ -37,6 +37,7 @@ export default function PublicPage() {
             productionHouseLogo: film.production_house_logo ? getMediaUrl(film.production_house_logo) : "",
             clipStart: film.clip_start ?? undefined,
             clipEnd: film.clip_end ?? undefined,
+            publishedStart: film.published_start || undefined,
           })),
         }));
         setSections(mapped);
@@ -99,6 +100,7 @@ export default function PublicPage() {
               key={sec.sectionNum}
               title={sec.title}
               videos={sec.films}
+              isComingSoon={sec.sectionNum === 2}
               viewAllHref={
                 sec.categorySlug
                   ? `/movies?category=${encodeURIComponent(sec.categorySlug)}`

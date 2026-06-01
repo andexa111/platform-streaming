@@ -9,17 +9,40 @@ interface VideoCardProps {
   isFirst?: boolean;
   isLast?: boolean;
   basePath?: string;
+  isComingSoon?: boolean;
 }
 
-export function VideoCard({ video, priority = false, isFirst, isLast, basePath = "/movies" }: VideoCardProps) {
+export function VideoCard({ video, priority = false, isFirst, isLast, basePath = "/movies", isComingSoon = false }: VideoCardProps) {
+  const CardContainer = isComingSoon ? "div" : Link;
+  const containerProps = isComingSoon 
+    ? {
+        onClick: (e: any) => {
+          e.preventDefault();
+          const releaseDate = video.publishedStart 
+            ? new Date(video.publishedStart).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })
+            : "segera";
+          alert(`Film ini baru akan tayang pada tanggal ${releaseDate}!`);
+        },
+        className: "group block snap-start flex-shrink-0 w-full cursor-not-allowed hover:z-20 transition-all duration-300"
+      }
+    : {
+        href: `${basePath}/${video.id}`,
+        className: "group block snap-start flex-shrink-0 w-full cursor-pointer hover:z-20 transition-all duration-300"
+      };
+
   return (
-    <Link 
-      href={`${basePath}/${video.id}`}
-      className="group block snap-start flex-shrink-0 w-full cursor-pointer hover:z-20 transition-all duration-300"
-    >
+    <CardContainer {...(containerProps as any)}>
       <div className={`relative aspect-[2/3] rounded-xl overflow-hidden bg-secondary border border-border group-hover:border-brand/50 transition-all duration-500 shadow-lg group-hover:shadow-brand/20 group-hover:scale-[1.02] ${
         isFirst ? "origin-left" : isLast ? "origin-right" : "origin-center"
       }`}>
+        {/* Lock Overlay Badge */}
+        {isComingSoon && (
+          <div className="absolute top-3 left-3 bg-neutral-950/80 backdrop-blur-md border border-amber-500/30 text-amber-400 px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-wider flex items-center gap-1 z-10">
+            <Icon name="lock" className="w-2.5 h-2.5" />
+            <span>Segera Hadir</span>
+          </div>
+        )}
+
         {/* Thumbnail or Placeholder */}
         {video.thumbnail ? (
           <Image
@@ -40,13 +63,17 @@ export function VideoCard({ video, priority = false, isFirst, isLast, basePath =
           </div>
         )}
 
-
-
         {/* Play Icon on Hover */}
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
-           <div className="w-10 h-10 rounded-full bg-brand/90 flex items-center justify-center scale-75 group-hover:scale-100 transition-transform duration-300 shadow-xl backdrop-blur-sm">
-             <Icon name="play" className="w-4 h-4 text-white fill-white ml-1" />
-           </div>
+           {isComingSoon ? (
+             <div className="w-10 h-10 rounded-full bg-amber-500/90 flex items-center justify-center scale-75 group-hover:scale-100 transition-transform duration-300 shadow-xl backdrop-blur-sm">
+               <Icon name="lock" className="w-4 h-4 text-white" />
+             </div>
+           ) : (
+             <div className="w-10 h-10 rounded-full bg-brand/90 flex items-center justify-center scale-75 group-hover:scale-100 transition-transform duration-300 shadow-xl backdrop-blur-sm">
+               <Icon name="play" className="w-4 h-4 text-white fill-white ml-1" />
+             </div>
+           )}
         </div>
       </div>
 
@@ -60,15 +87,12 @@ export function VideoCard({ video, priority = false, isFirst, isLast, basePath =
         <h3 className="text-[11px] md:text-sm font-bold text-foreground line-clamp-1 group-hover:text-brand transition-colors">
           {video.title}
         </h3>
-        {/* Commented out rating since the logic is not implemented yet
-        <div className="flex items-center gap-1 mt-0.5">
-          <div className="flex items-center gap-1 text-muted-foreground">
-            <Icon name="star" className="w-2 h-2 md:w-2.5 md:h-2.5 text-yellow-500 fill-yellow-500" />
-            <span className="text-[9px] md:text-xs font-medium">{video.rating || "N/A"}</span>
-          </div>
-        </div>
-        */}
+        {isComingSoon && video.publishedStart && (
+          <span className="block text-amber-500 text-[8px] md:text-[10px] font-bold">
+            Tayang: {new Date(video.publishedStart).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}
+          </span>
+        )}
       </div>
-    </Link>
+    </CardContainer>
   );
 }
