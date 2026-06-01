@@ -142,27 +142,15 @@ export class HomeSectionService {
           });
         }
       } else if (config.sectionNum === 2) {
-        const localNow = new Date();
-        const startOfTomorrow = new Date(
-          localNow.getFullYear(),
-          localNow.getMonth(),
-          localNow.getDate() + 1,
-          0, 0, 0, 0
-        );
-        const endOfTomorrow = new Date(
-          localNow.getFullYear(),
-          localNow.getMonth(),
-          localNow.getDate() + 1,
-          23, 59, 59, 999
-        );
+        // Coming Soon: ambil semua film yang published_start-nya masih di masa depan
+        const now = new Date();
 
         films = await this.prisma.film.findMany({
           where: {
             is_published: true,
             is_deleted: false,
             published_start: {
-              gte: startOfTomorrow,
-              lte: endOfTomorrow,
+              gt: now,
             },
           },
           select: filmSelect,
