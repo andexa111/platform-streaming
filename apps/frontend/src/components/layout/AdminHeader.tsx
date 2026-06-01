@@ -85,18 +85,27 @@ export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
             )}
           >
             <div className="space-y-1">
-              <div className="h-px bg-border mx-1 my-1" />
+              <Link
+                href="/home"
+                className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-xl transition-all"
+                onClick={() => setIsProfileOpen(false)}
+              >
+                <Icon name="compass" className="w-4 h-4" />
+                Halaman User
+              </Link>
+
+              <div className="h-px bg-border mx-1 my-2" />
 
               <button
-                className="flex items-center gap-3 w-full px-4 py-3 text-sm font-bold bg-red-500 text-white hover:bg-red-600 rounded-xl transition-all shadow-md shadow-red-100"
+                className="flex items-center gap-3 w-full px-3 py-2.5 text-sm font-bold text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all"
                 onClick={() => {
                   setIsProfileOpen(false);
-                  // Add actual logout logic here later if needed
+                  useAuthStore.getState().logout();
                   window.location.href = "/";
                 }}
               >
                 <Icon name="logout" className="w-4 h-4" />
-                Keluar (Log Out)
+                Log Out
               </button>
             </div>
           </div>

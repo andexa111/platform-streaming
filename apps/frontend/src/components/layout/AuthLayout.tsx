@@ -51,13 +51,12 @@ export default function AuthLayout({ mode, children }: AuthLayoutProps) {
             {/* Headline */}
             <div className={`space-y-4 ${!isLogin ? "text-right" : "text-left"}`}>
               <h1 className="text-4xl xl:text-5xl font-bold text-foreground tracking-tight leading-tight">
-                Temukan pesona seni <br />
-                budaya Kudus.
+                Scene The Unseen
               </h1>
               <p className="text-muted-foreground text-lg leading-relaxed mt-4">
-                Ribuan mahakarya video tari, teater, dan tradisi lokal.
+                Mengangkat cerita-cerita Indonesia
                 <br />
-                Jelajahi kekayaan budaya Kudus dalam satu platform.
+                yang selama ini tak pernah mendapat layarnya
               </p>
             </div>
 
@@ -65,12 +64,12 @@ export default function AuthLayout({ mode, children }: AuthLayoutProps) {
             <div className={`flex items-center gap-8 mt-12 ${!isLogin ? "justify-end" : "justify-start"}`}>
               <span className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Icon name="play" className="w-4 h-4 text-brand" />
-                Streaming tanpa batas
+                Streaming Platform Exclusive
               </span>
-              <span className="flex items-center gap-2 text-sm text-muted-foreground">
+              {/* <span className="flex items-center gap-2 text-sm text-muted-foreground">
                 <div className="w-1.5 h-1.5 rounded-full bg-brand" />
                 Akses kebudayaan eksklusif
-              </span>
+              </span> */}
             </div>
           </div>
         </div>
@@ -78,7 +77,7 @@ export default function AuthLayout({ mode, children }: AuthLayoutProps) {
 
       {/* FORM PANEL */}
       <div
-        className={`relative w-full lg:w-1/2 flex items-start justify-center sm:p-12 lg:py-5 ${!isLogin ? "order-first" : ""}`}
+        className={`relative w-full lg:w-1/2 flex items-center justify-center sm:p-12 lg:py-5 ${!isLogin ? "order-first" : ""}`}
         style={{
           transform: `translateX(${formInitX})`,
           opacity: phase === "entering" ? 0 : 1,

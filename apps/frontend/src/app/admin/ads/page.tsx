@@ -227,19 +227,19 @@ export default function AdsPage() {
         {slots.map((slot, index) => (
           <div
             key={slot.id}
-            className={`group bg-neutral-900 border rounded-2xl overflow-hidden transition-all duration-300 ${
+            className={`group bg-white dark:bg-neutral-900 border rounded-2xl overflow-hidden transition-all duration-300 ${
               slot.is_active
-                ? "border-neutral-800 hover:border-blue-500/40 hover:shadow-lg hover:shadow-blue-500/5"
-                : "border-neutral-800/40 opacity-55"
+                ? "border-neutral-200 dark:border-neutral-800 hover:border-blue-500/40 hover:shadow-lg hover:shadow-blue-500/5"
+                : "border-neutral-200/50 dark:border-neutral-800/40 opacity-60 dark:opacity-55"
             }`}
           >
             {/* Slot Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-800/50 bg-neutral-950/40">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 dark:border-neutral-800/50 bg-neutral-50 dark:bg-neutral-950/40">
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
-                  <span className="text-blue-500 font-black text-xs">#{index + 1}</span>
+                  <span className="text-blue-600 dark:text-blue-500 font-black text-xs">#{index + 1}</span>
                 </div>
-                <span className="font-bold text-sm text-white">Slot {slot.id}</span>
+                <span className="font-bold text-sm text-neutral-900 dark:text-white">Slot {slot.id}</span>
               </div>
 
               <div className="flex items-center gap-3">
@@ -249,7 +249,7 @@ export default function AdsPage() {
                     type="button"
                     onClick={() => clearSlot(slot.id)}
                     title="Hapus logo"
-                    className="p-1.5 rounded-lg hover:bg-red-500/10 text-neutral-400 hover:text-red-500 transition-colors"
+                    className="p-1.5 rounded-lg hover:bg-red-500/10 text-neutral-500 dark:text-neutral-400 hover:text-red-600 dark:hover:text-red-500 transition-colors"
                   >
                     <Icon name="trash" className="w-3.5 h-3.5" />
                   </button>
@@ -268,7 +268,7 @@ export default function AdsPage() {
             <div className="p-4 space-y-4">
               {/* Brand Name Input */}
               <div className="space-y-1">
-                <label className="text-xs text-neutral-400 font-bold uppercase tracking-wider">
+                <label className="text-xs text-neutral-600 dark:text-neutral-400 font-bold uppercase tracking-wider">
                   Nama Brand
                 </label>
                 <input
@@ -276,13 +276,13 @@ export default function AdsPage() {
                   placeholder="Contoh: Netflix, Google, dll"
                   value={slot.name}
                   onChange={(e) => handleTextChange(slot.id, e.target.value)}
-                  className="w-full bg-neutral-950 border border-neutral-800 rounded-xl h-10 px-3.5 text-sm text-white focus:outline-none focus:border-blue-500/50 transition-colors placeholder:text-neutral-600"
+                  className="w-full bg-white dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-800 rounded-xl h-10 px-3.5 text-sm text-neutral-900 dark:text-white focus:outline-none focus:border-blue-500/50 transition-colors placeholder:text-neutral-400 dark:placeholder:text-neutral-600"
                 />
               </div>
 
               {/* Upload Area */}
               <div className="space-y-1">
-                <label className="text-xs text-neutral-400 font-bold uppercase tracking-wider">
+                <label className="text-xs text-neutral-600 dark:text-neutral-400 font-bold uppercase tracking-wider">
                   File Logo
                 </label>
                 <input
@@ -308,15 +308,15 @@ export default function AdsPage() {
                       dragging === slot.id
                         ? "border-blue-500 bg-blue-500/5 scale-[1.02]"
                         : slot.preview
-                        ? "border-neutral-800 bg-neutral-950/40 hover:border-blue-500/40"
-                        : "border-neutral-800 hover:border-blue-500/50 hover:bg-neutral-900 bg-neutral-950/20"
+                        ? "border-neutral-300 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950/40 hover:border-blue-500/40"
+                        : "border-neutral-300 dark:border-neutral-800 hover:border-blue-500/50 hover:bg-neutral-100 dark:hover:bg-neutral-900 bg-neutral-50 dark:bg-neutral-950/20"
                     }`}
                   style={{ minHeight: "130px" }}
                 >
                   {slot.uploading ? (
                     <div className="flex flex-col items-center gap-2">
                       <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                      <span className="text-xs text-neutral-400">Mengunggah...</span>
+                      <span className="text-xs text-neutral-600 dark:text-neutral-400">Mengunggah...</span>
                     </div>
                   ) : slot.preview ? (
                     <>
@@ -334,11 +334,11 @@ export default function AdsPage() {
                     </>
                   ) : (
                     <div className="flex flex-col items-center gap-2 py-6 px-4 text-center pointer-events-none">
-                      <div className="w-10 h-10 rounded-xl bg-neutral-900 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-xl bg-neutral-200 dark:bg-neutral-900 flex items-center justify-center">
                         <Icon name="image" className="w-5 h-5 text-neutral-500" />
                       </div>
                       <div>
-                        <p className="text-xs font-semibold text-neutral-300">
+                        <p className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">
                           Klik / Tarik Gambar Logo
                         </p>
                         <p className="text-[10px] text-neutral-500 mt-0.5">

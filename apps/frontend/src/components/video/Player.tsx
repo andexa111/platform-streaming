@@ -3,7 +3,7 @@
 import React, { forwardRef } from "react";
 import '@vidstack/react/player/styles/default/theme.css';
 import '@vidstack/react/player/styles/default/layouts/video.css';
-import { MediaPlayer, MediaProvider, Poster, type MediaPlayerInstance, isHLSProvider } from '@vidstack/react';
+import { MediaPlayer, MediaProvider, Poster, type MediaPlayerInstance, isHLSProvider, SeekButton, Time } from '@vidstack/react';
 import { defaultLayoutIcons, DefaultVideoLayout } from '@vidstack/react/player/layouts/default';
 import { cn } from "@/lib/utils";
 import Cookies from "js-cookie";
@@ -45,15 +45,42 @@ export const Player = forwardRef<MediaPlayerInstance, PlayerProps>(
         crossOrigin={variant === "movie" ? "use-credentials" : undefined}
         onProviderChange={(provider) => {
           if (isHLSProvider(provider)) {
+            let streamToken = "";
+            try {
+              if (src && src.includes("token=")) {
+                const urlObj = new URL(src);
+                streamToken = urlObj.searchParams.get("token") || "";
+              }
+            } catch (e) {}
+
             provider.config = {
               ...provider.config,
-              xhrSetup: (xhr: XMLHttpRequest) => {
+              xhrSetup: (xhr: XMLHttpRequest, url: string) => {
                 xhr.withCredentials = true;
                 const token = Cookies.get("token");
                 if (token) {
                   xhr.setRequestHeader("Authorization", `Bearer ${token}`);
                 }
-              }
+              },
+              fetchSetup: (context: any, init: any) => {
+                init.credentials = 'include';
+                const token = Cookies.get("token");
+                if (token && init.headers) {
+                  if (init.headers instanceof Headers) {
+                    init.headers.set("Authorization", `Bearer ${token}`);
+                  } else {
+                    init.headers["Authorization"] = `Bearer ${token}`;
+                  }
+                }
+                
+                let reqUrl = context.url;
+                if (streamToken && !reqUrl.includes("token=")) {
+                  const separator = reqUrl.includes("?") ? "&" : "?";
+                  reqUrl = `${reqUrl}${separator}token=${streamToken}`;
+                }
+                
+                return new Request(reqUrl, init);
+              },
             };
           }
         }}
@@ -62,12 +89,29 @@ export const Player = forwardRef<MediaPlayerInstance, PlayerProps>(
           {poster && <Poster src={poster} alt={title || "Poster"} className="object-cover w-full h-full" />}
         </MediaProvider>
         
-        {/* Hanya tampilkan kontrol bawaan jika bukan banner */}
         {!isBanner && (
           <DefaultVideoLayout 
             icons={defaultLayoutIcons} 
             smallLayoutWhen={false as any}
             noAudioGain
+            slots={{
+              title: null,
+              endTime: (
+                <div className="flex items-center gap-1">
+                  <Time type="duration" className="vds-time" />
+                  <div className="flex items-center gap-1 ml-2">
+                    <SeekButton seconds={-15} className="vds-button" aria-label="Mundur 15s">
+                      <defaultLayoutIcons.SeekButton.Backward className="vds-icon" />
+                    </SeekButton>
+                    <SeekButton seconds={15} className="vds-button" aria-label="Maju 15s">
+                      <defaultLayoutIcons.SeekButton.Forward className="vds-icon" />
+                    </SeekButton>
+                  </div>
+                </div>
+              ),
+              googleCastButton: <div className="hidden" />,
+            }}
+            seekStep={15}
           />
         )}
       </MediaPlayer>

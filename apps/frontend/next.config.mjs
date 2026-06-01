@@ -30,7 +30,7 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "api.sinea.id",
-      },
+      }
     ],
   },
   async rewrites() {
