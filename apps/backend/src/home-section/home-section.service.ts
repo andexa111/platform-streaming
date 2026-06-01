@@ -142,15 +142,27 @@ export class HomeSectionService {
           });
         }
       } else if (config.sectionNum === 2) {
-        // Coming Soon: ambil semua film yang published_start-nya masih di masa depan
-        const now = new Date();
+        // Coming Soon: hanya film yang published_start-nya tepat BESOK (H-1) di zona WIB (GMT+7)
+        const WIB_OFFSET_MS = 7 * 60 * 60 * 1000;
+        const nowUtc = new Date();
+        const nowWib = new Date(nowUtc.getTime() + WIB_OFFSET_MS);
+
+        const y = nowWib.getUTCFullYear();
+        const m = nowWib.getUTCMonth();
+        const d = nowWib.getUTCDate();
+
+        // Besok 00:00:00 WIB → konversi ke UTC
+        const tomorrowStartUtc = new Date(Date.UTC(y, m, d + 1, 0, 0, 0, 0) - WIB_OFFSET_MS);
+        // Besok 23:59:59.999 WIB → konversi ke UTC
+        const tomorrowEndUtc = new Date(Date.UTC(y, m, d + 1, 23, 59, 59, 999) - WIB_OFFSET_MS);
 
         films = await this.prisma.film.findMany({
           where: {
             is_published: true,
             is_deleted: false,
             published_start: {
-              gt: now,
+              gte: tomorrowStartUtc,
+              lte: tomorrowEndUtc,
             },
           },
           select: filmSelect,
