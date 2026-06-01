@@ -177,33 +177,9 @@ export default function AdminMoviesPage() {
     try {
       setIsSavingSchedule(true);
       
-      let startISO: string | null = null;
-      if (publishedStart) {
-        const startParts = publishedStart.split("-");
-        const startDate = new Date(
-          Number(startParts[0]),
-          Number(startParts[1]) - 1,
-          Number(startParts[2]),
-          0, 0, 0, 0
-        );
-        startISO = startDate.toISOString();
-      }
-
-      let endISO: string | null = null;
-      if (publishedEnd) {
-        const endParts = publishedEnd.split("-");
-        const endDate = new Date(
-          Number(endParts[0]),
-          Number(endParts[1]) - 1,
-          Number(endParts[2]),
-          0, 0, 0, 0
-        );
-        endISO = endDate.toISOString();
-      }
-
       await api.patch(`/films/${movieToSchedule.id}`, {
-        published_start: startISO,
-        published_end: endISO,
+        published_start: publishedStart || null,
+        published_end: publishedEnd || null,
       });
       setScheduleModalOpen(false);
       setMovieToSchedule(null);
