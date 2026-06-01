@@ -317,7 +317,7 @@ export default function EditMoviePage() {
       {/* Back Link */}
       <Link 
         href="/admin/movies" 
-        className="inline-flex items-center gap-2 text-neutral-500 hover:text-neutral-900 transition-colors group px-2"
+        className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors group px-2"
       >
         <Icon name="chevron-right" className="w-4 h-4 rotate-180 group-hover:-translate-x-1 transition-transform" />
         <span className="text-xs font-black uppercase tracking-widest">Kembali Ke Katalog</span>
@@ -326,8 +326,8 @@ export default function EditMoviePage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h1 className="text-3xl font-black text-neutral-900 tracking-tight uppercase italic">Edit Film</h1>
-          <p className="text-neutral-500 text-sm font-medium">Perbarui metadata dan aset film.</p>
+          <h1 className="text-3xl font-black text-foreground tracking-tight uppercase italic">Edit Film</h1>
+          <p className="text-muted-foreground text-sm font-medium">Perbarui metadata dan aset film.</p>
         </div>
         {/* Publish Toggle */}
         <div className="flex items-center gap-3">
@@ -338,7 +338,7 @@ export default function EditMoviePage() {
             onClick={() => updateField("is_published", !formData.is_published)}
             className={cn(
               "relative w-14 h-7 rounded-full transition-all",
-              formData.is_published ? "bg-emerald-500" : "bg-neutral-300"
+              formData.is_published ? "bg-emerald-500" : "bg-muted"
             )}
           >
             <div className={cn(
@@ -351,17 +351,17 @@ export default function EditMoviePage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left: Form */}
-        <div className="lg:col-span-2 bg-white rounded-[2rem] border border-neutral-200 p-8 shadow-sm space-y-6">
-          <div className="space-y-2 border-b border-neutral-100 pb-4">
-            <h2 className="text-lg font-black text-neutral-900 uppercase">Informasi Film</h2>
+        <div className="lg:col-span-2 bg-card rounded-[2rem] border border-border p-8 shadow-sm space-y-6">
+          <div className="space-y-2 border-b border-border pb-4">
+            <h2 className="text-lg font-black text-foreground uppercase">Informasi Film</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2 md:col-span-2">
-              <label className="text-xs font-black uppercase text-neutral-400">Judul Film *</label>
+              <label className="text-xs font-black uppercase text-foreground">Judul Film *</label>
               <input 
                 type="text" 
-                className="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm"
+                className="w-full px-5 py-3.5 bg-secondary border border-border rounded-2xl focus:outline-none focus:border-brand transition-all text-sm text-foreground placeholder:text-muted-foreground"
                 value={formData.title}
                 onChange={(e) => updateField("title", e.target.value)}
               />
@@ -369,15 +369,15 @@ export default function EditMoviePage() {
 
             {/* Directors Section */}
             <div className="space-y-4 md:col-span-2">
-              <label className="text-xs font-black uppercase text-neutral-400">Sutradara (Maks. 2)</label>
+              <label className="text-xs font-black uppercase text-foreground">Sutradara (Maks. 2)</label>
               <div className="space-y-3">
                 {formData.directors.map((director, index) => (
-                  <div key={index} className="flex flex-col md:flex-row items-stretch md:items-center gap-4 p-4 bg-neutral-50 border border-neutral-200 rounded-2xl">
+                  <div key={index} className="flex flex-col md:flex-row items-stretch md:items-center gap-4 p-4 bg-secondary/35 border border-border/50 rounded-2xl">
                     <div className="flex-1">
                       <input
                         type="text"
                         placeholder={`Nama sutradara ${index + 1}`}
-                        className="w-full px-5 py-3.5 bg-white border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm text-neutral-900 placeholder:text-neutral-400"
+                        className="w-full px-5 py-3.5 bg-secondary border border-border rounded-2xl focus:outline-none focus:border-brand transition-all text-sm text-foreground placeholder:text-muted-foreground"
                         value={director.name}
                         onChange={(e) => {
                           const newDirs = [...formData.directors];
@@ -388,7 +388,7 @@ export default function EditMoviePage() {
                     </div>
                     <div className="flex items-center gap-3">
                       <label className="cursor-pointer flex-shrink-0">
-                        <div className="h-[54px] px-5 bg-white border border-neutral-200 rounded-2xl flex items-center gap-2 hover:border-brand transition-all text-xs font-black uppercase tracking-wider text-neutral-500 hover:text-neutral-900">
+                        <div className="h-[54px] px-5 bg-secondary border border-border rounded-2xl flex items-center gap-2 hover:border-brand transition-all text-xs font-black uppercase tracking-wider text-muted-foreground hover:text-foreground">
                           <Icon name="image" className="w-4 h-4" />
                           {director.photo_url ? "Ganti Foto" : "Upload Foto"}
                         </div>
@@ -408,7 +408,7 @@ export default function EditMoviePage() {
                         />
                       </label>
                       {director.photo_url && (
-                        <div className="w-[54px] h-[54px] rounded-2xl border border-neutral-200 overflow-hidden bg-neutral-100 flex-shrink-0">
+                        <div className="w-[54px] h-[54px] rounded-2xl border border-border overflow-hidden bg-secondary flex-shrink-0">
                           <img src={director.photo_url} alt="Sutradara" className="w-full h-full object-cover" />
                         </div>
                       )}
@@ -418,7 +418,7 @@ export default function EditMoviePage() {
                           onClick={() => {
                             updateField("directors", formData.directors.filter((_, i) => i !== index));
                           }}
-                          className="p-3.5 hover:bg-red-50 text-neutral-400 hover:text-red-500 rounded-2xl transition-colors border border-transparent hover:border-red-100"
+                          className="p-3.5 hover:bg-red-500/10 text-muted-foreground hover:text-red-500 rounded-2xl transition-colors border border-transparent hover:border-red-500/20"
                         >
                           <Icon name="trash" className="w-4 h-4" />
                         </button>
@@ -432,7 +432,7 @@ export default function EditMoviePage() {
                     onClick={() => {
                       updateField("directors", [...formData.directors, { name: "", photo_url: "" }]);
                     }}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 rounded-xl text-xs font-black uppercase tracking-wider transition-all"
+                    className="flex items-center gap-2 px-4 py-2.5 bg-secondary hover:bg-muted border border-border rounded-xl text-xs font-black uppercase tracking-wider transition-all"
                   >
                     <Icon name="plus" className="w-3.5 h-3.5" />
                     Tambah Sutradara
@@ -443,15 +443,15 @@ export default function EditMoviePage() {
 
             {/* Producers Section */}
             <div className="space-y-4 md:col-span-2">
-              <label className="text-xs font-black uppercase text-neutral-400">Produser</label>
+              <label className="text-xs font-black uppercase text-foreground">Produser</label>
               <div className="space-y-3">
                 {formData.producers.map((producer, index) => (
-                  <div key={index} className="flex flex-col md:flex-row items-stretch md:items-center gap-4 p-4 bg-neutral-50 border border-neutral-200 rounded-2xl">
+                  <div key={index} className="flex flex-col md:flex-row items-stretch md:items-center gap-4 p-4 bg-secondary/35 border border-border/50 rounded-2xl">
                     <div className="flex-1">
                       <input
                         type="text"
                         placeholder={`Nama produser ${index + 1}`}
-                        className="w-full px-5 py-3.5 bg-white border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm text-neutral-900 placeholder:text-neutral-400"
+                        className="w-full px-5 py-3.5 bg-secondary border border-border rounded-2xl focus:outline-none focus:border-brand transition-all text-sm text-foreground placeholder:text-muted-foreground"
                         value={producer.name}
                         onChange={(e) => {
                           const newProds = [...formData.producers];
@@ -462,7 +462,7 @@ export default function EditMoviePage() {
                     </div>
                     <div className="flex items-center gap-3">
                       <label className="cursor-pointer flex-shrink-0">
-                        <div className="h-[54px] px-5 bg-white border border-neutral-200 rounded-2xl flex items-center gap-2 hover:border-brand transition-all text-xs font-black uppercase tracking-wider text-neutral-500 hover:text-neutral-900">
+                        <div className="h-[54px] px-5 bg-secondary border border-border rounded-2xl flex items-center gap-2 hover:border-brand transition-all text-xs font-black uppercase tracking-wider text-muted-foreground hover:text-foreground">
                           <Icon name="image" className="w-4 h-4" />
                           {producer.photo_url ? "Ganti Foto" : "Upload Foto"}
                         </div>
@@ -482,7 +482,7 @@ export default function EditMoviePage() {
                         />
                       </label>
                       {producer.photo_url && (
-                        <div className="w-[54px] h-[54px] rounded-2xl border border-neutral-200 overflow-hidden bg-neutral-100 flex-shrink-0">
+                        <div className="w-[54px] h-[54px] rounded-2xl border border-border overflow-hidden bg-secondary flex-shrink-0">
                           <img src={producer.photo_url} alt="Produser" className="w-full h-full object-cover" />
                         </div>
                       )}
@@ -492,7 +492,7 @@ export default function EditMoviePage() {
                           onClick={() => {
                             updateField("producers", formData.producers.filter((_, i) => i !== index));
                           }}
-                          className="p-3.5 hover:bg-red-50 text-neutral-400 hover:text-red-500 rounded-2xl transition-colors border border-transparent hover:border-red-100"
+                          className="p-3.5 hover:bg-red-500/10 text-muted-foreground hover:text-red-500 rounded-2xl transition-colors border border-transparent hover:border-red-500/20"
                         >
                           <Icon name="trash" className="w-4 h-4" />
                         </button>
@@ -505,7 +505,7 @@ export default function EditMoviePage() {
                   onClick={() => {
                     updateField("producers", [...formData.producers, { name: "", photo_url: "" }]);
                   }}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 rounded-xl text-xs font-black uppercase tracking-wider transition-all"
+                  className="flex items-center gap-2 px-4 py-2.5 bg-secondary hover:bg-muted border border-border rounded-xl text-xs font-black uppercase tracking-wider transition-all"
                 >
                   <Icon name="plus" className="w-3.5 h-3.5" />
                   Tambah Produser
@@ -514,8 +514,8 @@ export default function EditMoviePage() {
             </div>
 
             <div className="space-y-2 md:col-span-2">
-              <label className="text-xs font-black uppercase text-neutral-400">Genre</label>
-              <div className="p-3 bg-neutral-50 border border-neutral-200 rounded-2xl focus-within:border-brand transition-all space-y-3">
+              <label className="text-xs font-black uppercase text-foreground">Genre</label>
+              <div className="p-3 bg-secondary border border-border rounded-2xl focus-within:border-brand transition-all space-y-3">
                 {/* Selected genre tags */}
                 {(formData.genreIds.length > 0 || formData.genreNames.length > 0) && (
                   <div className="flex flex-wrap gap-2">
@@ -544,7 +544,7 @@ export default function EditMoviePage() {
                 <div className="flex flex-col md:flex-row gap-2">
                   <div className="relative flex-1">
                     <select
-                      className="w-full px-4 py-2 bg-white border border-neutral-200 rounded-xl focus:outline-none focus:border-brand transition-all text-xs appearance-none pr-10 text-neutral-900"
+                      className="w-full px-4 py-2 bg-card border border-border rounded-xl focus:outline-none focus:border-brand transition-all text-xs appearance-none pr-10 text-foreground"
                       value=""
                       onChange={(e) => {
                         const val = e.target.value;
@@ -560,7 +560,7 @@ export default function EditMoviePage() {
                           </option>
                         ))}
                     </select>
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-neutral-400">
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-foreground">
                       <Icon name="chevron-down" className="w-4 h-4" />
                     </div>
                   </div>
@@ -568,7 +568,7 @@ export default function EditMoviePage() {
                     <input
                       type="text"
                       placeholder="Atau ketik genre baru lalu tekan Enter..."
-                      className="w-full px-4 py-2 bg-white border border-neutral-200 rounded-xl focus:outline-none focus:border-brand transition-all text-xs text-neutral-900 placeholder:text-neutral-400"
+                      className="w-full px-4 py-2 bg-card border border-border rounded-xl focus:outline-none focus:border-brand transition-all text-xs text-foreground placeholder:text-muted-foreground"
                       value={genreInput}
                       onChange={(e) => setGenreInput(e.target.value)}
                       onKeyDown={handleAddGenre}
@@ -579,8 +579,8 @@ export default function EditMoviePage() {
             </div>
 
             <div className="space-y-2 md:col-span-2">
-              <label className="text-xs font-black uppercase text-neutral-400">Kategori (Tags)</label>
-              <div className="p-3 bg-neutral-50 border border-neutral-200 rounded-2xl focus-within:border-brand transition-all space-y-3">
+              <label className="text-xs font-black uppercase text-foreground">Kategori (Tags)</label>
+              <div className="p-3 bg-secondary border border-border rounded-2xl focus-within:border-brand transition-all space-y-3">
                 {formData.categories.length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {formData.categories.map((cat) => (
@@ -596,7 +596,7 @@ export default function EditMoviePage() {
                 <div className="flex flex-col md:flex-row gap-2">
                   <div className="relative flex-1">
                     <select
-                      className="w-full px-4 py-2 bg-white border border-neutral-200 rounded-xl focus:outline-none focus:border-brand transition-all text-xs appearance-none pr-10 text-neutral-900"
+                      className="w-full px-4 py-2 bg-card border border-border rounded-xl focus:outline-none focus:border-brand transition-all text-xs appearance-none pr-10 text-foreground"
                       value=""
                       onChange={(e) => {
                         const val = e.target.value;
@@ -612,7 +612,7 @@ export default function EditMoviePage() {
                           </option>
                         ))}
                     </select>
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-neutral-400">
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-foreground">
                       <Icon name="chevron-down" className="w-4 h-4" />
                     </div>
                   </div>
@@ -620,7 +620,7 @@ export default function EditMoviePage() {
                     <input
                       type="text"
                       placeholder="Atau ketik kategori baru lalu tekan Enter..."
-                      className="w-full px-4 py-2 bg-white border border-neutral-200 rounded-xl focus:outline-none focus:border-brand transition-all text-xs text-neutral-900 placeholder:text-neutral-400"
+                      className="w-full px-4 py-2 bg-card border border-border rounded-xl focus:outline-none focus:border-brand transition-all text-xs text-foreground placeholder:text-muted-foreground"
                       value={categoryInput}
                       onChange={(e) => setCategoryInput(e.target.value)}
                       onKeyDown={handleAddCategory}
@@ -631,11 +631,11 @@ export default function EditMoviePage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase text-neutral-400">Tahun Rilis</label>
+              <label className="text-xs font-black uppercase text-foreground">Tahun Rilis</label>
               <input 
                 type="number" 
                 placeholder="2026"
-                className="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm"
+                className="w-full px-5 py-3.5 bg-secondary border border-border rounded-2xl focus:outline-none focus:border-brand transition-all text-sm text-foreground placeholder:text-muted-foreground"
                 value={formData.release_year}
                 onChange={(e) => updateField("release_year", e.target.value)}
               />
@@ -643,15 +643,15 @@ export default function EditMoviePage() {
 
             {/* Actors Section */}
             <div className="space-y-4 md:col-span-2">
-              <label className="text-xs font-black uppercase text-neutral-400">Aktor / Pemeran</label>
+              <label className="text-xs font-black uppercase text-foreground">Aktor / Pemeran</label>
               <div className="space-y-3">
                 {formData.actors.map((actor, index) => (
-                  <div key={index} className="flex flex-col md:flex-row items-stretch md:items-center gap-4 p-4 bg-neutral-50 border border-neutral-200 rounded-2xl">
+                  <div key={index} className="flex flex-col md:flex-row items-stretch md:items-center gap-4 p-4 bg-secondary/35 border border-border/50 rounded-2xl">
                     <div className="flex-1">
                       <input
                         type="text"
                         placeholder={`Nama aktor ${index + 1}`}
-                        className="w-full px-5 py-3.5 bg-white border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm text-neutral-900 placeholder:text-neutral-400"
+                        className="w-full px-5 py-3.5 bg-secondary border border-border rounded-2xl focus:outline-none focus:border-brand transition-all text-sm text-foreground placeholder:text-muted-foreground"
                         value={actor.name}
                         onChange={(e) => {
                           const newActs = [...formData.actors];
@@ -662,7 +662,7 @@ export default function EditMoviePage() {
                     </div>
                     <div className="flex items-center gap-3">
                       <label className="cursor-pointer flex-shrink-0">
-                        <div className="h-[54px] px-5 bg-white border border-neutral-200 rounded-2xl flex items-center gap-2 hover:border-brand transition-all text-xs font-black uppercase tracking-wider text-neutral-500 hover:text-neutral-900">
+                        <div className="h-[54px] px-5 bg-secondary border border-border rounded-2xl flex items-center gap-2 hover:border-brand transition-all text-xs font-black uppercase tracking-wider text-muted-foreground hover:text-foreground">
                           <Icon name="image" className="w-4 h-4" />
                           {actor.photo_url ? "Ganti Foto" : "Upload Foto"}
                         </div>
@@ -682,7 +682,7 @@ export default function EditMoviePage() {
                         />
                       </label>
                       {actor.photo_url && (
-                        <div className="w-[54px] h-[54px] rounded-2xl border border-neutral-200 overflow-hidden bg-neutral-100 flex-shrink-0">
+                        <div className="w-[54px] h-[54px] rounded-2xl border border-border overflow-hidden bg-secondary flex-shrink-0">
                           <img src={actor.photo_url} alt="Aktor" className="w-full h-full object-cover" />
                         </div>
                       )}
@@ -692,7 +692,7 @@ export default function EditMoviePage() {
                           onClick={() => {
                             updateField("actors", formData.actors.filter((_, i) => i !== index));
                           }}
-                          className="p-3.5 hover:bg-red-50 text-neutral-400 hover:text-red-500 rounded-2xl transition-colors border border-transparent hover:border-red-100"
+                          className="p-3.5 hover:bg-red-500/10 text-muted-foreground hover:text-red-500 rounded-2xl transition-colors border border-transparent hover:border-red-500/20"
                         >
                           <Icon name="trash" className="w-4 h-4" />
                         </button>
@@ -705,7 +705,7 @@ export default function EditMoviePage() {
                   onClick={() => {
                     updateField("actors", [...formData.actors, { name: "", photo_url: "" }]);
                   }}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 rounded-xl text-xs font-black uppercase tracking-wider transition-all"
+                  className="flex items-center gap-2 px-4 py-2.5 bg-secondary hover:bg-muted border border-border rounded-xl text-xs font-black uppercase tracking-wider transition-all"
                 >
                   <Icon name="plus" className="w-3.5 h-3.5" />
                   Tambah Aktor
@@ -714,34 +714,34 @@ export default function EditMoviePage() {
             </div>
 
             <div className="space-y-2 md:col-span-2">
-              <label className="text-xs font-black uppercase text-neutral-400">Sinopsis</label>
+              <label className="text-xs font-black uppercase text-foreground">Sinopsis</label>
               <textarea 
                 rows={4}
                 placeholder="Tuliskan sinopsis film..."
-                className="w-full px-5 py-4 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm resize-none"
+                className="w-full px-5 py-4 bg-secondary border border-border rounded-2xl focus:outline-none focus:border-brand transition-all text-sm resize-none text-foreground placeholder:text-muted-foreground"
                 value={formData.description}
                 onChange={(e) => updateField("description", e.target.value)}
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase text-neutral-400">Rumah Produksi</label>
+              <label className="text-xs font-black uppercase text-foreground">Rumah Produksi</label>
               <input 
                 type="text" 
                 placeholder="Contoh: Sinea Studios"
-                className="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-brand transition-all text-sm"
+                className="w-full px-5 py-3.5 bg-secondary border border-border rounded-2xl focus:outline-none focus:border-brand transition-all text-sm text-foreground placeholder:text-muted-foreground"
                 value={formData.production_house}
                 onChange={(e) => updateField("production_house", e.target.value)}
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase text-neutral-400">Logo Rumah Produksi</label>
+              <label className="text-xs font-black uppercase text-foreground">Logo Rumah Produksi</label>
               <div className="flex gap-4">
                 <label className="flex-1 cursor-pointer">
-                  <div className="w-full h-[54px] bg-neutral-50 border border-neutral-200 border-dashed rounded-2xl flex items-center px-5 gap-3 hover:border-brand transition-all">
-                    <Icon name="image" className="w-5 h-5 text-neutral-400" />
-                    <span className="text-sm text-neutral-400">
+                  <div className="w-full h-[54px] bg-secondary border border-border border-dashed rounded-2xl flex items-center px-5 gap-3 hover:border-brand transition-all">
+                    <Icon name="image" className="w-5 h-5 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">
                       {formData.production_house_logo ? "Ganti Logo" : "Upload Logo (maks. 100MB)"}
                     </span>
                   </div>
@@ -756,7 +756,7 @@ export default function EditMoviePage() {
                   />
                 </label>
                 {formData.production_house_logo && (
-                  <div className="w-[54px] h-[54px] rounded-2xl border border-neutral-200 bg-neutral-50 flex items-center justify-center overflow-hidden flex-shrink-0">
+                  <div className="w-[54px] h-[54px] rounded-2xl border border-border bg-secondary flex items-center justify-center overflow-hidden flex-shrink-0">
                     <img src={formData.production_house_logo} alt="Logo" className="w-full h-full object-contain p-2" />
                   </div>
                 )}
@@ -764,17 +764,17 @@ export default function EditMoviePage() {
             </div>
           </div>
 
-          <div className="space-y-2 border-b border-neutral-100 pb-4 pt-4">
-            <h2 className="text-lg font-black text-neutral-900 uppercase">Aset & Video</h2>
+          <div className="space-y-2 border-b border-border pb-4 pt-4">
+            <h2 className="text-lg font-black text-foreground uppercase">Aset & Video</h2>
           </div>
 
           <div className="space-y-6">
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase text-neutral-400">Poster Film</label>
+              <label className="text-xs font-black uppercase text-foreground">Poster Film</label>
               <label className="block cursor-pointer">
-                <div className="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 border-dashed rounded-2xl flex items-center gap-3 hover:border-brand transition-all">
-                  <Icon name="image" className="w-5 h-5 text-neutral-400" />
-                  <span className="text-sm text-neutral-400">
+                <div className="w-full px-5 py-3.5 bg-secondary border border-border border-dashed rounded-2xl flex items-center gap-3 hover:border-brand transition-all">
+                  <Icon name="image" className="w-5 h-5 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">
                     {formData.poster_url ? "Ganti Poster" : "Klik untuk upload poster..."}
                   </span>
                 </div>
@@ -788,21 +788,21 @@ export default function EditMoviePage() {
                   }}
                 />
               </label>
-              <p className="text-xs text-neutral-400 mt-1">Format: jpg/png/webp · <span className="font-semibold">Maks. 100MB</span></p>
+              <p className="text-xs text-muted-foreground mt-1">Format: jpg/png/webp · <span className="font-semibold">Maks. 100MB</span></p>
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase text-neutral-400">Video Utama Film (Local MP4)</label>
+              <label className="text-xs font-black uppercase text-foreground">Video Utama Film (Local MP4)</label>
               <div className="flex flex-col gap-3">
                 <label className="block cursor-pointer">
-                  <div className="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 border-dashed rounded-2xl flex flex-col gap-2 hover:border-brand transition-all">
+                  <div className="w-full px-5 py-3.5 bg-secondary border border-border border-dashed rounded-2xl flex flex-col gap-2 hover:border-brand transition-all">
                     <div className="flex items-center gap-3">
                       {uploadingVideo ? (
                         <div className="w-5 h-5 border-2 border-brand border-t-transparent rounded-full animate-spin" />
                       ) : (
-                        <Icon name="film" className="w-5 h-5 text-neutral-400" />
+                        <Icon name="film" className="w-5 h-5 text-muted-foreground" />
                       )}
-                      <span className="text-sm text-neutral-400">
+                      <span className="text-sm text-muted-foreground">
                         {uploadingVideo
                           ? `Sedang mengunggah video utama (${videoUploadProgress}%)...`
                           : selectedVideoFile
@@ -828,29 +828,29 @@ export default function EditMoviePage() {
                   />
                 </label>
                 {formData.video_id && !selectedVideoFile && (
-                  <div className="p-4 bg-neutral-50 border border-neutral-200 rounded-2xl">
-                    <p className="text-[10px] font-black uppercase text-neutral-400 mb-2">Video Utama Saat Ini (R2)</p>
-                    <div className="flex items-center gap-2 text-xs text-neutral-600 font-mono break-all bg-white p-2 rounded border border-neutral-100">
+                  <div className="p-4 bg-secondary border border-border rounded-2xl">
+                    <p className="text-[10px] font-black uppercase text-muted-foreground mb-2">Video Utama Saat Ini (R2)</p>
+                    <div className="flex items-center gap-2 text-xs text-foreground font-mono break-all bg-card p-2 rounded border border-border">
                       <span className="truncate flex-1">{formData.video_id}</span>
                     </div>
                   </div>
                 )}
               </div>
-              <p className="text-xs text-neutral-400">Biarkan kosong jika Anda tidak ingin memperbarui video utama.</p>
+              <p className="text-xs text-muted-foreground">Biarkan kosong jika Anda tidak ingin memperbarui video utama.</p>
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase text-neutral-400">Video Trailer Film (Local MP4/WebM)</label>
+              <label className="text-xs font-black uppercase text-foreground">Video Trailer Film (Local MP4/WebM)</label>
               <div className="flex flex-col gap-3">
                 <label className="block cursor-pointer">
-                  <div className="w-full px-5 py-3.5 bg-neutral-50 border border-neutral-200 border-dashed rounded-2xl flex flex-col gap-2 hover:border-brand transition-all">
+                  <div className="w-full px-5 py-3.5 bg-secondary border border-border border-dashed rounded-2xl flex flex-col gap-2 hover:border-brand transition-all">
                     <div className="flex items-center gap-3">
                       {uploadingTrailer ? (
                         <div className="w-5 h-5 border-2 border-brand border-t-transparent rounded-full animate-spin" />
                       ) : (
-                        <Icon name="film" className="w-5 h-5 text-neutral-400" />
+                        <Icon name="film" className="w-5 h-5 text-muted-foreground" />
                       )}
-                      <span className="text-sm text-neutral-400">
+                      <span className="text-sm text-muted-foreground">
                         {uploadingTrailer ? `Sedang mengunggah (${uploadProgress}%)...` : formData.trailer_url ? "Ganti Trailer Video" : "Klik untuk upload trailer (maks. 5GB)..."}
                       </span>
                     </div>
@@ -872,9 +872,9 @@ export default function EditMoviePage() {
                   />
                 </label>
                 {formData.trailer_url && (
-                  <div className="p-4 bg-neutral-50 border border-neutral-200 rounded-2xl">
-                    <p className="text-[10px] font-black uppercase text-neutral-400 mb-2">Trailer Terunggah</p>
-                    <div className="flex items-center gap-2 text-xs text-neutral-600 font-mono break-all bg-white p-2 rounded border border-neutral-100">
+                  <div className="p-4 bg-secondary border border-border rounded-2xl">
+                    <p className="text-[10px] font-black uppercase text-muted-foreground mb-2">Trailer Terunggah</p>
+                    <div className="flex items-center gap-2 text-xs text-foreground font-mono break-all bg-card p-2 rounded border border-border">
                       <span className="truncate flex-1">{getMediaUrl(formData.trailer_url)}</span>
                     </div>
                     <video src={getMediaUrl(formData.trailer_url)} controls className="w-full max-h-48 rounded-lg mt-3 bg-black" />
@@ -886,17 +886,17 @@ export default function EditMoviePage() {
 
           {/* Messages */}
           {error && (
-            <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">{error}</div>
+            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-sm text-red-500">{error}</div>
           )}
           {success && (
-            <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700">{success}</div>
+            <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-sm text-emerald-500">{success}</div>
           )}
 
           {/* Submit */}
-          <div className="pt-6 border-t border-neutral-100 flex items-center justify-between">
+          <div className="pt-6 border-t border-border flex items-center justify-between">
             <Link 
               href="/admin/movies" 
-              className="px-8 py-3.5 rounded-2xl font-bold text-sm hover:bg-neutral-100 text-neutral-900 transition-all"
+              className="px-8 py-3.5 rounded-2xl font-bold text-sm hover:bg-secondary text-foreground transition-all"
             >
               Batal
             </Link>
@@ -916,42 +916,42 @@ export default function EditMoviePage() {
         {/* Right: Preview */}
         <div className="space-y-6">
           {/* Poster Preview */}
-          <div className="bg-white rounded-[2rem] border border-neutral-200 p-6 shadow-sm">
-            <p className="text-xs font-black uppercase text-neutral-400 tracking-widest mb-4">Preview Poster</p>
+          <div className="bg-card rounded-[2rem] border border-border p-6 shadow-sm">
+            <p className="text-xs font-black uppercase text-muted-foreground tracking-widest mb-4">Preview Poster</p>
             {formData.poster_url ? (
-              <div className="aspect-[2/3] w-full rounded-2xl overflow-hidden border border-neutral-200 shadow-sm">
+              <div className="aspect-[2/3] w-full rounded-2xl overflow-hidden border border-border shadow-sm">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={getMediaUrl(formData.poster_url)} alt="Poster" className="w-full h-full object-cover" />
               </div>
             ) : (
-              <div className="aspect-[2/3] w-full rounded-2xl bg-neutral-100 border-2 border-dashed border-neutral-200 flex items-center justify-center">
-                <Icon name="image" className="w-10 h-10 text-neutral-300" />
+              <div className="aspect-[2/3] w-full rounded-2xl bg-secondary border-2 border-dashed border-border flex items-center justify-center">
+                <Icon name="image" className="w-10 h-10 text-muted-foreground" />
               </div>
             )}
           </div>
 
           {/* Quick Info */}
-          <div className="bg-white rounded-[2rem] border border-neutral-200 p-6 shadow-sm space-y-3">
-            <p className="text-xs font-black uppercase text-neutral-400 tracking-widest">Info</p>
+          <div className="bg-card rounded-[2rem] border border-border p-6 shadow-sm space-y-3">
+            <p className="text-xs font-black uppercase text-muted-foreground tracking-widest">Info</p>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-neutral-400">Film ID</span>
-                <span className="font-bold text-neutral-900">#{filmId}</span>
+                <span className="text-muted-foreground">Film ID</span>
+                <span className="font-bold text-foreground">#{filmId}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-neutral-400">Video</span>
+                <span className="text-muted-foreground">Video</span>
                 <span className={cn("font-bold", formData.video_id ? "text-emerald-600" : "text-red-400")}>
                   {formData.video_id ? "✓ Ada" : "✗ Belum"}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-neutral-400">Trailer</span>
+                <span className="text-muted-foreground">Trailer</span>
                 <span className={cn("font-bold", formData.trailer_url ? "text-emerald-600" : "text-red-400")}>
                   {formData.trailer_url ? "✓ Ada" : "✗ Belum"}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-neutral-400">Poster</span>
+                <span className="text-muted-foreground">Poster</span>
                 <span className={cn("font-bold", formData.poster_url ? "text-emerald-600" : "text-red-400")}>
                   {formData.poster_url ? "✓ Ada" : "✗ Belum"}
                 </span>
