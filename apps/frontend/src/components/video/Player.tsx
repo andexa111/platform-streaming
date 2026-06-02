@@ -1,6 +1,6 @@
 "use client";
 
-import React, { forwardRef } from "react";
+import React, { forwardRef, useState, useEffect } from "react";
 import '@vidstack/react/player/styles/default/theme.css';
 import '@vidstack/react/player/styles/default/layouts/video.css';
 import { MediaPlayer, MediaProvider, Poster, type MediaPlayerInstance, isHLSProvider, SeekButton, Time, FullscreenButton } from '@vidstack/react';
@@ -25,6 +25,11 @@ export const Player = forwardRef<MediaPlayerInstance, PlayerProps>(
   ({ variant, src, poster, title, className, onTimeUpdate, onEnded }, ref) => {
 
   const isBanner = variant === "banner";
+  const [hasPosterError, setHasPosterError] = useState(false);
+
+  useEffect(() => {
+    setHasPosterError(false);
+  }, [poster]);
 
   return (
     <div className={cn(
@@ -87,7 +92,14 @@ export const Player = forwardRef<MediaPlayerInstance, PlayerProps>(
         }}
       >
         <MediaProvider>
-          {poster && <Poster src={poster} alt={title || "Poster"} className="object-cover w-full h-full" />}
+          {poster && !hasPosterError && (
+            <Poster 
+              src={poster} 
+              alt={title || "Poster"} 
+              className="object-cover w-full h-full" 
+              onError={() => setHasPosterError(true)}
+            />
+          )}
         </MediaProvider>
         
         {!isBanner && (

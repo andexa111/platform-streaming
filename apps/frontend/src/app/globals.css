@@ -81,3 +81,17 @@
     color: #024d94;
   }
 }
+
+/* Hide broken poster images inside Vidstack player */
+vds-poster[data-error],
+.vds-poster[data-error],
+media-poster[data-error] {
+  display: none !important;
+}
+
+/* Fallback hiding broken images in player */
+media-player img[alt]:not([src]),
+media-player img[src=""] {
+  display: none !important;
+}
+
