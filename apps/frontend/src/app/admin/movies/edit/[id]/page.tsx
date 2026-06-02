@@ -219,7 +219,7 @@ export default function EditMoviePage() {
       updateField("trailer_url", res.data.url);
     } catch (err: any) {
       console.error("Gagal upload trailer:", err);
-      alert(err.response?.data?.message || "Gagal mengunggah trailer. Pastikan formatnya video (mp4/webm) dan ukuran maks 5GB.");
+      alert(err.response?.data?.message || "Gagal mengunggah trailer. Pastikan formatnya video (mp4/webm) dan ukuran maks 100MB.");
     } finally {
       setUploadingTrailer(false);
     }
@@ -851,7 +851,7 @@ export default function EditMoviePage() {
                         <Icon name="film" className="w-5 h-5 text-muted-foreground" />
                       )}
                       <span className="text-sm text-muted-foreground">
-                        {uploadingTrailer ? `Sedang mengunggah (${uploadProgress}%)...` : formData.trailer_url ? "Ganti Trailer Video" : "Klik untuk upload trailer (maks. 5GB)..."}
+                        {uploadingTrailer ? `Sedang mengunggah (${uploadProgress}%)...` : formData.trailer_url ? "Ganti Trailer Video" : "Klik untuk upload trailer (maks. 100MB)..."}
                       </span>
                     </div>
                     {uploadingTrailer && (
