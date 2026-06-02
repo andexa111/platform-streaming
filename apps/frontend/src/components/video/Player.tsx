@@ -7,6 +7,7 @@ import { MediaPlayer, MediaProvider, Poster, type MediaPlayerInstance, isHLSProv
 import { defaultLayoutIcons, DefaultVideoLayout } from '@vidstack/react/player/layouts/default';
 import { cn } from "@/lib/utils";
 import Cookies from "js-cookie";
+import { RotateCcw, RotateCw } from "lucide-react";
 
 export type PlayerVariant = "banner" | "trailer" | "movie";
 
@@ -100,11 +101,13 @@ export const Player = forwardRef<MediaPlayerInstance, PlayerProps>(
                 <div className="flex items-center gap-1">
                   <Time type="duration" className="vds-time" />
                   <div className="flex items-center gap-1 ml-2">
-                    <SeekButton seconds={-15} className="vds-button" aria-label="Mundur 15s">
-                      <defaultLayoutIcons.SeekButton.Backward className="vds-icon" />
+                    <SeekButton seconds={-15} className="vds-button relative flex items-center justify-center group" aria-label="Mundur 15s">
+                      <RotateCcw className="vds-icon text-white w-6 h-6 group-hover:text-brand transition-colors" />
+                      <span className="absolute text-[8px] font-bold mt-[2px] text-white group-hover:text-brand transition-colors">15</span>
                     </SeekButton>
-                    <SeekButton seconds={15} className="vds-button" aria-label="Maju 15s">
-                      <defaultLayoutIcons.SeekButton.Forward className="vds-icon" />
+                    <SeekButton seconds={15} className="vds-button relative flex items-center justify-center group" aria-label="Maju 15s">
+                      <RotateCw className="vds-icon text-white w-6 h-6 group-hover:text-brand transition-colors" />
+                      <span className="absolute text-[8px] font-bold mt-[2px] text-white group-hover:text-brand transition-colors">15</span>
                     </SeekButton>
                   </div>
                 </div>
