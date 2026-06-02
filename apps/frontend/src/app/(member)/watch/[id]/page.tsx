@@ -140,7 +140,7 @@ export default function WatchPage() {
         <div className="xl:col-span-3 space-y-8">
           {/* Active Video Player */}
           <div 
-            className="group relative aspect-video bg-black rounded-[2rem] overflow-hidden border border-white/5 shadow-2xl shadow-brand/10"
+            className="group relative aspect-video bg-black overflow-hidden shadow-2xl shadow-brand/10"
             onContextMenu={(e) => e.preventDefault()}
           >
             {streamUrl ? (

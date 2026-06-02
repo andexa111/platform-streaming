@@ -95,3 +95,226 @@ media-player img[src=""] {
   display: none !important;
 }
 
+/* ─── Center Overlay Controls (YouTube-style) ─── */
+.player-center-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  z-index: 20; /* Above video, below some top controls if any */
+  width: 100%;
+  pointer-events: none; /* Let clicks pass through empty areas */
+  opacity: 1;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.player-center-overlay > * {
+  pointer-events: auto; /* Buttons should be clickable */
+}
+
+/* Hide center controls when native controls are hidden */
+[data-media-player]:not([data-controls]) .player-center-overlay {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Hide center controls when settings menu or any submenus are open */
+[data-media-player]:has([data-open]) .player-center-overlay,
+[data-media-player]:has([data-menu-open]) .player-center-overlay,
+[data-media-player]:has(.vds-menu[data-open]) .player-center-overlay,
+[data-media-player]:has(.vds-menu-items[data-open]) .player-center-overlay {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+[data-media-player]:has([data-open]) .player-center-overlay *,
+[data-media-player]:has([data-menu-open]) .player-center-overlay *,
+[data-media-player]:has(.vds-menu[data-open]) .player-center-overlay *,
+[data-media-player]:has(.vds-menu-items[data-open]) .player-center-overlay * {
+  pointer-events: none !important;
+}
+
+.center-play-btn {
+  background: transparent;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  transition:
+    transform 0.2s,
+    opacity 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.center-play-btn:hover {
+  transform: scale(1.1);
+  opacity: 0.9;
+}
+
+.center-play-icon {
+  width: clamp(48px, 10vw, 72px);
+  height: clamp(48px, 10vw, 72px);
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.5));
+}
+
+.center-seek {
+  background: transparent;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  transition:
+    transform 0.2s,
+    opacity 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.center-seek:hover {
+  transform: scale(1.1);
+  opacity: 0.9;
+}
+
+.center-seek-icon {
+  width: clamp(36px, 8vw, 56px);
+  height: clamp(36px, 8vw, 56px);
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.5));
+}
+
+/* Spinner Animation */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Force Volume/Mute Button to Always Show */
+[data-media-player] .vds-mute-button {
+  display: flex !important;
+}
+
+/* Vidstack Mobile Adjustments to fit all controls in one line (Desktop-like layout) */
+@media (max-width: 768px) {
+  [data-media-player] {
+    --video-controls-padding: 4px !important;
+    --video-button-size: 24px !important;
+    --video-button-spacing: 2px !important;
+  }
+
+  /* Reduce gap in center overlay on mobile */
+  .player-center-overlay {
+    gap: 12px;
+  }
+
+  /* Prevent controls from wrapping */
+  [data-media-player] .vds-controls-group {
+    flex-wrap: nowrap !important;
+  }
+
+  /* Allow the spacer to SHRINK when space is tight */
+  [data-media-player] .vds-spacer {
+    flex-shrink: 1 !important;
+    min-width: 0 !important;
+  }
+
+  /* Shrink the time display */
+  [data-media-player] .vds-time {
+    font-size: 9px !important;
+    white-space: nowrap !important;
+    min-width: 0 !important;
+    flex-shrink: 1 !important;
+  }
+
+  /* Settings popup — small & on top */
+  [data-media-player] .vds-menu-items,
+  [data-media-player] .vds-settings-menu,
+  [data-media-player] [data-vds-menu-items] {
+    z-index: 9999 !important;
+    position: absolute !important;
+    bottom: 40px !important;
+    right: 20px !important;
+    width: 240px !important;
+    min-width: unset !important;
+    max-width: 260px !important;
+    font-size: 11px !important;
+    padding: 6px 0 !important;
+    border-radius: 8px !important;
+    pointer-events: auto !important;
+    max-height: 300px !important;
+    overflow-y: auto !important;
+    scrollbar-width: thin !important;
+  }
+
+  /* Lower seekbar/slider z-index when menu is open so they go behind the menu */
+  [data-media-player]:has([data-open]) .vds-time-slider,
+  [data-media-player]:has([data-open]) .vds-slider,
+  [data-media-player]:has([data-open]) [data-vds-slider],
+  [data-media-player]:has([data-open]) .vds-slider-track,
+  [data-media-player]:has([data-open]) .vds-controls-group:not(:has([data-open])) {
+    z-index: 1 !important;
+  }
+
+  [data-media-player] .vds-menu-items::-webkit-scrollbar,
+  [data-media-player] .vds-settings-menu::-webkit-scrollbar,
+  [data-media-player] [data-vds-menu-items]::-webkit-scrollbar {
+    width: 4px !important;
+  }
+
+  [data-media-player] .vds-menu-items::-webkit-scrollbar-track,
+  [data-media-player] .vds-settings-menu::-webkit-scrollbar-track,
+  [data-media-player] [data-vds-menu-items]::-webkit-scrollbar-track {
+    background: transparent !important;
+  }
+
+  [data-media-player] .vds-menu-items::-webkit-scrollbar-thumb,
+  [data-media-player] .vds-settings-menu::-webkit-scrollbar-thumb,
+  [data-media-player] [data-vds-menu-items]::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3) !important;
+    border-radius: 4px !important;
+  }
+
+  /* Style sliders inside the menu items */
+  [data-media-player] .vds-menu-items .vds-slider,
+  [data-media-player] .vds-menu-items [data-vds-slider] {
+    --slider-thumb-size: 12px !important;
+    --slider-track-height: 4px !important;
+    --slider-height: 24px !important;
+    width: 100% !important;
+    margin: 0 4px !important;
+  }
+
+  [data-media-player] .vds-menu-item {
+    padding: 6px 10px !important;
+    font-size: 11px !important;
+    gap: 6px !important;
+    pointer-events: auto !important;
+  }
+
+  [data-media-player] .vds-menu-item svg,
+  [data-media-player] .vds-menu-item .vds-icon {
+    width: 14px !important;
+    height: 14px !important;
+    pointer-events: none !important;
+  }
+}
+
+.hide-settings .vds-settings-menu {
+  display: none !important;
+}
+
+
