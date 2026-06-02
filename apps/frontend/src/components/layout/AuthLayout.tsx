@@ -51,12 +51,12 @@ export default function AuthLayout({ mode, children }: AuthLayoutProps) {
             {/* Headline */}
             <div className={`space-y-4 ${!isLogin ? "text-right" : "text-left"}`}>
               <h1 className="text-4xl xl:text-5xl font-bold text-foreground tracking-tight leading-tight">
-                Scene The Unseen
+                {isLogin ? "Login Sinea" : "Register Sinea"}
               </h1>
               <p className="text-muted-foreground text-lg leading-relaxed mt-4">
-                Mengangkat cerita-cerita Indonesia
+                A new streaming space for 
                 <br />
-                yang selama ini tak pernah mendapat layarnya
+                Visual Storytellers
               </p>
             </div>
 
