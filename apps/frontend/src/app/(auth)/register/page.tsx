@@ -18,7 +18,7 @@ export default function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  
+
   const router = useRouter();
 
   const {
@@ -33,17 +33,16 @@ export default function RegisterPage() {
     try {
       setError(null);
       setSuccess(null);
-      
+
       const { confirmPassword, ...payload } = data;
       await api.post("/auth/register", payload);
-      
+
       setSuccess("Pendaftaran berhasil! Mengalihkan ke halaman login...");
-      
+
       // Optionally redirect to login after a few seconds
       setTimeout(() => {
         router.push("/login");
       }, 3000);
-      
     } catch (err: any) {
       setError(err.response?.data?.message || "Registrasi gagal. Email mungkin sudah terdaftar.");
     }
@@ -55,42 +54,24 @@ export default function RegisterPage() {
         {/* Header */}
         <div className="space-y-2 mb-8">
           <h2 className="text-2xl font-bold text-foreground">Buat akun baru</h2>
-          <p className="text-sm text-muted-foreground">Bergabunglah dengan kami untuk menjelajahi ribuan mahakarya seni dan budaya Kudus.</p>
+          <p className="text-sm text-muted-foreground">Bergabunglah sekarang untuk menemukan berbagai film eksklusif pilihan.</p>
         </div>
 
-        {error && (
-          <div className="p-3 mb-6 bg-red-500/10 text-red-500 rounded-xl text-xs font-medium border border-red-500/20">
-            {error}
-          </div>
-        )}
-        
-        {success && (
-          <div className="p-3 mb-6 bg-emerald-500/10 text-emerald-500 rounded-xl text-xs font-medium border border-emerald-500/20">
-            {success}
-          </div>
-        )}
+        {error && <div className="p-3 mb-6 bg-red-500/10 text-red-500 rounded-xl text-xs font-medium border border-red-500/20">{error}</div>}
+
+        {success && <div className="p-3 mb-6 bg-emerald-500/10 text-emerald-500 rounded-xl text-xs font-medium border border-emerald-500/20">{success}</div>}
 
         {/* Registration Form */}
         <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
           <div className="space-y-3">
             <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Nama Lengkap</label>
-            <Input
-              type="text"
-              placeholder="Masukkan nama lengkap Anda"
-              className="bg-muted/50 border-border text-foreground focus:bg-muted/70 placeholder:text-muted-foreground/50 h-12"
-              {...register("name")}
-            />
+            <Input type="text" placeholder="Masukkan nama lengkap Anda" className="bg-muted/50 border-border text-foreground focus:bg-muted/70 placeholder:text-muted-foreground/50 h-12" {...register("name")} />
             {errors.name && <p className="text-[10px] text-red-500 ml-1">{errors.name.message}</p>}
           </div>
 
           <div className="space-y-3">
             <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Alamat Email</label>
-            <Input
-              type="email"
-              placeholder="email@contoh.com"
-              className="bg-muted/50 border-border text-foreground focus:bg-muted/70 placeholder:text-muted-foreground/50 h-12"
-              {...register("email")}
-            />
+            <Input type="email" placeholder="email@contoh.com" className="bg-muted/50 border-border text-foreground focus:bg-muted/70 placeholder:text-muted-foreground/50 h-12" {...register("email")} />
             {errors.email && <p className="text-[10px] text-red-500 ml-1">{errors.email.message}</p>}
           </div>
 
@@ -103,11 +84,7 @@ export default function RegisterPage() {
                 className="bg-muted/50 border-border text-foreground focus:bg-muted/70 placeholder:text-muted-foreground/50 h-12 pr-12"
                 {...register("password")}
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-              >
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
                 <Icon name={showPassword ? "eye-off" : "eye"} className="w-4 h-4" />
               </button>
             </div>
@@ -123,18 +100,14 @@ export default function RegisterPage() {
                 className="bg-muted/50 border-border text-foreground focus:bg-muted/70 placeholder:text-muted-foreground/50 h-12 pr-12"
                 {...register("confirmPassword")}
               />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-              >
+              <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
                 <Icon name={showConfirmPassword ? "eye-off" : "eye"} className="w-4 h-4" />
               </button>
             </div>
             {errors.confirmPassword && <p className="text-[10px] text-red-500 ml-1">{errors.confirmPassword.message}</p>}
           </div>
 
-          <Button 
+          <Button
             disabled={isSubmitting || !!success}
             className="w-full h-12 rounded-xl bg-brand hover:brightness-110 text-white font-bold text-base mt-6 transition-all border-0 ring-0 hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed"
           >
@@ -157,7 +130,7 @@ export default function RegisterPage() {
           type="button"
           variant="outline"
           className="w-full h-12 rounded-xl border-border bg-muted/50 text-foreground hover:text-brand hover:bg-muted/70 hover:border-border/80 gap-3 font-semibold transition-all hover:scale-[1.02]"
-          onClick={() => window.location.href = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/auth/google`}
+          onClick={() => (window.location.href = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/auth/google`)}
         >
           <svg width="20" height="20" viewBox="0 0 24 24">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
