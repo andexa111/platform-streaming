@@ -113,6 +113,7 @@ export const Player = forwardRef<MediaPlayerInstance, PlayerProps>(
                 </div>
               ),
               googleCastButton: <div className="hidden" />,
+              pipButton: <div className="hidden" />,
               fullscreenButton: (
                 <FullscreenButton className="vds-button" aria-label="Layar Penuh">
                   <defaultLayoutIcons.FullscreenButton.Enter className="vds-icon vds-fs-enter" />
