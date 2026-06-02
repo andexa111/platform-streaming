@@ -66,24 +66,26 @@ export default function WatchPage() {
       .then(([movieRes, streamRes, relatedRes]) => {
         setMovie(movieRes.data);
         setStreamUrl(streamRes.data?.stream_url || null);
-        
+
         const all = relatedRes.data?.data || [];
         const mapped = all
           .filter((m: any) => m.id !== movieId)
           .slice(0, 6)
-          .map((film: any): Video => ({
-            id: film.id,
-            title: film.title,
-            genre: film.genres && film.genres.length > 0 ? film.genres[0].name : "Other",
-            rating: "4.8",
-            quality: "4K UHD",
-            thumbnail: film.poster_url ? getMediaUrl(film.poster_url) : "",
-            backdrop: film.poster_url ? getMediaUrl(film.poster_url) : "",
-            description: film.description || "",
-            trailerUrl: film.trailer_url ? getMediaUrl(film.trailer_url) : "",
-            productionHouse: film.production_house || "",
-            productionHouseLogo: film.production_house_logo ? getMediaUrl(film.production_house_logo) : "",
-          }));
+          .map(
+            (film: any): Video => ({
+              id: film.id,
+              title: film.title,
+              genre: film.genres && film.genres.length > 0 ? film.genres[0].name : "Other",
+              rating: "4.8",
+              quality: "4K UHD",
+              thumbnail: film.poster_url ? getMediaUrl(film.poster_url) : "",
+              backdrop: film.poster_url ? getMediaUrl(film.poster_url) : "",
+              description: film.description || "",
+              trailerUrl: film.trailer_url ? getMediaUrl(film.trailer_url) : "",
+              productionHouse: film.production_house || "",
+              productionHouseLogo: film.production_house_logo ? getMediaUrl(film.production_house_logo) : "",
+            }),
+          );
         setRelatedMovies(mapped);
       })
       .catch((err) => {
@@ -136,27 +138,16 @@ export default function WatchPage() {
         {/* Main Player Section */}
         <div className="xl:col-span-3 space-y-8">
           {/* Active Video Player */}
-          <div 
-            className="group relative aspect-video bg-black rounded-[2rem] overflow-hidden border border-white/5 shadow-2xl shadow-brand/10"
-            onContextMenu={(e) => e.preventDefault()}
-          >
+          <div className="group relative aspect-video bg-black overflow-hidden shadow-2xl shadow-brand/10" onContextMenu={(e) => e.preventDefault()}>
             {streamUrl ? (
-              <Player
-                variant="movie"
-                title={movie.title}
-                src={streamUrl}
-                poster={movie.poster_url ? getMediaUrl(movie.poster_url) : ""}
-                className="w-full h-full"
-              />
+              <Player variant="movie" title={movie.title} src={streamUrl} poster={movie.poster_url ? getMediaUrl(movie.poster_url) : ""} className="w-full h-full" />
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center text-center p-6 space-y-4">
                 <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center justify-center text-red-500">
                   <Icon name="film" className="w-8 h-8" />
                 </div>
                 <h3 className="text-xl font-bold text-white">Stream Tidak Tersedia</h3>
-                <p className="text-sm text-neutral-400 max-w-md leading-relaxed">
-                  Video asli belum ditautkan ke film ini di Cloudflare R2, atau sesi otentikasi Anda telah berakhir.
-                </p>
+                <p className="text-sm text-neutral-400 max-w-md leading-relaxed">Video asli belum ditautkan ke film ini di Cloudflare R2, atau sesi otentikasi Anda telah berakhir.</p>
               </div>
             )}
           </div>
@@ -176,9 +167,7 @@ export default function WatchPage() {
             <div className="flex flex-wrap items-center gap-6 text-muted-foreground">
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Genre</span>
-                <span className="text-sm font-bold text-foreground/80">
-                  {movie.genres && movie.genres.length > 0 ? movie.genres[0].name : "Other"}
-                </span>
+                <span className="text-sm font-bold text-foreground/80">{movie.genres && movie.genres.length > 0 ? movie.genres[0].name : "Other"}</span>
               </div>
               <div className="w-1.5 h-1.5 rounded-full bg-border" />
               {movie.release_year && (
