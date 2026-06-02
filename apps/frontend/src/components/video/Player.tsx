@@ -3,7 +3,7 @@
 import React, { forwardRef } from "react";
 import '@vidstack/react/player/styles/default/theme.css';
 import '@vidstack/react/player/styles/default/layouts/video.css';
-import { MediaPlayer, MediaProvider, Poster, type MediaPlayerInstance, isHLSProvider, SeekButton, Time } from '@vidstack/react';
+import { MediaPlayer, MediaProvider, Poster, type MediaPlayerInstance, isHLSProvider, SeekButton, Time, FullscreenButton } from '@vidstack/react';
 import { defaultLayoutIcons, DefaultVideoLayout } from '@vidstack/react/player/layouts/default';
 import { cn } from "@/lib/utils";
 import Cookies from "js-cookie";
@@ -113,6 +113,12 @@ export const Player = forwardRef<MediaPlayerInstance, PlayerProps>(
                 </div>
               ),
               googleCastButton: <div className="hidden" />,
+              fullscreenButton: (
+                <FullscreenButton className="vds-button" aria-label="Layar Penuh">
+                  <defaultLayoutIcons.FullscreenButton.Enter className="vds-icon vds-fs-enter" />
+                  <defaultLayoutIcons.FullscreenButton.Exit className="vds-icon vds-fs-exit" />
+                </FullscreenButton>
+              ),
             }}
             seekStep={15}
           />
