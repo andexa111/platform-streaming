@@ -15,24 +15,27 @@ export default function PublicPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get("/films?limit=10&category=Lolos Kurasi FFAB 2026")
+    api
+      .get("/films?limit=10&category=Lolos Kurasi FFAB 2026")
       .then((res) => {
         const dbFilms = res.data?.data || [];
-        const mappedFilms = dbFilms.map((film: any): Video => ({
-          id: film.id,
-          title: film.title,
-          genre: film.genres && film.genres.length > 0 ? film.genres[0].name : "Other",
-          rating: "4.8",
-          quality: "4K UHD",
-          thumbnail: film.poster_url ? getMediaUrl(film.poster_url) : "",
-          backdrop: film.poster_url ? getMediaUrl(film.poster_url) : "",
-          description: film.description || "",
-          trailerUrl: film.trailer_url ? getMediaUrl(film.trailer_url) : "",
-          productionHouse: film.production_house || "",
-          productionHouseLogo: film.production_house_logo ? getMediaUrl(film.production_house_logo) : "",
-          clipStart: film.clip_start ?? undefined,
-          clipEnd: film.clip_end ?? undefined,
-        }));
+        const mappedFilms = dbFilms.map(
+          (film: any): Video => ({
+            id: film.id,
+            title: film.title,
+            genre: film.genres && film.genres.length > 0 ? film.genres[0].name : "Other",
+            rating: "4.8",
+            quality: "4K UHD",
+            thumbnail: film.poster_url ? getMediaUrl(film.poster_url) : "",
+            backdrop: film.poster_url ? getMediaUrl(film.poster_url) : "",
+            description: film.description || "",
+            trailerUrl: film.trailer_url ? getMediaUrl(film.trailer_url) : "",
+            productionHouse: film.production_house || "",
+            productionHouseLogo: film.production_house_logo ? getMediaUrl(film.production_house_logo) : "",
+            clipStart: film.clip_start ?? undefined,
+            clipEnd: film.clip_end ?? undefined,
+          }),
+        );
         setFilms(mappedFilms);
       })
       .catch((err) => {
@@ -88,41 +91,28 @@ export default function PublicPage() {
         </div>
       ) : (
         <div className="space-y-4 md:space-y-8 pb-20">
-          {films.length > 0 && (
-            <VideoSection 
-              title="Lolos Kurasi FFAB 2026" 
-              subtitle="Koleksi film pilihan yang lolos kurasi FFAB 2026" 
-              videos={films} 
-              viewAllHref="/movies?category=Lolos Kurasi FFAB 2026" 
-            />
-          )}
+          {films.length > 0 && <VideoSection title="Lolos Kurasi FFAB 2026" subtitle="Koleksi film pilihan yang lolos kurasi FFAB 2026" videos={films} viewAllHref="/movies?category=Lolos Kurasi FFAB 2026" />}
 
-          <VideoSection 
-            title="Segera Hadir" 
+          <VideoSection
+            title="Segera Hadir"
             subtitle="Nantikan penayangan perdana segera"
-            videos={[{
-              id: "dummy-soon-1",
-              title: "Karya Misterius",
-              thumbnail: "/login_bg.png",
-              genre: "Thriller",
-              publishedStart: "2099-12-31T00:00:00.000Z",
-            }]} 
-            viewAllHref="/movies" 
-            className="bg-secondary/20" 
+            videos={[
+              {
+                id: "dummy-soon-1",
+                title: "Karya Misterius",
+                thumbnail: "/login_bg.png",
+                genre: "Thriller",
+                publishedStart: "2099-12-31T00:00:00.000Z",
+              },
+            ]}
+            viewAllHref="/movies"
+            className="bg-secondary/20"
           />
 
-          {films.length > 0 && (
-            <VideoSection 
-              title="Lolos Kurasi FFAB 2026" 
-              subtitle="Koleksi film pilihan yang lolos kurasi FFAB 2026" 
-              videos={films} 
-              viewAllHref="/movies?category=Lolos Kurasi FFAB 2026" 
-            />
-
-          )}
+          {films.length > 0 && <VideoSection title="Lolos Kurasi FFAB 2026" subtitle="Koleksi film pilihan yang lolos kurasi FFAB 2026" videos={films} viewAllHref="/movies?category=Lolos Kurasi FFAB 2026" />}
         </div>
       )}
-      
+
       {/* Ads Section */}
       <Ads />
 

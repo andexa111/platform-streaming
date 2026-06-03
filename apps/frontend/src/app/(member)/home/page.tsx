@@ -16,28 +16,16 @@ export default function MemberHomePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([
-      api.get("/genre").catch(() => ({ data: [] })),
-      api.get("/films?limit=100&category=Lolos Kurasi FFAB 2026").catch(() => ({ data: { data: [] } })),
-      api.get("/featured-films").catch(() => ({ data: [] })),
-    ])
+    Promise.all([api.get("/genre").catch(() => ({ data: [] })), api.get("/films?limit=100&category=Lolos Kurasi FFAB 2026").catch(() => ({ data: { data: [] } })), api.get("/featured-films").catch(() => ({ data: [] }))])
       .then(([genreRes, filmsRes, featuredRes]) => {
         // Genres
         const dbGenres = genreRes.data || [];
         // Map to UI friendly colors
-        const colors = [
-          "from-red-600/20",
-          "from-indigo-600/20",
-          "from-emerald-600/20",
-          "from-zinc-800/20",
-          "from-brand/20",
-          "from-purple-600/20",
-          "from-orange-600/20"
-        ];
+        const colors = ["from-red-600/20", "from-indigo-600/20", "from-emerald-600/20", "from-zinc-800/20", "from-brand/20", "from-purple-600/20", "from-orange-600/20"];
         const mappedGenres = dbGenres.map((g: any, i: number) => ({
           title: g.name,
           slug: g.slug,
-          color: colors[i % colors.length]
+          color: colors[i % colors.length],
         }));
         setGenres(mappedGenres);
 
@@ -65,10 +53,8 @@ export default function MemberHomePage() {
 
         // Featured films
         const dbFeatured = featuredRes.data || [];
-        const mappedFeatured = dbFeatured
-          .map((item: any) => item.film ? mapFilm(item.film) : null)
-          .filter(Boolean) as Video[];
-        
+        const mappedFeatured = dbFeatured.map((item: any) => (item.film ? mapFilm(item.film) : null)).filter(Boolean) as Video[];
+
         setFeaturedFilms(mappedFeatured);
       })
       .catch((err) => {
@@ -91,17 +77,19 @@ export default function MemberHomePage() {
   const bannerMovies = featuredFilms.length > 0 ? featuredFilms : films.slice(0, 5);
 
   // Dynamically group films by genre
-  const genreSections = genres.map(g => {
-    const genreFilms = films.filter(f => f.genre === g.title);
-    return {
-      title: g.title,
-      slug: g.slug,
-      films: genreFilms
-    };
-  }).filter(section => section.films.length > 0);
+  const genreSections = genres
+    .map((g) => {
+      const genreFilms = films.filter((f) => f.genre === g.title);
+      return {
+        title: g.title,
+        slug: g.slug,
+        films: genreFilms,
+      };
+    })
+    .filter((section) => section.films.length > 0);
 
-  const genreTitles = genres.map(g => g.title);
-  const uncategorizedFilms = films.filter(f => !genreTitles.includes(f.genre));
+  const genreTitles = genres.map((g) => g.title);
+  const uncategorizedFilms = films.filter((f) => !genreTitles.includes(f.genre));
 
   return (
     <main className="min-h-screen bg-background text-foreground font-sans selection:bg-brand/30">
@@ -116,39 +104,25 @@ export default function MemberHomePage() {
 
       {/* Content Sections */}
       <div className="space-y-4 md:space-y-8 pb-20">
-        {films.length > 0 && (
-          <VideoSection 
-            title="Lolos Kurasi FFAB 2026" 
-            subtitle="Koleksi film pilihan yang lolos kurasi FFAB 2026" 
-            videos={films} 
-            viewAllHref="/movies?category=Lolos Kurasi FFAB 2026" 
-          />
-        )}
+        {films.length > 0 && <VideoSection title="Lolos Kurasi FFAB 2026" subtitle="Koleksi film pilihan yang lolos kurasi FFAB 2026" videos={films} viewAllHref="/movies?category=Lolos Kurasi FFAB 2026" />}
 
-        <VideoSection 
-          title="Segera Hadir" 
+        <VideoSection
+          title="Segera Hadir"
           subtitle="Nantikan penayangan perdana segera"
-          videos={[{
-            id: "dummy-soon-1",
-            title: "Karya Misterius",
-            thumbnail: "/login_bg.png",
-            genre: "Thriller",
-            publishedStart: "2099-12-31T00:00:00.000Z",
-          }]} 
-          viewAllHref="/movies" 
-          className="bg-secondary/20" 
+          videos={[
+            {
+              id: "dummy-soon-1",
+              title: "Karya Misterius",
+              thumbnail: "/login_bg.png",
+              genre: "Thriller",
+              publishedStart: "2099-12-31T00:00:00.000Z",
+            },
+          ]}
+          viewAllHref="/movies"
+          className="bg-secondary/20"
         />
 
-         {films.length > 0 && (
-          <VideoSection 
-            title="Lolos Kurasi FFAB 2026" 
-            subtitle="Koleksi film pilihan yang lolos kurasi FFAB 2026" 
-            videos={films} 
-            viewAllHref="/movies?category=Lolos Kurasi FFAB 2026" 
-          />
-        )}
-
-
+        {films.length > 0 && <VideoSection title="Lolos Kurasi FFAB 2026" subtitle="Koleksi film pilihan yang lolos kurasi FFAB 2026" videos={films} viewAllHref="/movies?category=Lolos Kurasi FFAB 2026" />}
 
         {/* {genreSections.map((section, idx) => (
           <VideoSection
