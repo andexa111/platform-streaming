@@ -42,14 +42,17 @@ export class FilmController {
 
   // ==================== ADMIN ENDPOINTS ====================
 
-  /**
-   * POST /films
-   * Buat film baru — hanya admin/superadmin
-   */
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'superadmin')
   @Post()
-  create(@Body() dto: CreateFilmDto) {
+  create(@Body() dto: CreateFilmDto, @Req() req: any) {
+    const user = req.user;
+    if (
+      (dto.published_start || dto.published_end || dto.scheduled_at) &&
+      user?.role !== 'superadmin'
+    ) {
+      throw new BadRequestException('Hanya Superadmin yang diperbolehkan mengatur jadwal tayang film.');
+    }
     return this.filmService.create(dto);
   }
 
@@ -85,7 +88,15 @@ export class FilmController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateFilmDto,
+    @Req() req: any,
   ) {
+    const user = req.user;
+    if (
+      (dto.published_start !== undefined || dto.published_end !== undefined || dto.scheduled_at !== undefined) &&
+      user?.role !== 'superadmin'
+    ) {
+      throw new BadRequestException('Hanya Superadmin yang diperbolehkan mengatur jadwal tayang film.');
+    }
     return this.filmService.update(id, dto);
   }
 

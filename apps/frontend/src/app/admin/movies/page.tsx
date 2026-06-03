@@ -8,6 +8,7 @@ import { Icon } from "@/components/ui/Icon";
 import { ButtonAction } from "@/components/ui/ButtonAction";
 import { cn } from "@/lib/utils";
 import { api, getMediaUrl } from "@/lib/api";
+import { useAuthStore } from "@/lib/auth-store";
 
 interface Film {
   id: number;
@@ -49,6 +50,7 @@ const StatsCard = ({ title, value, subValue, icon, color }: { title: string; val
 
 export default function AdminMoviesPage() {
   const router = useRouter();
+  const { user } = useAuthStore();
   const [films, setFilms] = useState<Film[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -156,6 +158,10 @@ export default function AdminMoviesPage() {
   };
 
   const handleScheduleClick = (film: Film) => {
+    if (user?.role !== "superadmin") {
+      alert("Hanya Superadmin yang diperbolehkan mengatur jadwal tayang.");
+      return;
+    }
     setMovieToSchedule(film);
     const formatToDateString = (dateStr?: string) => {
       if (!dateStr) return "";
@@ -173,6 +179,10 @@ export default function AdminMoviesPage() {
 
   const handleSaveSchedule = async () => {
     if (!movieToSchedule) return;
+    if (user?.role !== "superadmin") {
+      alert("Hanya Superadmin yang diperbolehkan mengatur jadwal tayang.");
+      return;
+    }
 
     try {
       setIsSavingSchedule(true);
@@ -403,14 +413,16 @@ export default function AdminMoviesPage() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-2">
-                          <button
-                            type="button"
-                            onClick={(e) => { e.preventDefault(); handleScheduleClick(film); }}
-                            className="p-2.5 bg-amber-500 text-white hover:bg-amber-600 rounded-xl transition-all shadow-md shadow-amber-200/50 border-none flex items-center justify-center cursor-pointer active:scale-95"
-                            title="Atur Jadwal Tayang"
-                          >
-                            <Icon name="calendar" className="w-4 h-4" />
-                          </button>
+                          {user?.role === "superadmin" && (
+                            <button
+                              type="button"
+                              onClick={(e) => { e.preventDefault(); handleScheduleClick(film); }}
+                              className="p-2.5 bg-amber-500 text-white hover:bg-amber-600 rounded-xl transition-all shadow-md shadow-amber-200/50 border-none flex items-center justify-center cursor-pointer active:scale-95"
+                              title="Atur Jadwal Tayang"
+                            >
+                              <Icon name="calendar" className="w-4 h-4" />
+                            </button>
+                          )}
                           <ButtonAction 
                             onView={() => handleTogglePublish(film.id, film.is_published)}
                             onEdit={() => router.push(`/admin/movies/edit/${film.id}`)}
