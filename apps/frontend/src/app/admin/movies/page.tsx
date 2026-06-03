@@ -70,6 +70,11 @@ export default function AdminMoviesPage() {
   const [publishedEnd, setPublishedEnd] = useState("");
   const [isSavingSchedule, setIsSavingSchedule] = useState(false);
 
+  // Admin Publication Status Modal States
+  const [adminStatusModalOpen, setAdminStatusModalOpen] = useState(false);
+  const [movieForAdminStatus, setMovieForAdminStatus] = useState<Film | null>(null);
+  const [isSavingAdminStatus, setIsSavingAdminStatus] = useState(false);
+
   // Fetch films from API
   useEffect(() => {
     fetchFilms();
@@ -199,6 +204,44 @@ export default function AdminMoviesPage() {
       alert("Gagal menyimpan jadwal tayang.");
     } finally {
       setIsSavingSchedule(false);
+    }
+  };
+
+  const handleSaveAdminStatus = async (status: "draft" | "publish" | "schedule_tomorrow") => {
+    if (!movieForAdminStatus) return;
+
+    try {
+      setIsSavingAdminStatus(true);
+      let payload: any = {};
+      if (status === "draft") {
+        payload = {
+          is_published: false,
+          published_start: null,
+          published_end: null,
+        };
+      } else if (status === "publish") {
+        payload = {
+          is_published: true,
+          published_start: null,
+          published_end: null,
+        };
+      } else if (status === "schedule_tomorrow") {
+        payload = {
+          is_published: true,
+          published_start: "tomorrow",
+          published_end: null,
+        };
+      }
+
+      await api.patch(`/films/${movieForAdminStatus.id}`, payload);
+      setAdminStatusModalOpen(false);
+      setMovieForAdminStatus(null);
+      fetchFilms();
+    } catch (err) {
+      console.error("Gagal mengubah status publikasi:", err);
+      alert("Gagal mengubah status publikasi film.");
+    } finally {
+      setIsSavingAdminStatus(false);
     }
   };
 
@@ -424,7 +467,14 @@ export default function AdminMoviesPage() {
                             </button>
                           )}
                           <ButtonAction 
-                            onView={() => handleTogglePublish(film.id, film.is_published)}
+                            onView={() => {
+                              if (user?.role === "superadmin") {
+                                handleTogglePublish(film.id, film.is_published);
+                              } else {
+                                setMovieForAdminStatus(film);
+                                setAdminStatusModalOpen(true);
+                              }
+                            }}
                             onEdit={() => router.push(`/admin/movies/edit/${film.id}`)}
                             onDelete={() => handleDeleteClick(film.id, film.title)}
                           />
@@ -624,6 +674,112 @@ export default function AdminMoviesPage() {
                 ) : (
                   <span>Simpan Jadwal</span>
                 )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Admin Publication Status Modal */}
+      {adminStatusModalOpen && movieForAdminStatus && (
+        <div className="fixed inset-0 bg-neutral-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-card border border-border w-full max-w-md rounded-[2rem] overflow-hidden shadow-2xl p-6 md:p-8 space-y-6 animate-in zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center flex-shrink-0">
+                <Icon name="eye" className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-foreground uppercase tracking-wide">Ubah Status Publikasi</h3>
+                <p className="text-xs text-muted-foreground font-semibold">Tentukan status tayang film.</p>
+              </div>
+            </div>
+
+            {/* Content info */}
+            <div className="space-y-4">
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Pilih status publikasi untuk film <strong className="text-foreground font-black">"{movieForAdminStatus.title}"</strong>:
+              </p>
+
+              {/* Status Selection Buttons */}
+              <div className="grid grid-cols-1 gap-3">
+                {/* 1. Draft */}
+                <button
+                  type="button"
+                  onClick={() => handleSaveAdminStatus("draft")}
+                  disabled={isSavingAdminStatus}
+                  className={cn(
+                    "flex items-center gap-4 p-4 rounded-2xl border transition-all text-left group w-full cursor-pointer",
+                    !movieForAdminStatus.is_published && !movieForAdminStatus.is_deleted
+                      ? "bg-amber-500/10 border-amber-500/30 text-amber-500"
+                      : "bg-secondary/40 border-border hover:border-amber-500/30 hover:bg-amber-500/5 text-foreground"
+                  )}
+                >
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500 group-hover:scale-110 transition-transform">
+                    <Icon name="edit" className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-wider">Draft</p>
+                    <p className="text-[10px] text-muted-foreground">Simpan sebagai draf, tidak dapat diakses penonton.</p>
+                  </div>
+                </button>
+
+                {/* 2. Publish */}
+                <button
+                  type="button"
+                  onClick={() => handleSaveAdminStatus("publish")}
+                  disabled={isSavingAdminStatus}
+                  className={cn(
+                    "flex items-center gap-4 p-4 rounded-2xl border transition-all text-left group w-full cursor-pointer",
+                    movieForAdminStatus.is_published && (!movieForAdminStatus.published_start || new Date(movieForAdminStatus.published_start) <= new Date())
+                      ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500"
+                      : "bg-secondary/40 border-border hover:border-emerald-500/30 hover:bg-emerald-500/5 text-foreground"
+                  )}
+                >
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform">
+                    <Icon name="play" className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-wider">Publish Sekarang</p>
+                    <p className="text-[10px] text-muted-foreground">Terbitkan langsung agar segera dapat ditonton.</p>
+                  </div>
+                </button>
+
+                {/* 3. Terjadwal (Coming Soon) */}
+                <button
+                  type="button"
+                  onClick={() => handleSaveAdminStatus("schedule_tomorrow")}
+                  disabled={isSavingAdminStatus}
+                  className={cn(
+                    "flex items-center gap-4 p-4 rounded-2xl border transition-all text-left group w-full cursor-pointer",
+                    movieForAdminStatus.is_published && movieForAdminStatus.published_start && new Date(movieForAdminStatus.published_start) > new Date()
+                      ? "bg-blue-500/10 border-blue-500/30 text-blue-500"
+                      : "bg-secondary/40 border-border hover:border-blue-500/30 hover:bg-blue-500/5 text-foreground"
+                  )}
+                >
+                  <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
+                    <Icon name="calendar" className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-wider">Terjadwal (Coming Soon)</p>
+                    <p className="text-[10px] text-muted-foreground">Set otomatis agar masuk ke daftar Segera Hadir.</p>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* Cancel Button */}
+            <div className="flex items-center justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  setAdminStatusModalOpen(false);
+                  setMovieForAdminStatus(null);
+                }}
+                disabled={isSavingAdminStatus}
+                className="w-full py-3 px-4 rounded-xl text-xs font-bold text-muted-foreground hover:text-foreground bg-secondary hover:bg-neutral-800 transition-colors uppercase tracking-widest text-center cursor-pointer"
+              >
+                Batal
               </button>
             </div>
           </div>
