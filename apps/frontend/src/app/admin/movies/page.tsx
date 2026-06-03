@@ -376,7 +376,7 @@ export default function AdminMoviesPage() {
                             <p className="text-xs text-muted-foreground font-bold">
                               {formatDate(film.createdAt)}{film.director ? ` • ${film.director}` : ""}
                             </p>
-                            {(film.published_start || film.published_end) && (
+                            {user?.role === "superadmin" && (film.published_start || film.published_end) && (
                               <div className="text-[10px] text-amber-500 font-bold flex items-center gap-1 mt-1 bg-amber-500/5 px-2 py-0.5 rounded-md border border-amber-500/10 w-fit">
                                 <Icon name="calendar" className="w-3 h-3" />
                                 <span>
