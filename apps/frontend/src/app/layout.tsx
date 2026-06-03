@@ -13,7 +13,7 @@ const oswald = Oswald({
 });
 
 export const metadata: Metadata = {
-  title: "Sinea — Platform Streaming Video",
+  title: "Sinea - A new streaming space for Visual Storytellers",
   description: "Nonton film favorit kapan saja, di mana saja. Sinea.id",
 };
 
