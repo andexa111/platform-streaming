@@ -17,13 +17,13 @@ interface CategoryData {
 
 const CATEGORY_STYLES: Record<string, { color: string }> = {
   "lolos-kurasi-ffab-2026": { color: "from-brand/20 to-transparent" },
-  "festival": { color: "from-amber-500/20 to-transparent" },
+  festival: { color: "from-amber-500/20 to-transparent" },
   "award-winning": { color: "from-yellow-500/20 to-transparent" },
-  "dokumenter": { color: "from-emerald-600/20 to-transparent" },
+  dokumenter: { color: "from-emerald-600/20 to-transparent" },
   "short-film": { color: "from-purple-600/20 to-transparent" },
-  "animation": { color: "from-pink-500/20 to-transparent" },
-  "experimental": { color: "from-cyan-500/20 to-transparent" },
-  "indie": { color: "from-orange-600/20 to-transparent" },
+  animation: { color: "from-pink-500/20 to-transparent" },
+  experimental: { color: "from-cyan-500/20 to-transparent" },
+  indie: { color: "from-orange-600/20 to-transparent" },
 };
 
 export default function CategoriesPage() {
@@ -31,10 +31,7 @@ export default function CategoriesPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([
-      api.get("/category").catch(() => ({ data: [] })),
-      api.get("/films?limit=100").catch(() => ({ data: { data: [] } })),
-    ])
+    Promise.all([api.get("/category").catch(() => ({ data: [] })), api.get("/films?limit=100").catch(() => ({ data: { data: [] } }))])
       .then(([categoryRes, filmsRes]) => {
         const dbCategories = categoryRes.data || [];
         const dbFilms = filmsRes.data?.data || [];
@@ -50,20 +47,18 @@ export default function CategoriesPage() {
           const filteredFilms = dbFilms
             .filter((film: any) => {
               const cats = film.categories || [];
-              return cats.some(
-                (cat: any) =>
-                  cat.id === c.id ||
-                  (cat.name || "").toLowerCase() === (c.name || "").toLowerCase()
-              );
+              return cats.some((cat: any) => cat.id === c.id || (cat.name || "").toLowerCase() === (c.name || "").toLowerCase());
             })
-            .map((film: any): Video => ({
-              id: film.id,
-              title: film.title,
-              genre: film.genres && film.genres.length > 0 ? film.genres[0].name : "Other",
-              thumbnail: film.poster_url ? getMediaUrl(film.poster_url) : "",
-              backdrop: film.poster_url ? getMediaUrl(film.poster_url) : "",
-              description: film.description || "",
-            }));
+            .map(
+              (film: any): Video => ({
+                id: film.id,
+                title: film.title,
+                genre: film.genres && film.genres.length > 0 ? film.genres[0].name : "Other",
+                thumbnail: film.poster_url ? getMediaUrl(film.poster_url) : "",
+                backdrop: film.poster_url ? getMediaUrl(film.poster_url) : "",
+                description: film.description || "",
+              }),
+            );
 
           return {
             id: c.id,
@@ -102,9 +97,6 @@ export default function CategoriesPage() {
           <h1 className="text-4xl md:text-7xl font-black tracking-tight leading-[1.1] ">
             <span className="block text-transparent bg-clip-text bg-gradient-to-r from-brand via-blue-500 to-cyan-500 pb-5">Jelajahi Kategori</span>
           </h1>
-          <p className="text-muted-foreground text-sm md:text-base max-w-md mx-auto">
-            Temukan koleksi film terbaik berdasarkan kategori yang telah dikurasi secara khusus dari pustaka kami.
-          </p>
         </div>
       </div>
 
@@ -134,21 +126,14 @@ export default function CategoriesPage() {
                     <div className="w-12 h-12 rounded-2xl bg-brand/10 border border-brand/20 flex items-center justify-center group-hover:scale-110 group-hover:bg-brand group-hover:border-brand transition-all duration-500 shadow-inner flex-shrink-0">
                       <Icon name="tag" className="w-5 h-5 text-brand group-hover:text-white transition-colors duration-500" />
                     </div>
-                    <h3
-                      className={cn(
-                        "font-bold text-foreground group-hover:text-brand transition-all duration-500 tracking-tight line-clamp-2",
-                        category.name.length > 15 ? "text-lg md:text-xl" : "text-xl md:text-2xl",
-                      )}
-                    >
+                    <h3 className={cn("font-bold text-foreground group-hover:text-brand transition-all duration-500 tracking-tight line-clamp-2", category.name.length > 15 ? "text-lg md:text-xl" : "text-xl md:text-2xl")}>
                       {category.name}
                     </h3>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <div className="h-px w-8 bg-brand/30 group-hover:w-12 transition-all duration-500" />
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest group-hover:text-foreground">
-                      {category.films.length} Koleksi Film
-                    </p>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest group-hover:text-foreground">{category.films.length} Koleksi Film</p>
                   </div>
                 </div>
 
@@ -156,24 +141,12 @@ export default function CategoriesPage() {
                 <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
                   <div className="flex flex-col text-[11px] text-muted-foreground space-y-0.5 max-w-[70%]">
                     {category.films.slice(0, 2).map((film) => (
-                      <span
-                        key={film.id}
-                        className="truncate font-medium block"
-                        title={film.title}
-                      >
+                      <span key={film.id} className="truncate font-medium block" title={film.title}>
                         • {film.title}
                       </span>
                     ))}
-                    {category.films.length > 2 && (
-                      <span className="text-[9px] font-semibold text-brand block">
-                        +{category.films.length - 2} film lainnya
-                      </span>
-                    )}
-                    {category.films.length === 0 && (
-                      <span className="text-[10px] text-muted-foreground/60 font-bold uppercase tracking-wider">
-                        Belum Ada Film
-                      </span>
-                    )}
+                    {category.films.length > 2 && <span className="text-[9px] font-semibold text-brand block">+{category.films.length - 2} film lainnya</span>}
+                    {category.films.length === 0 && <span className="text-[10px] text-muted-foreground/60 font-bold uppercase tracking-wider">Belum Ada Film</span>}
                   </div>
                   <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center group-hover:bg-brand group-hover:text-white transition-all duration-500 shadow-sm">
                     <Icon name="arrow-right" className="w-5 h-5 transition-transform group-hover:translate-x-0.5" />

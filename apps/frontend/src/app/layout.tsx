@@ -13,8 +13,8 @@ const oswald = Oswald({
 });
 
 export const metadata: Metadata = {
-  title: "Sinea — Platform Streaming Video",
-  description: "Nonton film favorit kapan saja, di mana saja. Sinea.id",
+  title: "Sinea — A new streaming space for Visual Storytellers",
+  description: "A new streaming space for Visual Storytellers",
 };
 
 export default function RootLayout({
@@ -28,18 +28,10 @@ export default function RootLayout({
         <link href="https://api.fontshare.com/v2/css?f[]=sentient@200,300,400,500,700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body bg-background text-foreground transition-colors duration-300" suppressHydrationWarning>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <AuthStateProvider>
-            {children}
-          </AuthStateProvider>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+          <AuthStateProvider>{children}</AuthStateProvider>
         </ThemeProvider>
       </body>
     </html>
   );
 }
-
