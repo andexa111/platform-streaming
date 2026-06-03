@@ -30,6 +30,10 @@ function CatalogContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
+  // Dynamic Category Title & Description matching Home Section config
+  const [categoryTitle, setCategoryTitle] = useState("");
+  const [categoryDescription, setCategoryDescription] = useState("");
+
   // Read search & category query parameter
   const searchVal = searchParams.get("search") || "";
   const categoryParam = searchParams.get("category") || "";
@@ -51,8 +55,9 @@ function CatalogContent() {
     Promise.all([
       api.get("/genre").catch(() => ({ data: [] })),
       api.get(filmsUrl).catch(() => ({ data: { data: [] } })),
+      api.get("/home-sections/content").catch(() => ({ data: [] })),
     ])
-      .then(([genreRes, filmsRes]) => {
+      .then(([genreRes, filmsRes, sectionsRes]) => {
         // Parse Genres
         const dbGenres = genreRes.data || [];
         setGenres(["All Genres", ...dbGenres.map((g: any) => g.name)]);
@@ -77,6 +82,25 @@ function CatalogContent() {
           publishedStart: film.published_start,
         }));
         setMovies(mapped);
+
+        // Match Category Details from Home Section Settings
+        if (categoryParam) {
+          setCategoryTitle(categoryParam);
+          setCategoryDescription(`Menampilkan semua film pilihan yang masuk dalam kategori ${categoryParam}. Temukan mahakarya terbaik mereka di Sinea.`);
+
+          const dbSections = sectionsRes.data || [];
+          const matchedSection = dbSections.find(
+            (sec: any) => sec.categorySlug && sec.categorySlug.toLowerCase() === categoryParam.toLowerCase()
+          );
+          if (matchedSection) {
+            if (matchedSection.title) {
+              setCategoryTitle(matchedSection.title);
+            }
+            if (matchedSection.description) {
+              setCategoryDescription(matchedSection.description);
+            }
+          }
+        }
       })
       .catch((err) => {
         console.error("Failed to load catalog data", err);
@@ -253,10 +277,10 @@ function CatalogContent() {
                   <span>Kategori</span>
                 </div>
                 <h1 className="text-2xl sm:text-4xl md:text-6xl font-black tracking-tight text-white uppercase italic drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
-                  {categoryParam}
+                  {categoryTitle || categoryParam}
                 </h1>
                 <p className="text-xs md:text-base text-neutral-400 max-w-2xl font-light leading-relaxed">
-                  Menampilkan semua film pilihan yang masuk dalam kategori <strong className="text-white font-bold">{categoryParam}</strong>. Temukan mahakarya terbaik mereka di Sinea.
+                  {categoryDescription}
                 </p>
                 <div className="flex items-center gap-3 text-xs text-muted-foreground font-semibold">
                   <span className="text-brand font-black">{filteredMovies.length}</span> Judul Tersedia
