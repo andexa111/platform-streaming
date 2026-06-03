@@ -102,9 +102,6 @@ export default function CategoriesPage() {
           <h1 className="text-4xl md:text-7xl font-black tracking-tight leading-[1.1] ">
             <span className="block text-transparent bg-clip-text bg-gradient-to-r from-brand via-blue-500 to-cyan-500 pb-5">Jelajahi Kategori</span>
           </h1>
-          <p className="text-muted-foreground text-sm md:text-base max-w-md mx-auto">
-            Temukan koleksi film terbaik berdasarkan kategori yang telah dikurasi secara khusus dari pustaka kami.
-          </p>
         </div>
       </div>
 
