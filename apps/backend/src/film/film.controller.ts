@@ -48,6 +48,14 @@ export class FilmController {
   create(@Body() dto: CreateFilmDto, @Req() req: any) {
     const user = req.user;
     if (user?.role !== 'superadmin') {
+      const isCustomStart = dto.published_start !== undefined && dto.published_start !== null && dto.published_start !== 'tomorrow';
+      const isCustomEnd = dto.published_end !== undefined && dto.published_end !== null;
+      const isCustomScheduled = dto.scheduled_at !== undefined && dto.scheduled_at !== null;
+
+      if (isCustomStart || isCustomEnd || isCustomScheduled) {
+        throw new BadRequestException('Hanya Superadmin yang diperbolehkan mengatur jadwal tayang film.');
+      }
+
       if (dto.published_start === 'tomorrow') {
         const WIB_OFFSET_MS = 7 * 60 * 60 * 1000;
         const nowUtc = new Date();
@@ -55,8 +63,6 @@ export class FilmController {
         dto.published_start = tomorrowWib.toISOString().split('T')[0];
         dto.published_end = null as any;
         dto.scheduled_at = undefined;
-      } else if (dto.published_start || dto.published_end || dto.scheduled_at) {
-        throw new BadRequestException('Hanya Superadmin yang diperbolehkan mengatur jadwal tayang film.');
       }
     }
     return this.filmService.create(dto);
@@ -98,6 +104,14 @@ export class FilmController {
   ) {
     const user = req.user;
     if (user?.role !== 'superadmin') {
+      const isCustomStart = dto.published_start !== undefined && dto.published_start !== null && dto.published_start !== 'tomorrow';
+      const isCustomEnd = dto.published_end !== undefined && dto.published_end !== null;
+      const isCustomScheduled = dto.scheduled_at !== undefined && dto.scheduled_at !== null;
+
+      if (isCustomStart || isCustomEnd || isCustomScheduled) {
+        throw new BadRequestException('Hanya Superadmin yang diperbolehkan mengatur jadwal tayang film.');
+      }
+
       if (dto.published_start === 'tomorrow') {
         const WIB_OFFSET_MS = 7 * 60 * 60 * 1000;
         const nowUtc = new Date();
@@ -105,12 +119,6 @@ export class FilmController {
         dto.published_start = tomorrowWib.toISOString().split('T')[0];
         dto.published_end = null as any;
         dto.scheduled_at = undefined;
-      } else if (
-        dto.published_start !== undefined ||
-        dto.published_end !== undefined ||
-        dto.scheduled_at !== undefined
-      ) {
-        throw new BadRequestException('Hanya Superadmin yang diperbolehkan mengatur jadwal tayang film.');
       }
     }
     return this.filmService.update(id, dto);
