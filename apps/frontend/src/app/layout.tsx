@@ -14,7 +14,7 @@ const oswald = Oswald({
 
 export const metadata: Metadata = {
   title: "Sinea - A new streaming space for Visual Storytellers",
-  description: "Nonton film favorit kapan saja, di mana saja. Sinea.id",
+  description: "A new streaming space for Visual Storytellers",
 };
 
 export default function RootLayout({

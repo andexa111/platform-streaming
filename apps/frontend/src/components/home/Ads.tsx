@@ -38,12 +38,15 @@ export function Ads() {
         {ads.map((ad) => (
           <div
             key={ad.id}
-            className="w-[100px] md:w-[140px] flex items-center justify-center"
+            className="w-[100px] md:w-[140px] flex items-center justify-center relative group"
           >
+            {/* Glow Effect behind logo for visibility in any theme */}
+            <div className="absolute w-[120%] h-[120%] bg-brand/15 dark:bg-brand/25 rounded-full blur-xl opacity-60 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
             <img
               src={getMediaUrl(ad.logo_url)}
               alt={ad.name || `Partner ${ad.slot}`}
-              className="max-h-[40px] md:max-h-[60px] w-auto object-contain brightness-95 hover:brightness-110 transition-all duration-300"
+              className="relative z-10 max-h-[40px] md:max-h-[60px] w-auto object-contain brightness-95 hover:brightness-110 hover:scale-105 transition-all duration-300 drop-shadow-[0_0_8px_rgba(2,77,148,0.3)] dark:drop-shadow-[0_0_12px_rgba(2,77,148,0.5)]"
             />
           </div>
         ))}
