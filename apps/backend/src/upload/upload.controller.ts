@@ -68,12 +68,26 @@ export class UploadController {
   ) {
     // Compress image in-place
     try {
+      const ext = extname(file.originalname).toLowerCase();
       const tempPath = file.path + '-temp';
       fs.renameSync(file.path, tempPath);
-      await sharp(tempPath)
-        .resize({ width: 1200, height: 1600, fit: 'inside', withoutEnlargement: true })
-        .jpeg({ quality: 80, progressive: true })
-        .toFile(file.path);
+
+      let pipeline = sharp(tempPath).resize({ width: 1200, height: 1600, fit: 'inside', withoutEnlargement: true });
+
+      if (ext === '.png') {
+        pipeline = pipeline.png({ compressionLevel: 8, palette: true });
+      } else if (ext === '.webp') {
+        pipeline = pipeline.webp({ quality: 80 });
+      } else if (ext === '.jpg' || ext === '.jpeg') {
+        pipeline = pipeline.jpeg({ quality: 80, progressive: true });
+      } else {
+        // SVG, ICO, dll. - biarkan format asli tanpa konversi sharp
+        fs.copyFileSync(tempPath, file.path);
+        fs.unlinkSync(tempPath);
+        return { url: `uploads/posters/${file.filename}`, fileName: file.filename };
+      }
+
+      await pipeline.toFile(file.path);
       fs.unlinkSync(tempPath);
     } catch (err) {
       console.error('Poster compression failed, using original file:', err);
@@ -126,12 +140,26 @@ export class UploadController {
   ) {
     // Compress image in-place
     try {
+      const ext = extname(file.originalname).toLowerCase();
       const tempPath = file.path + '-temp';
       fs.renameSync(file.path, tempPath);
-      await sharp(tempPath)
-        .resize({ width: 800, height: 800, fit: 'inside', withoutEnlargement: true })
-        .jpeg({ quality: 80, progressive: true })
-        .toFile(file.path);
+
+      let pipeline = sharp(tempPath).resize({ width: 800, height: 800, fit: 'inside', withoutEnlargement: true });
+
+      if (ext === '.png') {
+        pipeline = pipeline.png({ compressionLevel: 8, palette: true });
+      } else if (ext === '.webp') {
+        pipeline = pipeline.webp({ quality: 80 });
+      } else if (ext === '.jpg' || ext === '.jpeg') {
+        pipeline = pipeline.jpeg({ quality: 80, progressive: true });
+      } else {
+        // SVG, ICO, dll. - biarkan format asli tanpa konversi sharp
+        fs.copyFileSync(tempPath, file.path);
+        fs.unlinkSync(tempPath);
+        return { url: `uploads/images/${file.filename}`, fileName: file.filename };
+      }
+
+      await pipeline.toFile(file.path);
       fs.unlinkSync(tempPath);
     } catch (err) {
       console.error('Image compression failed, using original file:', err);
