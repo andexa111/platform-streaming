@@ -48,8 +48,7 @@ export function Ads() {
               alt={ad.name || `Partner ${ad.slot}`}
               className="relative z-10 max-h-[44px] md:max-h-[60px] max-w-[90%] w-auto object-contain transition-all duration-500
                 brightness-95 dark:brightness-100 hover:scale-105
-                drop-shadow-[0_0_1.5px_rgba(0,0,0,0.55)] drop-shadow-[0_2px_8px_rgba(0,0,0,0.06)]
-                dark:drop-shadow-[0_0_2px_rgba(255,255,255,0.8)] dark:drop-shadow-[0_2px_12px_rgba(255,255,255,0.15)]"
+                logo-contrast-light dark:logo-contrast-dark"
             />
           </div>
         ))}
