@@ -38,22 +38,18 @@ export function Ads() {
         {ads.map((ad) => (
           <div
             key={ad.id}
-            className="w-[120px] md:w-[160px] h-[80px] md:h-[100px] flex items-center justify-center relative group"
+            className="w-[140px] md:w-[180px] h-[80px] md:h-[100px] flex items-center justify-center relative group bg-neutral-500/[0.03] dark:bg-white/[0.02] border border-neutral-500/[0.08] dark:border-white/[0.05] rounded-3xl p-4 transition-all duration-500 hover:bg-neutral-500/[0.06] dark:hover:bg-white/[0.04] hover:border-brand/20 dark:hover:border-brand/30"
           >
-            {/* Ambient Background Glow (Multi-layered for rich depth) */}
-            <div className="absolute w-[130%] h-[130%] bg-brand/20 dark:bg-brand/30 rounded-full blur-2xl opacity-50 group-hover:opacity-85 group-hover:scale-110 transition-all duration-500 pointer-events-none" />
-            <div className="absolute w-[80%] h-[80%] bg-blue-500/15 dark:bg-cyan-500/20 rounded-full blur-xl opacity-40 group-hover:opacity-90 group-hover:scale-125 transition-all duration-500 pointer-events-none" />
+            {/* Ambient Background Glow on Hover */}
+            <div className="absolute w-[120%] h-[120%] bg-brand/10 dark:bg-brand/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500 pointer-events-none" />
 
             <img
               src={getMediaUrl(ad.logo_url)}
               alt={ad.name || `Partner ${ad.slot}`}
-              className="relative z-10 max-h-[44px] md:max-h-[64px] max-w-[85%] w-auto object-contain transition-all duration-500
-                brightness-90 dark:brightness-100 
-                hover:scale-110 hover:brightness-110
-                drop-shadow-[0_0_10px_rgba(2,77,148,0.35)] 
-                dark:drop-shadow-[0_0_16px_rgba(59,130,246,0.5)]
-                group-hover:drop-shadow-[0_0_20px_rgba(2,77,148,0.6)]
-                dark:group-hover:drop-shadow-[0_0_28px_rgba(59,130,246,0.8)]"
+              className="relative z-10 max-h-[44px] md:max-h-[60px] max-w-[90%] w-auto object-contain transition-all duration-500
+                brightness-95 dark:brightness-100 hover:scale-105
+                drop-shadow-[0_0_1.5px_rgba(0,0,0,0.55)] drop-shadow-[0_2px_8px_rgba(0,0,0,0.06)]
+                dark:drop-shadow-[0_0_2px_rgba(255,255,255,0.8)] dark:drop-shadow-[0_2px_12px_rgba(255,255,255,0.15)]"
             />
           </div>
         ))}
