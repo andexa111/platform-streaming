@@ -28,7 +28,7 @@ import { UpdateFilmDto } from './dto/update-film.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { BunnyService } from '../bunny/bunny.service';
+import { R2Service } from '../r2/r2.service';
 
 // Short-lived stream tokens (in-memory)
 const streamSessions = new Map<string, { url: string; expiresAt: number }>();
@@ -37,7 +37,7 @@ const streamSessions = new Map<string, { url: string; expiresAt: number }>();
 export class FilmController {
   constructor(
     private filmService: FilmService,
-    private bunnyService: BunnyService,
+    private r2Service: R2Service,
   ) { }
 
   // ==================== ADMIN ENDPOINTS ====================
@@ -283,7 +283,7 @@ export class FilmController {
     @Res() res: express.Response,
   ) {
     try {
-      const keyBuffer = await this.bunnyService.getFromStorage(`keys/film-${id}.key`);
+      const keyBuffer = await this.r2Service.getFromStorage(`keys/film-${id}.key`);
       
       res.set({
         'Content-Type': 'application/octet-stream',
@@ -311,7 +311,7 @@ export class FilmController {
     @Query('contentType') contentType?: string,
   ) {
     const key = `films/${id}/video.mp4`;
-    const uploadUrl = await this.bunnyService.getPresignedUploadUrl(key, contentType || 'video/mp4');
+    const uploadUrl = await this.r2Service.getPresignedUploadUrl(key, contentType || 'video/mp4');
     return {
       success: true,
       upload_url: uploadUrl,
@@ -422,7 +422,7 @@ export class FilmController {
           const r2Key = `films/${filmId}/video.mp4`;
 
           // Upload raw mp4 to R2 as fallback
-          await this.bunnyService.uploadToStorage(
+          await this.r2Service.uploadToStorage(
             `films/${filmId}`,
             'video.mp4',
             rawBuffer,
@@ -452,7 +452,7 @@ export class FilmController {
 
       try {
         // Upload key ke R2 secara privat di folder keys/
-        await this.bunnyService.uploadToStorage(
+        await this.r2Service.uploadToStorage(
           'keys',
           `film-${filmId}.key`,
           key,
@@ -469,7 +469,7 @@ export class FilmController {
         }
 
         const r2FolderPath = `films/${filmId}`;
-        await this.bunnyService.uploadHlsFolder(absoluteHlsDir, r2FolderPath);
+        await this.r2Service.uploadHlsFolder(absoluteHlsDir, r2FolderPath);
 
         // Perbarui kolom video_id di database dengan path relatif index.m3u8
         await this.filmService.update(filmId, {
@@ -656,7 +656,7 @@ export class FilmController {
     try {
       // 1. Download file video mentah dari R2
       const r2Key = `films/${filmId}/video.mp4`;
-      await this.bunnyService.downloadFromStorage(r2Key, absoluteRawPath);
+      await this.r2Service.downloadFromStorage(r2Key, absoluteRawPath);
 
       // 2. Lakukan HLS segmentasi menggunakan FFmpeg dengan enkripsi AES-128
       console.log(`🎬 [HLS Process] Memulai segmentasi HLS AES-128 untuk Film ID: ${filmId}`);
@@ -702,7 +702,7 @@ export class FilmController {
         console.log(`✅ [HLS Process] Segmentasi selesai. Mengunggah folder ke R2...`);
         try {
           // Upload key ke R2 secara privat di folder keys/
-          await this.bunnyService.uploadToStorage(
+          await this.r2Service.uploadToStorage(
             'keys',
             `film-${filmId}.key`,
             key,
@@ -718,7 +718,7 @@ export class FilmController {
           }
 
           const r2FolderPath = `films/${filmId}`;
-          await this.bunnyService.uploadHlsFolder(absoluteHlsDir, r2FolderPath);
+          await this.r2Service.uploadHlsFolder(absoluteHlsDir, r2FolderPath);
 
           // Perbarui kolom video_id di database dengan path relatif index.m3u8
           await this.filmService.update(filmId, {

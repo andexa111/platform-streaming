@@ -6,8 +6,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 @Injectable()
-export class BunnyService {
-  private readonly logger = new Logger(BunnyService.name);
+export class R2Service {
+  private readonly logger = new Logger(R2Service.name);
 
   // Cloudflare R2 configuration
   private readonly s3Client = new S3Client({

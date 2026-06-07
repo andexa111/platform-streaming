@@ -8,7 +8,7 @@ import * as path from 'path';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateFilmDto } from './dto/create-film.dto';
 import { UpdateFilmDto } from './dto/update-film.dto';
-import { BunnyService } from '../bunny/bunny.service';
+import { R2Service } from '../r2/r2.service';
 
 @Injectable()
 export class FilmService {
@@ -16,7 +16,7 @@ export class FilmService {
 
   constructor(
     private prisma: PrismaService,
-    private bunnyService: BunnyService,
+    private r2Service: R2Service,
   ) {}
 
   // ==================== CREATE ====================
@@ -488,10 +488,10 @@ export class FilmService {
 
     // 2. Hapus file video di Cloudflare R2
     // Hapus folder HLS 'films/<id>/'
-    await this.bunnyService.deleteHlsFolder(`films/${id}`);
+    await this.r2Service.deleteHlsFolder(`films/${id}`);
     // Hapus key dekripsi 'keys/film-<id>.key'
     try {
-      await this.bunnyService.deleteFromStorage('keys', `film-${id}.key`);
+      await this.r2Service.deleteFromStorage('keys', `film-${id}.key`);
     } catch (e: any) {
       this.logger.warn(`Could not delete key film-${id}.key from R2: ${e.message}`);
     }

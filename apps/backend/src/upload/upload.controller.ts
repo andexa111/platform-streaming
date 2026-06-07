@@ -12,7 +12,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { BunnyService } from '../bunny/bunny.service';
+import { R2Service } from '../r2/r2.service';
 import { v4 as uuidv4 } from 'uuid';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
@@ -26,7 +26,7 @@ import sharp from 'sharp';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('admin', 'superadmin')
 export class UploadController {
-  constructor(private bunnyService: BunnyService) {}
+  constructor(private r2Service: R2Service) {}
 
   /**
    * POST /upload/poster

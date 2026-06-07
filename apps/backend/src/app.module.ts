@@ -6,7 +6,7 @@ import { join } from 'path';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { FilmModule } from './film/film.module';
-import { BunnyModule } from './bunny/bunny.module';
+import { R2Module } from './r2/r2.module';
 import { UploadModule } from './upload/upload.module';
 import { PaymentModule } from './payment/payment.module';
 import { UserModule } from './user/user.module';
@@ -32,7 +32,7 @@ import { HomeSectionModule } from './home-section/home-section.module';
     PrismaModule,
     AuthModule,
     FilmModule,
-    BunnyModule,
+    R2Module,
     UploadModule,
     PaymentModule,
     UserModule,

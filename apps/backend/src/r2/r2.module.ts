@@ -1,9 +1,9 @@
 import { Global, Module } from '@nestjs/common';
-import { BunnyService } from './bunny.service';
+import { R2Service } from './r2.service';
 
 @Global() // Global supaya bisa dipakai di FilmModule, UploadModule, dll
 @Module({
-  providers: [BunnyService],
-  exports: [BunnyService],
+  providers: [R2Service],
+  exports: [R2Service],
 })
-export class BunnyModule {}
+export class R2Module {}
