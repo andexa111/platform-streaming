@@ -310,14 +310,42 @@ export default function SecretWatchPage() {
             </div>
             <div className="space-y-2">
               <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Rumah Produksi</span>
-              <div className="flex items-center gap-3">
-                {movie?.production_house_logo && (
-                  <div className="w-10 h-10 rounded-xl bg-card border border-border p-1.5 flex items-center justify-center overflow-hidden flex-shrink-0">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={getMediaUrl(movie.production_house_logo)} alt="Studio Logo" className="w-full h-full object-contain" />
+              <div className="flex flex-col gap-2">
+                {movie?.production_houses && movie.production_houses.length > 0 ? (
+                  movie.production_houses.map((ph: any, index: number) => (
+                    <div key={ph.id || index} className="flex items-center gap-3">
+                      {ph.logo_url && ph.logo_url !== "" && (
+                        <div className="w-10 h-10 flex items-center justify-center overflow-hidden flex-shrink-0">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img 
+                            src={getMediaUrl(ph.logo_url)} 
+                            alt={`${ph.name} Logo`} 
+                            className="w-full h-full object-contain" 
+                            style={{ filter: "drop-shadow(0px 0px 3px rgba(255, 255, 255, 0.95)) drop-shadow(0px 0px 3px rgba(0, 0, 0, 0.95))" }}
+                          />
+                        </div>
+                      )}
+                      <p className="font-bold text-sm md:text-base text-foreground">{ph.name || ""}</p>
+                    </div>
+                  ))
+                ) : movie?.production_house ? (
+                  <div className="flex items-center gap-3">
+                    {movie?.production_house_logo && movie.production_house_logo !== "" && (
+                      <div className="w-10 h-10 flex items-center justify-center overflow-hidden flex-shrink-0">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img 
+                          src={getMediaUrl(movie.production_house_logo)} 
+                          alt="Studio Logo" 
+                          className="w-full h-full object-contain" 
+                          style={{ filter: "drop-shadow(0px 0px 3px rgba(255, 255, 255, 0.95)) drop-shadow(0px 0px 3px rgba(0, 0, 0, 0.95))" }}
+                        />
+                      </div>
+                    )}
+                    <p className="font-bold text-sm md:text-base text-foreground">{movie.production_house || ""}</p>
                   </div>
+                ) : (
+                  <p className="font-bold text-sm md:text-base text-foreground">—</p>
                 )}
-                <p className="font-bold text-sm md:text-base text-foreground">{movie?.production_house || ""}</p>
               </div>
             </div>
             <div className="space-y-2">

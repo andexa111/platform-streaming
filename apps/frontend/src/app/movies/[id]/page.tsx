@@ -432,25 +432,56 @@ export default function MovieDetailPage() {
                 <span className="text-[8px] md:text-xs font-black uppercase tracking-widest text-muted-foreground">
                   Rumah Produksi
                 </span>
-                <div className="flex items-center gap-2 md:gap-4">
-                  {mappedMovie.productionHouseLogo && (
-                    <Link
-                      href={`/movies?search=${encodeURIComponent(mappedMovie.productionHouse || '')}`}
-                      className="w-8 h-8 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-white/5 border border-white/10 p-1.5 md:p-2 flex items-center justify-center overflow-hidden flex-shrink-0 hover:border-brand/50 transition-colors"
-                    >
-                      <img
-                        src={mappedMovie.productionHouseLogo}
-                        alt="Studio Logo"
-                        className="w-full h-full object-contain"
-                      />
-                    </Link>
+                <div className="flex flex-col gap-2">
+                  {movie.production_houses && movie.production_houses.length > 0 ? (
+                    movie.production_houses.map((ph: any, idx: number) => (
+                      <div key={ph.id || idx} className="flex items-center gap-2 md:gap-4">
+                        {ph.logo_url && ph.logo_url !== "" && (
+                          <Link
+                            href={`/movies?search=${encodeURIComponent(ph.name || '')}`}
+                            className="w-8 h-8 md:w-14 md:h-14 flex items-center justify-center overflow-hidden flex-shrink-0"
+                          >
+                            <img
+                              src={getMediaUrl(ph.logo_url)}
+                              alt={`${ph.name} Logo`}
+                              className="w-full h-full object-contain"
+                              style={{ filter: "drop-shadow(0px 0px 3px rgba(255, 255, 255, 0.95)) drop-shadow(0px 0px 3px rgba(0, 0, 0, 0.95))" }}
+                            />
+                          </Link>
+                        )}
+                        <Link
+                          href={`/movies?search=${encodeURIComponent(ph.name || '')}`}
+                          className="font-bold text-[10px] md:text-base leading-tight text-foreground hover:text-brand hover:underline transition-colors cursor-pointer"
+                        >
+                          {ph.name || ''}
+                        </Link>
+                      </div>
+                    ))
+                  ) : movie.production_house ? (
+                    <div className="flex items-center gap-2 md:gap-4">
+                      {movie.production_house_logo && movie.production_house_logo !== "" && (
+                        <Link
+                          href={`/movies?search=${encodeURIComponent(movie.production_house || '')}`}
+                          className="w-8 h-8 md:w-14 md:h-14 flex items-center justify-center overflow-hidden flex-shrink-0"
+                        >
+                          <img
+                            src={getMediaUrl(movie.production_house_logo)}
+                            alt="Studio Logo"
+                            className="w-full h-full object-contain"
+                            style={{ filter: "drop-shadow(0px 0px 3px rgba(255, 255, 255, 0.95)) drop-shadow(0px 0px 3px rgba(0, 0, 0, 0.95))" }}
+                          />
+                        </Link>
+                      )}
+                      <Link
+                        href={`/movies?search=${encodeURIComponent(movie.production_house || '')}`}
+                        className="font-bold text-[10px] md:text-base leading-tight text-foreground hover:text-brand hover:underline transition-colors cursor-pointer"
+                      >
+                        {movie.production_house || ''}
+                      </Link>
+                    </div>
+                  ) : (
+                    <p className="font-bold text-[10px] md:text-base">—</p>
                   )}
-                  <Link
-                    href={`/movies?search=${encodeURIComponent(mappedMovie.productionHouse || '')}`}
-                    className="font-bold text-[10px] md:text-base leading-tight text-foreground hover:text-brand hover:underline transition-colors cursor-pointer"
-                  >
-                    {mappedMovie.productionHouse || ''}
-                  </Link>
                 </div>
               </div>
               <div className="space-y-1 md:space-y-2">

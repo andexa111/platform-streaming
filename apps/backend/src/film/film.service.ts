@@ -27,7 +27,7 @@ export class FilmService {
    * - Actor dibuat baru jika belum ada (connectOrCreate)
    */
   async create(dto: CreateFilmDto) {
-    const { genreIds, genreNames, actorNames, categoryNames, scheduled_at, published_start, published_end, directorsInput, actorsInput, producersInput, ...filmData } = dto;
+    const { genreIds, genreNames, actorNames, categoryNames, scheduled_at, published_start, published_end, directorsInput, actorsInput, producersInput, productionHousesInput, ...filmData } = dto;
 
     if (directorsInput?.length) {
       filmData.director = directorsInput.map(d => d.name).join(', ');
@@ -35,6 +35,11 @@ export class FilmService {
 
     if (producersInput?.length) {
       filmData.producer = producersInput.map(p => p.name).join(', ');
+    }
+
+    if (productionHousesInput?.length) {
+      filmData.production_house = productionHousesInput.map(ph => ph.name).join(', ');
+      filmData.production_house_logo = productionHousesInput[0]?.logo_url || undefined;
     }
 
     const film = await this.prisma.film.create({
@@ -107,6 +112,16 @@ export class FilmService {
               }),
             }
           : undefined,
+
+        // Hubungkan/buat production houses
+        production_houses: productionHousesInput?.length
+          ? {
+              create: productionHousesInput.map((ph) => ({
+                name: ph.name,
+                logo_url: ph.logo_url,
+              })),
+            }
+          : undefined,
       },
       include: {
         genres: true,
@@ -114,6 +129,7 @@ export class FilmService {
         actors: true,
         producers: true,
         categories: true,
+        production_houses: true,
       },
     });
 
@@ -209,6 +225,7 @@ export class FilmService {
           actors: true,
           producers: true,
           categories: true,
+          production_houses: true,
         },
       }),
       this.prisma.film.count({ where }),
@@ -268,6 +285,7 @@ export class FilmService {
           actors: true,
           producers: true,
           categories: true,
+          production_houses: true,
         },
       }),
       this.prisma.film.count({ where }),
@@ -298,6 +316,7 @@ export class FilmService {
         actors: true,
         producers: true,
         categories: true,
+        production_houses: true,
       },
     });
 
@@ -320,7 +339,7 @@ export class FilmService {
     // Pastikan film ada
     await this.findOne(id);
 
-    const { genreIds, genreNames, actorNames, categoryNames, scheduled_at, published_start, published_end, directorsInput, actorsInput, producersInput, ...filmData } = dto;
+    const { genreIds, genreNames, actorNames, categoryNames, scheduled_at, published_start, published_end, directorsInput, actorsInput, producersInput, productionHousesInput, ...filmData } = dto;
 
     const updateData: any = {
       ...filmData,
@@ -332,6 +351,25 @@ export class FilmService {
 
     if (producersInput?.length) {
       updateData.producer = producersInput.map(p => p.name).join(', ');
+    }
+
+    if (productionHousesInput !== undefined) {
+      if (productionHousesInput.length > 0) {
+        updateData.production_house = productionHousesInput.map(ph => ph.name).join(', ');
+        updateData.production_house_logo = productionHousesInput[0]?.logo_url || null;
+      } else {
+        updateData.production_house = null;
+        updateData.production_house_logo = null;
+      }
+      updateData.production_houses = {
+        set: [],
+        ...(productionHousesInput.length > 0 && {
+          create: productionHousesInput.map((ph) => ({
+            name: ph.name,
+            logo_url: ph.logo_url,
+          })),
+        }),
+      };
     }
 
     if (scheduled_at !== undefined) {
@@ -433,7 +471,9 @@ export class FilmService {
         genres: true,
         directors: true,
         actors: true,
+        producers: true,
         categories: true,
+        production_houses: true,
       },
     });
 

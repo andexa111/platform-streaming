@@ -109,4 +109,8 @@ export class CreateFilmDto {
   @IsOptional()
   @IsArray()
   producersInput?: { name: string; photo_url?: string }[];
+
+  @IsOptional()
+  @IsArray()
+  productionHousesInput?: { name: string; logo_url?: string }[];
 }

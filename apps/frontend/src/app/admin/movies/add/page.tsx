@@ -33,8 +33,7 @@ export default function AddMoviePage() {
     video_id: "",
     trailer_url: "",
     poster_url: "",
-    production_house: "",
-    production_house_logo: "",
+    production_houses: [{ name: "", logo_url: "" }] as { name: string; logo_url: string }[],
     is_published: false,
     directors: [{ name: "", photo_url: "" }] as { name: string; photo_url: string }[],
     actors: [{ name: "", photo_url: "" }] as { name: string; photo_url: string }[],
@@ -192,8 +191,9 @@ export default function AddMoviePage() {
         video_id: formData.video_id || undefined,
         trailer_url: formData.trailer_url || undefined,
         poster_url: formData.poster_url || undefined,
-        production_house: formData.production_house || undefined,
-        production_house_logo: formData.production_house_logo || undefined,
+        productionHousesInput: formData.production_houses.filter(ph => ph.name.trim() !== "").length > 0
+          ? formData.production_houses.filter(ph => ph.name.trim() !== "")
+          : undefined,
         is_published: formData.is_published,
       };
 
@@ -648,44 +648,75 @@ export default function AddMoviePage() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase text-foreground">Rumah Produksi</label>
-                  <input
-                    type="text"
-                    placeholder="Contoh: Sinea Studios"
-                    className="w-full px-5 py-3.5 bg-secondary border border-border rounded-2xl focus:outline-none focus:border-brand transition-all text-sm text-foreground placeholder:text-muted-foreground"
-                    value={formData.production_house}
-                    onChange={(e) => updateField("production_house", e.target.value)}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase text-foreground">Logo Rumah Produksi</label>
-                  <div className="flex gap-4">
-                    <label className="flex-1 cursor-pointer">
-                      <div className="relative group">
-                        <div className="w-full h-[54px] bg-secondary border border-border rounded-2xl flex items-center px-5 gap-3 group-hover:border-brand transition-all border-dashed">
-                          <Icon name="image" className="w-5 h-5 text-muted-foreground group-hover:text-brand transition-colors" />
-                          <span className="text-sm text-muted-foreground group-hover:text-foreground">
-                            {formData.production_house_logo ? "Ganti Logo" : "Klik untuk upload logo (maks. 100MB)..."}
-                          </span>
+                {/* Production Houses Section */}
+                <div className="space-y-4 md:col-span-2">
+                  <label className="text-xs font-black uppercase text-foreground">Rumah Produksi (Production House)</label>
+                  <div className="space-y-3">
+                    {formData.production_houses.map((ph, index) => (
+                      <div key={index} className="flex flex-col md:flex-row items-stretch md:items-center gap-4 p-4 bg-secondary/35 border border-border/50 rounded-2xl">
+                        <div className="flex-1">
+                          <input
+                            type="text"
+                            placeholder={`Nama Rumah Produksi ${index + 1}`}
+                            className="w-full px-5 py-3.5 bg-secondary border border-border rounded-2xl focus:outline-none focus:border-brand transition-all text-sm text-foreground placeholder:text-muted-foreground"
+                            value={ph.name}
+                            onChange={(e) => {
+                              const newPHs = [...formData.production_houses];
+                              newPHs[index].name = e.target.value;
+                              updateField("production_houses", newPHs);
+                            }}
+                          />
                         </div>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) handleImageUpload(file, "production_house_logo");
-                          }}
-                        />
+                        <div className="flex items-center gap-3">
+                          <label className="cursor-pointer flex-shrink-0">
+                            <div className="h-[54px] px-5 bg-secondary border border-border rounded-2xl flex items-center gap-2 hover:border-brand transition-all text-xs font-black uppercase tracking-wider text-muted-foreground hover:text-foreground">
+                              <Icon name="image" className="w-4 h-4" />
+                              {ph.logo_url ? "Ganti Logo" : "Upload Logo"}
+                            </div>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  const url = await handlePhotoUpload(file);
+                                  const newPHs = [...formData.production_houses];
+                                  newPHs[index].logo_url = url;
+                                  updateField("production_houses", newPHs);
+                                }
+                              }}
+                            />
+                          </label>
+                          {ph.logo_url && (
+                            <div className="w-[54px] h-[54px] rounded-2xl border border-border overflow-hidden bg-secondary flex-shrink-0 flex items-center justify-center">
+                              <img src={getMediaUrl(ph.logo_url)} alt="Logo" className="w-full h-full object-contain p-2" />
+                            </div>
+                          )}
+                          {formData.production_houses.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                updateField("production_houses", formData.production_houses.filter((_, i) => i !== index));
+                              }}
+                              className="p-3.5 hover:bg-red-500/10 text-muted-foreground hover:text-red-500 rounded-2xl transition-colors border border-transparent hover:border-red-500/20"
+                            >
+                              <Icon name="trash" className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    </label>
-                    {formData.production_house_logo && (
-                      <div className="w-[54px] h-[54px] rounded-2xl border border-border bg-secondary flex items-center justify-center overflow-hidden flex-shrink-0">
-                        <img src={formData.production_house_logo} alt="Logo" className="w-full h-full object-contain p-2" />
-                      </div>
-                    )}
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateField("production_houses", [...formData.production_houses, { name: "", logo_url: "" }]);
+                      }}
+                      className="flex items-center gap-2 px-4 py-2.5 bg-secondary hover:bg-muted border border-border rounded-xl text-xs font-black uppercase tracking-wider transition-all"
+                    >
+                      <Icon name="plus" className="w-3.5 h-3.5" />
+                      Tambah Rumah Produksi
+                    </button>
                   </div>
                 </div>
 
@@ -844,7 +875,7 @@ export default function AddMoviePage() {
                 <div className="grid grid-cols-2 gap-4">
                     {[
                       { label: "Judul", value: formData.title },
-                      { label: "Rumah Produksi", value: formData.production_house },
+                      { label: "Rumah Produksi", value: formData.production_houses.map(ph => ph.name).filter(Boolean).join(", ") },
                       { label: "Sutradara", value: formData.directors.map(d => d.name).filter(Boolean).join(", ") },
                       { label: "Produser", value: formData.producers.map(p => p.name).filter(Boolean).join(", ") },
                       { label: "Aktor", value: formData.actors.map(a => a.name).filter(Boolean).join(", ") },

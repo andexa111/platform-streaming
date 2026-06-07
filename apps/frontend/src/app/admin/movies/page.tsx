@@ -163,8 +163,8 @@ export default function AdminMoviesPage() {
   };
 
   const handleScheduleClick = (film: Film) => {
-    if (user?.role !== "superadmin") {
-      alert("Hanya Superadmin yang diperbolehkan mengatur jadwal tayang.");
+    if (user?.role !== "superadmin" && user?.role !== "admin") {
+      alert("Hanya Admin dan Superadmin yang diperbolehkan mengatur jadwal tayang.");
       return;
     }
     setMovieToSchedule(film);
@@ -184,8 +184,8 @@ export default function AdminMoviesPage() {
 
   const handleSaveSchedule = async () => {
     if (!movieToSchedule) return;
-    if (user?.role !== "superadmin") {
-      alert("Hanya Superadmin yang diperbolehkan mengatur jadwal tayang.");
+    if (user?.role !== "superadmin" && user?.role !== "admin") {
+      alert("Hanya Admin dan Superadmin yang diperbolehkan mengatur jadwal tayang.");
       return;
     }
 
@@ -419,7 +419,7 @@ export default function AdminMoviesPage() {
                             <p className="text-xs text-muted-foreground font-bold">
                               {formatDate(film.createdAt)}{film.director ? ` • ${film.director}` : ""}
                             </p>
-                            {user?.role === "superadmin" && (film.published_start || film.published_end) && (
+                            {(user?.role === "superadmin" || user?.role === "admin") && (film.published_start || film.published_end) && (
                               <div className="text-[10px] text-amber-500 font-bold flex items-center gap-1 mt-1 bg-amber-500/5 px-2 py-0.5 rounded-md border border-amber-500/10 w-fit">
                                 <Icon name="calendar" className="w-3 h-3" />
                                 <span>
@@ -456,7 +456,7 @@ export default function AdminMoviesPage() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-2">
-                          {user?.role === "superadmin" && (
+                          {(user?.role === "superadmin" || user?.role === "admin") && (
                             <button
                               type="button"
                               onClick={(e) => { e.preventDefault(); handleScheduleClick(film); }}
@@ -468,12 +468,7 @@ export default function AdminMoviesPage() {
                           )}
                           <ButtonAction 
                             onView={() => {
-                              if (user?.role === "superadmin") {
-                                handleTogglePublish(film.id, film.is_published);
-                              } else {
-                                setMovieForAdminStatus(film);
-                                setAdminStatusModalOpen(true);
-                              }
+                              handleTogglePublish(film.id, film.is_published);
                             }}
                             onEdit={() => router.push(`/admin/movies/edit/${film.id}`)}
                             onDelete={() => handleDeleteClick(film.id, film.title)}

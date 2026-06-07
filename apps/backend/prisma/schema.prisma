@@ -84,6 +84,7 @@ model Film {
   actors         Actor[]        @relation("FilmActors")
   producers      Producer[]     @relation("FilmProducers")
   categories     Category[]     @relation("FilmCategories")
+  production_houses ProductionHouse[] @relation("FilmProductionHouses")
   filmViews      FilmView[]
   watchHistories WatchHistory[]
   featuredFilms  FeaturedFilm[]
@@ -316,4 +317,15 @@ model HomeSection {
   updatedAt    DateTime @updatedAt
 
   @@map("home_sections")
+}
+
+// ==================== PRODUCTION HOUSES ====================
+model ProductionHouse {
+  id        Int      @id @default(autoincrement())
+  name      String
+  logo_url  String?
+
+  films Film[] @relation("FilmProductionHouses")
+
+  @@map("production_houses")
 }
