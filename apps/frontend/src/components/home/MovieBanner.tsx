@@ -72,7 +72,7 @@ export function MovieBanner({ movies, autoPlayInterval = 5000, basePath = "/watc
 
   const truncateDescription = (text: string, wordLimit: number) => {
     if (!text) return "";
-    const words = text.split(" ");
+    const words = text.trim().split(/\s+/);
     if (words.length > wordLimit) {
       return words.slice(0, wordLimit).join(" ") + "...";
     }
