@@ -20,6 +20,7 @@ export interface PlayerProps {
   crossOrigin?: "" | "anonymous" | "use-credentials";
   onTimeUpdate?: (e: any) => void;
   onEnded?: () => void;
+  loop?: boolean;
 }
 
 // ─── Center Overlay Controls (YouTube-style) ──────────────────────────────────
@@ -60,9 +61,10 @@ function CenterControls() {
 
 // ─── Main Player Component ────────────────────────────────────────────────────
 export const Player = forwardRef<MediaPlayerInstance, PlayerProps>(
-  ({ variant, src, poster, title, className, crossOrigin = "use-credentials", onTimeUpdate, onEnded }, ref) => {
+  ({ variant, src, poster, title, className, crossOrigin = "use-credentials", onTimeUpdate, onEnded, loop }, ref) => {
 
   const isBanner = variant === "banner";
+  const shouldLoop = loop !== undefined ? loop : isBanner;
   const [hasPosterError, setHasPosterError] = useState(false);
 
   useEffect(() => {
@@ -81,7 +83,7 @@ export const Player = forwardRef<MediaPlayerInstance, PlayerProps>(
         title={title}
         autoplay={isBanner}
         muted={isBanner}
-        loop={isBanner}
+        loop={shouldLoop}
         playsInline={true}
         className={cn("w-full h-full object-cover", !isBanner && "hide-settings")}
         onTimeUpdate={onTimeUpdate}

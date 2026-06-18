@@ -36,6 +36,13 @@ export function MovieBanner({ movies, autoPlayInterval = 5000, basePath = "/watc
   // Manage auto-slide interval and limit video to 10s or custom clip duration
   useEffect(() => {
     if (!movies || movies.length === 0) return;
+
+    // Jika index 0 (banner event khusus), biarkan video diputar sepenuhnya
+    // dan tidak ada autoPlay timeout. Transisi ke slide berikutnya diatur oleh event onEnded video.
+    if (currentIndex === 0) {
+      return;
+    }
+
     const currentMovie = movies[currentIndex];
     
     let delay = autoPlayInterval;
@@ -100,6 +107,7 @@ export function MovieBanner({ movies, autoPlayInterval = 5000, basePath = "/watc
               }}
               variant="banner"
               src={movie.trailerUrl}
+              loop={index !== 0}
               onTimeUpdate={() => {
                 const video = videoRefs.current[index];
                 if (video && movie.clipEnd && video.currentTime >= movie.clipEnd) {

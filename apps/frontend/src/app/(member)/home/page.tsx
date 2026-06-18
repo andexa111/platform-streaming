@@ -95,7 +95,22 @@ export default function MemberHomePage() {
   }
 
   // Fallback to normal films for banner if no featured films
-  const bannerMovies = featuredFilms.length > 0 ? featuredFilms : (sections[0]?.films || []).slice(0, 5);
+  const baseBannerMovies = featuredFilms.length > 0 ? featuredFilms : (sections[0]?.films || []).slice(0, 5);
+
+  const eventBanner: Video = {
+    id: 0,
+    title: "Sinea Rekap Acara",
+    genre: "Special Event",
+    description: "Tonton rangkuman keseruan acara Sinea Rekap.",
+    thumbnail: "/SINEA - Logo Horisontal.webp",
+    backdrop: "",
+    trailerUrl: "/uploads/banner_rekap/Trailer-FFAB-Draft-2.mp4",
+    productionHouse: "Sinea",
+    rating: "5.0",
+    quality: "Full HD",
+  };
+
+  const bannerMovies = [eventBanner, ...baseBannerMovies];
 
   return (
     <main className="min-h-screen bg-background text-foreground font-sans selection:bg-brand/30">
