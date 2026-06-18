@@ -107,7 +107,7 @@ export function MovieBanner({ movies, autoPlayInterval = 5000, basePath = "/watc
               }}
               variant="banner"
               src={movie.trailerUrl}
-              loop={index !== 0}
+              loop={index !== 0 || movies.length === 1}
               onTimeUpdate={() => {
                 const video = videoRefs.current[index];
                 if (video && movie.clipEnd && video.currentTime >= movie.clipEnd) {
