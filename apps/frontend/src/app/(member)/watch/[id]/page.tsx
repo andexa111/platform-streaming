@@ -68,7 +68,7 @@ export default function WatchPage() {
             release_year: "2026",
             duration: 3,
           });
-          setStreamUrl(getMediaUrl("/uploads/banner_rekap/Trailer-FFAB-Draft-2.mp4"));
+          setStreamUrl("/uploads/banner_rekap/Trailer-FFAB-Draft-2.mp4");
           
           const all = relatedRes.data?.data || [];
           const mapped = all
