@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Icon } from "@/components/ui/Icon";
+import { MovieBanner } from "@/components/home/MovieBanner";
 import Link from "next/link";
 import { VideoSection } from "@/components/video/VideoSection";
 import { cn } from "@/lib/utils";
@@ -15,7 +16,8 @@ export default function PublicPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get("/home-sections/content")
+    api
+      .get("/home-sections/content")
       .then((res) => {
         const sectionsData = res.data || [];
         const mapped = sectionsData.map((sec: any) => ({
@@ -23,22 +25,24 @@ export default function PublicPage() {
           title: sec.title,
           description: sec.description || "",
           categorySlug: sec.categorySlug || "",
-          films: (sec.films || []).map((film: any): Video => ({
-            id: film.id,
-            title: film.title,
-            genre: film.genres && film.genres.length > 0 ? film.genres[0].name : "Other",
-            rating: "4.8",
-            quality: "4K UHD",
-            thumbnail: film.poster_url ? getMediaUrl(film.poster_url) : "",
-            backdrop: film.poster_url ? getMediaUrl(film.poster_url) : "",
-            description: film.description || "",
-            trailerUrl: film.trailer_url ? getMediaUrl(film.trailer_url) : "",
-            productionHouse: film.production_house || "",
-            productionHouseLogo: film.production_house_logo ? getMediaUrl(film.production_house_logo) : "",
-            clipStart: film.clip_start ?? undefined,
-            clipEnd: film.clip_end ?? undefined,
-            publishedStart: film.published_start || undefined,
-          })),
+          films: (sec.films || []).map(
+            (film: any): Video => ({
+              id: film.id,
+              title: film.title,
+              genre: film.genres && film.genres.length > 0 ? film.genres[0].name : "Other",
+              rating: "4.8",
+              quality: "4K UHD",
+              thumbnail: film.poster_url ? getMediaUrl(film.poster_url) : "",
+              backdrop: film.poster_url ? getMediaUrl(film.poster_url) : "",
+              description: film.description || "",
+              trailerUrl: film.trailer_url ? getMediaUrl(film.trailer_url) : "",
+              productionHouse: film.production_house || "",
+              productionHouseLogo: film.production_house_logo ? getMediaUrl(film.production_house_logo) : "",
+              clipStart: film.clip_start ?? undefined,
+              clipEnd: film.clip_end ?? undefined,
+              publishedStart: film.published_start || undefined,
+            }),
+          ),
         }));
         setSections(mapped);
       })
@@ -50,10 +54,12 @@ export default function PublicPage() {
       });
   }, []);
 
+  const bannerMovies = sections[0]?.films?.slice(0, 5) || [];
+
   return (
     <main className="min-h-screen bg-background text-foreground font-sans selection:bg-brand/30">
       {/* Hero Section */}
-      <section className="relative pt-40 pb-20 px-6 overflow-hidden flex flex-col items-center justify-center min-h-[85vh]">
+      {/* <section className="relative pt-40 pb-20 px-6 overflow-hidden flex flex-col items-center justify-center min-h-[85vh]">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-brand/10 via-background to-background -z-10" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-brand/10 blur-[120px] rounded-full -z-10 pointer-events-none animate-pulse" />
 
@@ -87,7 +93,16 @@ export default function PublicPage() {
             </Link>
           </div>
         </div>
-      </section>
+      </section> */}
+
+      {/* Dynamic Movie Banner */}
+      {!loading && bannerMovies.length > 0 ? (
+        <MovieBanner movies={bannerMovies} basePath="/movies" />
+      ) : !loading ? (
+        <div className="h-[40vh] bg-gradient-to-br from-secondary via-background to-brand/10 flex items-center justify-center border-b border-border">
+          <p className="text-muted-foreground font-semibold">Belum ada film yang ditambahkan.</p>
+        </div>
+      ) : null}
 
       {loading ? (
         <div className="py-20 flex justify-center">
@@ -101,19 +116,13 @@ export default function PublicPage() {
               title={sec.title}
               videos={sec.films}
               isComingSoon={sec.sectionNum === 2}
-              viewAllHref={
-                sec.sectionNum === 2
-                  ? "/movies?upcoming=true"
-                  : sec.categorySlug
-                  ? `/movies?category=${encodeURIComponent(sec.categorySlug)}`
-                  : "/movies"
-              }
+              viewAllHref={sec.sectionNum === 2 ? "/movies?upcoming=true" : sec.categorySlug ? `/movies?category=${encodeURIComponent(sec.categorySlug)}` : "/movies"}
               className={sec.sectionNum % 2 === 0 ? "bg-secondary/20" : ""}
             />
           ))}
         </div>
       )}
-      
+
       {/* Ads Section */}
       <Ads />
 
