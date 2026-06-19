@@ -50,10 +50,54 @@ export default function WatchPage() {
   }, []);
 
   useEffect(() => {
-    if (!movieId) return;
+    if (movieId === undefined || isNaN(movieId)) return;
     setLoading(true);
     setError(null);
     setStreamError(null);
+
+    if (movieId === 0) {
+      // Special event banner configuration (Sinea Rekap Acara)
+      api.get("/films?limit=10")
+        .then((relatedRes) => {
+          setMovie({
+            id: 0,
+            title: "Sinea Rekap Acara",
+            genres: [{ name: "Special Event" }],
+            description: "Tonton rangkuman keseruan acara Sinea Rekap.",
+            poster_url: "/SINEA - Logo Horisontal.webp",
+            release_year: "2026",
+            duration: 3,
+          });
+          setStreamUrl(getMediaUrl("/uploads/banner_rekap/Trailer-FFAB-Draft-2.mp4"));
+          
+          const all = relatedRes.data?.data || [];
+          const mapped = all
+            .filter((m: any) => m.id !== 0)
+            .slice(0, 6)
+            .map((film: any): Video => ({
+              id: film.id,
+              title: film.title,
+              genre: film.genres && film.genres.length > 0 ? film.genres[0].name : "Other",
+              rating: "4.8",
+              quality: "4K UHD",
+              thumbnail: film.poster_url ? getMediaUrl(film.poster_url) : "",
+              backdrop: film.poster_url ? getMediaUrl(film.poster_url) : "",
+              description: film.description || "",
+              trailerUrl: film.trailer_url ? getMediaUrl(film.trailer_url) : "",
+              productionHouse: film.production_house || "",
+              productionHouseLogo: film.production_house_logo ? getMediaUrl(film.production_house_logo) : "",
+            }));
+          setRelatedMovies(mapped);
+        })
+        .catch((err) => {
+          console.error("Failed to fetch related movies for special event", err);
+          setError("Gagal memuat rekomendasi film.");
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+      return;
+    }
 
     Promise.all([
       api.get(`/films/${movieId}`, { withCredentials: true }).catch((err) => {
@@ -123,7 +167,16 @@ export default function WatchPage() {
     <div className="bg-background min-h-screen text-foreground selection:bg-brand/30 pb-20 font-sans transition-colors duration-500">
       {/* Breadcrumb / Back Navigation */}
       <div className="max-w-[1600px] mx-auto px-6 pt-6 flex items-center gap-4">
-        <button onClick={() => router.push(`/movies/${movieId}`)} className="p-2 rounded-full bg-muted border border-border hover:bg-muted/80 transition-all group">
+        <button 
+          onClick={() => {
+            if (movieId === 0) {
+              router.push("/home");
+            } else {
+              router.push(`/movies/${movieId}`);
+            }
+          }} 
+          className="p-2 rounded-full bg-muted border border-border hover:bg-muted/80 transition-all group"
+        >
           <Icon name="arrow-right" className="w-5 h-5 rotate-180 group-hover:-translate-x-1 transition-transform text-foreground" />
         </button>
         <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
@@ -148,7 +201,7 @@ export default function WatchPage() {
                 variant="movie"
                 title={movie.title}
                 src={streamUrl}
-                poster={movie.poster_url ? getMediaUrl(movie.poster_url) : ""}
+                poster={movie.id === 0 ? movie.poster_url : (movie.poster_url ? getMediaUrl(movie.poster_url) : "")}
                 className="w-full h-full"
               />
             ) : (
