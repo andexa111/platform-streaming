@@ -40,8 +40,9 @@ const INITIAL_PLANS = [
     borderColor: "border-neutral-300/80 dark:border-white/20",
     bgColor: "bg-neutral-200/20 dark:bg-white/5",
     features: ["Akses Semua Film & Series", "Kualitas Full HD", "Tanpa Iklan", "Download untuk Offline"],
-    buttonClass: "bg-neutral-200/50 dark:bg-white/10 text-neutral-700 dark:text-white border border-neutral-300 dark:border-white/20 hover:bg-neutral-900 hover:text-white dark:hover:bg-white dark:hover:text-neutral-950 hover:border-neutral-900 dark:hover:border-white shadow-sm dark:shadow-white/5",
-    popular: true,
+    buttonClass:
+      "bg-neutral-200/50 dark:bg-white/10 text-neutral-700 dark:text-white border border-neutral-300 dark:border-white/20 hover:bg-neutral-900 hover:text-white dark:hover:bg-white dark:hover:text-neutral-950 hover:border-neutral-900 dark:hover:border-white shadow-sm dark:shadow-white/5",
+    popular: false,
   },
   {
     id: "1-tahun",
@@ -136,8 +137,8 @@ export default function SubscriptionsDashboard() {
               className={cn(
                 "group relative p-6 md:p-8 rounded-[2.5rem] border transition-all duration-700 hover:-translate-y-4 flex flex-col overflow-hidden",
                 plan.borderColor,
-                plan.popular 
-                  ? "bg-neutral-50 dark:bg-neutral-900/80 z-20 shadow-2xl shadow-neutral-950/5 dark:shadow-white/5 border-neutral-300 dark:border-neutral-800" 
+                plan.popular
+                  ? "bg-neutral-50 dark:bg-neutral-900/80 z-20 shadow-2xl shadow-neutral-950/5 dark:shadow-white/5 border-neutral-300 dark:border-neutral-800"
                   : "bg-neutral-50/40 hover:bg-neutral-100/60 dark:bg-neutral-900/40 dark:hover:bg-neutral-900/60 border-neutral-200/80 dark:border-neutral-800/30",
               )}
             >
@@ -179,10 +180,7 @@ export default function SubscriptionsDashboard() {
               {/* Action Button */}
               <button
                 onClick={() => setEditingPlan(plan)}
-                className={cn(
-                  "mt-8 w-full py-4 rounded-xl font-black uppercase tracking-widest text-[10px] md:text-xs transition-all active:scale-95 shadow-xl relative z-10 text-center",
-                  plan.buttonClass,
-                )}
+                className={cn("mt-8 w-full py-4 rounded-xl font-black uppercase tracking-widest text-[10px] md:text-xs transition-all active:scale-95 shadow-xl relative z-10 text-center", plan.buttonClass)}
               >
                 Atur Harga
               </button>

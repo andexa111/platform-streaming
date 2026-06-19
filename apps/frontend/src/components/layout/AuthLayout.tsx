@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
-import { useState, useEffect } from "react";
 
 interface AuthLayoutProps {
   mode: "login" | "register";
@@ -14,36 +14,26 @@ export default function AuthLayout({ mode, children }: AuthLayoutProps) {
   const router = useRouter();
   const isLogin = mode === "login";
 
-  const [phase, setPhase] = useState<"entering" | "visible">("entering");
-
-  useEffect(() => {
-    const id = requestAnimationFrame(() => requestAnimationFrame(() => setPhase("visible")));
-    return () => cancelAnimationFrame(id);
-  }, []);
-
-  const imageInitX = phase === "entering" ? (isLogin ? "100%" : "-100%") : "0%";
-  const formInitX = phase === "entering" ? (isLogin ? "-100%" : "100%") : "0%";
-
-  const panelTransition = "transform 0.8s cubic-bezier(0.22, 1, 0.36, 1)";
-
   return (
     <div className="min-h-screen flex bg-background selection:bg-brand/30 selection:text-foreground overflow-hidden">
       {/* TEXT PANEL */}
       <div
-        className={`hidden lg:flex relative overflow-hidden bg-background ${isLogin ? "w-1/2" : "w-1/2 order-last"}`}
-        style={{
-          transform: `translateX(${imageInitX})`,
-          opacity: phase === "entering" ? 0 : 1,
-          transition: panelTransition,
-        }}
+        className={`hidden lg:flex relative overflow-hidden bg-background ${
+          isLogin 
+            ? "w-1/2 animate-in fade-in slide-in-from-right-8 duration-1000" 
+            : "w-1/2 order-last animate-in fade-in slide-in-from-left-8 duration-1000"
+        }`}
       >
         <div className={`relative z-10 w-full h-full flex flex-col justify-start pt-28 xl:pt-40 ${isLogin ? "pl-6 xl:pl-[calc((100vw-1280px)/2+24px)] pr-16 xl:pr-24" : "pr-6 xl:pr-[calc((100vw-1280px)/2+24px)] pl-16 xl:pl-24"}`}>
           <div className={`w-full max-w-lg ${!isLogin ? "ml-auto" : ""}`}>
             {/* Logo */}
             <div className={`flex items-center gap-3 mb-12 ${!isLogin ? "justify-end" : "justify-start"}`}>
-              <img 
+              <Image 
                 src="/SINEA - Logo Horisontal.webp" 
                 alt="SINEA" 
+                width={200}
+                height={56}
+                priority
                 className="h-14 w-auto object-contain dark:brightness-[1.6] brightness-[1.1] contrast-[1.2] dark:drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] drop-shadow-[0_0_15px_rgba(0,0,0,0.1)]" 
               />
             </div>
@@ -78,11 +68,6 @@ export default function AuthLayout({ mode, children }: AuthLayoutProps) {
       {/* FORM PANEL */}
       <div
         className={`relative w-full lg:w-1/2 flex items-center justify-center sm:p-12 lg:py-5 ${!isLogin ? "order-first" : ""}`}
-        style={{
-          transform: `translateX(${formInitX})`,
-          opacity: phase === "entering" ? 0 : 1,
-          transition: panelTransition,
-        }}
       >
         <div className="w-full">
           <div key={mode} className="animate-in fade-in slide-in-from-bottom-3 duration-500 fill-mode-both">
