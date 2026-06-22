@@ -18,4 +18,7 @@ export interface Video {
   clipStart?: number;
   clipEnd?: number;
   publishedStart?: string;
+  filmStatus?: 'now_showing' | 'past';
+  publishedEnd?: string;
+  isDeleted?: boolean;
 }

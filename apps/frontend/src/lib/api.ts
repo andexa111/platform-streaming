@@ -51,6 +51,10 @@ api.interceptors.response.use(
 
 export const getMediaUrl = (url: string | null | undefined): string => {
   if (!url) return '';
+  // Return local frontend assets directly
+  if (url.startsWith('/') && !url.startsWith('/uploads/')) {
+    return url;
+  }
   if (url.startsWith('/') || url.startsWith('uploads/')) {
     const cleanUrl = url.startsWith('/') ? url : `/${url}`;
     return `${API_URL}${cleanUrl}`;
