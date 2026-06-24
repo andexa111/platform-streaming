@@ -56,7 +56,7 @@ export class FilmService {
               connectOrCreate: genreNames?.map((name) => {
                 const slug = name.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '').replace(/\-\-+/g, '-');
                 return {
-                  where: { slug },
+                  where: { name },
                   create: { name, slug },
                 };
               }) || [],
@@ -106,7 +106,7 @@ export class FilmService {
               connectOrCreate: categoryNames.map((name) => {
                 const slug = name.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '').replace(/\-\-+/g, '-');
                 return {
-                  where: { slug },
+                  where: { name },
                   create: { name, slug },
                 };
               }),
@@ -392,7 +392,7 @@ export class FilmService {
         connectOrCreate: genreNames?.map((name) => {
           const slug = name.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '').replace(/\-\-+/g, '-');
           return {
-            where: { slug },
+            where: { name },
             create: { name, slug },
           };
         }) || [],
@@ -456,7 +456,7 @@ export class FilmService {
           connectOrCreate: categoryNames.map((name) => {
             const slug = name.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '').replace(/\-\-+/g, '-');
             return {
-              where: { slug },
+              where: { name },
               create: { name, slug },
             };
           }),
