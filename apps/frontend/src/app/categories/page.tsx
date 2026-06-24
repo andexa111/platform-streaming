@@ -74,21 +74,7 @@ export default function CategoriesPage() {
           };
         });
 
-        if (mappedCategories.length === 0) {
-          mappedCategories = [
-            {
-              id: 999,
-              name: "FFAB 2026",
-              slug: "lolos-kurasi-ffab-2026",
-              color: "from-brand/20 to-transparent",
-              films: [
-                { id: "mock-1", title: "Lakon Cinta Pertama", genre: "Romance" },
-                { id: "mock-2", title: "Jalur Sutra Nusantara", genre: "Documentary" },
-                { id: "mock-3", title: "Tragedi 1998", genre: "Historical" }
-              ] as any
-            }
-          ];
-        }
+
 
         setCategories(mappedCategories);
       })

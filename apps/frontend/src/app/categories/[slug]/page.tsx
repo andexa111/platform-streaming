@@ -141,48 +141,7 @@ function CategoryArchiveContent() {
 
         // 3. Parse Paginated Films (using fallbacks for preview if DB is empty/offline)
         let dbFilms = filmsRes.data?.data || [];
-        if (dbFilms.length === 0) {
-          dbFilms = [
-            {
-              id: "mock-1",
-              title: "Lakon Cinta Pertama",
-              genres: [{ name: "Romance" }],
-              poster_url: "/login_bg.png",
-              description: "Kisah romansa klasik dua sineas muda yang berjuang di tengah dinamika perfilman nasional.",
-              filmStatus: "now_showing",
-              published_start: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-            },
-            {
-              id: "mock-2",
-              title: "Jalur Sutra Nusantara",
-              genres: [{ name: "Documentary" }],
-              poster_url: "/production-house-placeholder.png",
-              description: "Ekspedisi mendalam menelusuri sejarah perdagangan rempah di nusantara yang melegenda.",
-              filmStatus: "now_showing",
-              published_start: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-            },
-            {
-              id: "mock-3",
-              title: "Tragedi 1998",
-              genres: [{ name: "Historical" }],
-              poster_url: "/login_bg.png",
-              description: "Dokumentasi dramatis peristiwa reformasi yang melahirkan era baru bagi bangsa Indonesia.",
-              filmStatus: "past",
-              published_start: "2024-01-01T00:00:00Z",
-              published_end: "2024-06-01T00:00:00Z",
-            },
-            {
-              id: "mock-4",
-              title: "Mimpi Sang Sutradara",
-              genres: [{ name: "Drama" }],
-              poster_url: "/production-house-placeholder.png",
-              description: "Perjuangan inspiratif seorang anak desa mewujudkan impiannya memproduksi film layar lebar.",
-              filmStatus: "past",
-              published_start: "2025-01-01T00:00:00Z",
-              published_end: "2025-05-01T00:00:00Z",
-            }
-          ];
-        }
+
 
         const mapped = dbFilms.map((film: any): Video => ({
           id: film.id,
