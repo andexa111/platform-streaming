@@ -40,7 +40,7 @@ export default function CategoriesPage() {
         const dbFilms = filmsRes.data?.data || [];
 
         // Map categories and associate their films
-        let mappedCategories = dbCategories.map((c: any): CategoryData => {
+        const mappedCategories = dbCategories.map((c: any): CategoryData => {
           const slugKey = (c.slug || "").toLowerCase();
           const style = CATEGORY_STYLES[slugKey] || {
             color: "from-brand/20 to-transparent",

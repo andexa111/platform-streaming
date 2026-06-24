@@ -140,7 +140,7 @@ function CategoryArchiveContent() {
         setGenres(["All Genres", ...dbGenres.map((g: any) => g.name)]);
 
         // 3. Parse Paginated Films (using fallbacks for preview if DB is empty/offline)
-        let dbFilms = filmsRes.data?.data || [];
+        const dbFilms = filmsRes.data?.data || [];
 
 
         const mapped = dbFilms.map((film: any): Video => ({
