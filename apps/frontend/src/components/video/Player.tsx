@@ -74,7 +74,7 @@ export const Player = forwardRef<MediaPlayerInstance, PlayerProps>(
   return (
     <div className={cn(
       "w-full h-full overflow-hidden bg-background dark:bg-black", 
-      isBanner ? "banner-player" : "shadow-2xl border border-white/5",
+      isBanner ? "banner-player" : "shadow-2xl",
       className
     )}>
       <MediaPlayer 

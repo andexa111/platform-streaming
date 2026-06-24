@@ -191,7 +191,7 @@ export default function WatchClient({ movieId }: { movieId: number }) {
         <div className="xl:col-span-3 space-y-8">
           {/* Active Video Player */}
           <div 
-            className="group relative aspect-video bg-black overflow-hidden shadow-2xl shadow-brand/10 border border-white/5"
+            className="group relative aspect-video bg-black overflow-hidden shadow-2xl shadow-brand/10"
             onContextMenu={(e) => e.preventDefault()}
           >
             {streamUrl ? (
