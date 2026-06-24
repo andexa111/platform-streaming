@@ -170,7 +170,7 @@ async function seedDummyUsers() {
 async function seedCategories() {
   console.log('🏷️ Seeding categories...');
   const categories = [
-    { name: 'Lolos Kurasi FFAB 2026', slug: 'lolos-kurasi-ffab-2026' },
+    { name: 'FFAB 2026', slug: 'lolos-kurasi-ffab-2026' },
     { name: 'Film Terpopuler', slug: 'film-terpopuler' },
     { name: 'Sedang Tayang', slug: 'sedang-tayang' },
   ];
@@ -189,8 +189,8 @@ async function seedHomeSections() {
   const sections = [
     {
       sectionNum: 1,
-      title: 'Lolos Kurasi FFAB 2026',
-      description: 'Koleksi film pilihan yang lolos kurasi FFAB 2026',
+      title: 'FFAB 2026',
+      description: 'Koleksi film pilihan FFAB 2026',
       categorySlug: 'lolos-kurasi-ffab-2026',
     },
     {

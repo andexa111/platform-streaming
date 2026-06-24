@@ -14,11 +14,7 @@ export default function MoviesLayout({ children }: { children: React.ReactNode }
     setIsMounted(true);
   }, []);
 
-  // Use isAuthenticated directly to avoid flickering during client-side navigation.
-  // The Navbar component handles its own hydration safety internally.
-  /////////// fix//////////
-  const isMember = isAuthenticated;
-  /////////// fix//////////
+  const isMember = isMounted && isAuthenticated;
 
   return (
     <div className="flex flex-col min-h-screen bg-background">

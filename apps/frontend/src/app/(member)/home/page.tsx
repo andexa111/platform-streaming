@@ -16,28 +16,16 @@ export default function MemberHomePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([
-      api.get("/genre").catch(() => ({ data: [] })),
-      api.get("/home-sections/content").catch(() => ({ data: [] })),
-      api.get("/featured-films").catch(() => ({ data: [] })),
-    ])
+    Promise.all([api.get("/genre").catch(() => ({ data: [] })), api.get("/home-sections/content").catch(() => ({ data: [] })), api.get("/featured-films").catch(() => ({ data: [] }))])
       .then(([genreRes, sectionsRes, featuredRes]) => {
         // Genres
         const dbGenres = genreRes.data || [];
         // Map to UI friendly colors
-        const colors = [
-          "from-red-600/20",
-          "from-indigo-600/20",
-          "from-emerald-600/20",
-          "from-zinc-800/20",
-          "from-brand/20",
-          "from-purple-600/20",
-          "from-orange-600/20"
-        ];
+        const colors = ["from-red-600/20", "from-indigo-600/20", "from-emerald-600/20", "from-zinc-800/20", "from-brand/20", "from-purple-600/20", "from-orange-600/20"];
         const mappedGenres = dbGenres.map((g: any, i: number) => ({
           title: g.name,
           slug: g.slug,
-          color: colors[i % colors.length]
+          color: colors[i % colors.length],
         }));
         setGenres(mappedGenres);
 
@@ -72,10 +60,8 @@ export default function MemberHomePage() {
 
         // Featured films
         const dbFeatured = featuredRes.data || [];
-        const mappedFeatured = dbFeatured
-          .map((item: any) => item.film ? mapFilm(item.film) : null)
-          .filter(Boolean) as Video[];
-        
+        const mappedFeatured = dbFeatured.map((item: any) => (item.film ? mapFilm(item.film) : null)).filter(Boolean) as Video[];
+
         setFeaturedFilms(mappedFeatured);
       })
       .catch((err) => {
@@ -132,17 +118,10 @@ export default function MemberHomePage() {
             subtitle={sec.description}
             videos={sec.films}
             isComingSoon={sec.sectionNum === 2}
-            viewAllHref={
-              sec.sectionNum === 2
-                ? "/movies?upcoming=true"
-                : sec.categorySlug
-                ? `/movies?category=${encodeURIComponent(sec.categorySlug)}`
-                : "/movies"
-            }
+            viewAllHref={sec.sectionNum === 2 ? "/movies?upcoming=true" : sec.categorySlug ? `/movies?category=${encodeURIComponent(sec.categorySlug)}` : "/movies"}
             className={sec.sectionNum % 2 === 0 ? "bg-muted/30" : ""}
           />
         ))}
-
 
         {/* Ads Section */}
         <Ads />

@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
-import { useAuthStore } from '@/lib/auth-store';
-import { Icon } from '@/components/ui/Icon';
-import { VideoCard } from '@/components/video/VideoCard';
-import { cn } from '@/lib/utils';
-import { Video } from '@/types/video';
-import { api, getMediaUrl } from '@/lib/api';
-import { Player } from '@/components/video/Player';
-import { VideoRow } from '@/components/video/VideoRow';
+import React, { useState, useEffect } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { useAuthStore } from "@/lib/auth-store";
+import { Icon } from "@/components/ui/Icon";
+import { VideoCard } from "@/components/video/VideoCard";
+import { cn } from "@/lib/utils";
+import { Video } from "@/types/video";
+import { api, getMediaUrl } from "@/lib/api";
+import { Player } from "@/components/video/Player";
+import { VideoRow } from "@/components/video/VideoRow";
 
 export default function MovieDetailPage() {
   const { id } = useParams();
@@ -30,36 +30,78 @@ export default function MovieDetailPage() {
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   useEffect(() => {
-    if (!movieId) return;
+    if (!id) return;
     setLoading(true);
     setError(null);
 
-    Promise.all([
-      api.get(`/films/${movieId}`).catch((err) => {
-        throw new Error(err.response?.data?.message || "Film tidak ditemukan");
-      }),
-      api.get("/films?limit=10").catch(() => ({ data: { data: [] } })),
-    ])
+    const isMock = typeof id === "string" && id.startsWith("mock");
+    const fetchPromise = isMock
+      ? Promise.resolve({
+          data: {
+            id: id,
+            title: id === "mock-3" ? "Tragedi 1998" : id === "mock-4" ? "Mimpi Sang Sutradara" : id === "mock-1" ? "Lakon Cinta Pertama" : "Jalur Sutra Nusantara",
+            genres: [{ id: 1, name: id === "mock-1" ? "Romance" : id === "mock-2" ? "Documentary" : id === "mock-3" ? "Historical" : "Drama" }],
+            quality: "4K UHD",
+            poster_url: id === "mock-1" || id === "mock-3" ? "/login_bg.png" : "/production-house-placeholder.png",
+            description: "Ini adalah deskripsi film mockup untuk preview layout. Sinopsis film menceritakan kisah yang mendalam dan penuh perjuangan dalam meraih impian.",
+            is_deleted: id === "mock-3" ? true : false,
+            published_start: "2024-01-01T00:00:00Z",
+            published_end: id === "mock-3" ? "2024-06-01T00:00:00Z" : id === "mock-4" ? "2025-05-01T00:00:00Z" : null,
+            trailer_url: "",
+            duration: 120,
+            release_year: 2025,
+            director: "Sineas Terkenal",
+            producer: "Produser Handal",
+            actors: [
+              { id: 1, name: "Aktor Utama" },
+              { id: 2, name: "Aktris Utama" },
+            ],
+          },
+        })
+      : api.get(`/films/${movieId}`).catch((err) => {
+          // Database offline fallback for other details preview
+          return {
+            data: {
+              id: movieId,
+              title: "Lakon Film (Preview Offline)",
+              genres: [{ id: 1, name: "Drama" }],
+              quality: "4K UHD",
+              poster_url: "/login_bg.png",
+              description: "Database offline. Ini adalah detail film mockup otomatis agar halaman tetap tampil untuk keperluan preview layout.",
+              is_deleted: false,
+              published_start: "2024-01-01T00:00:00Z",
+              published_end: null,
+              duration: 120,
+              release_year: 2026,
+            },
+          };
+        });
+
+    const relatedPromise = isMock ? Promise.resolve({ data: { data: [] } }) : api.get("/films?limit=10").catch(() => ({ data: { data: [] } }));
+
+    Promise.all([fetchPromise, relatedPromise])
       .then(([movieRes, relatedRes]) => {
         setMovie(movieRes.data);
-        
+
         const all = relatedRes.data?.data || [];
         const mapped = all
           .filter((m: any) => m.id !== movieId)
           .slice(0, 6)
-          .map((film: any): Video => ({
-            id: film.id,
-            title: film.title,
-            genre: film.genres && film.genres.length > 0 ? film.genres[0].name : "Other",
-            rating: "4.8",
-            quality: "4K UHD",
-            thumbnail: film.poster_url ? getMediaUrl(film.poster_url) : "",
-            backdrop: film.poster_url ? getMediaUrl(film.poster_url) : "",
-            description: film.description || "",
-            trailerUrl: film.trailer_url ? getMediaUrl(film.trailer_url) : "",
-            productionHouse: film.production_house || "",
-            productionHouseLogo: film.production_house_logo ? getMediaUrl(film.production_house_logo) : "",
-          }));
+          .map(
+            (film: any): Video => ({
+              id: film.id,
+              title: film.title,
+              genre: film.genres && film.genres.length > 0 ? film.genres[0].name : "Other",
+              rating: "4.8",
+              quality: "4K UHD",
+              thumbnail: film.poster_url ? getMediaUrl(film.poster_url) : "",
+              backdrop: film.poster_url ? getMediaUrl(film.poster_url) : "",
+              description: film.description || "",
+              trailerUrl: film.trailer_url ? getMediaUrl(film.trailer_url) : "",
+              productionHouse: film.production_house || "",
+              productionHouseLogo: film.production_house_logo ? getMediaUrl(film.production_house_logo) : "",
+            }),
+          );
         setRelatedMovies(mapped);
       })
       .catch((err) => {
@@ -68,7 +110,7 @@ export default function MovieDetailPage() {
       .finally(() => {
         setLoading(false);
       });
-  }, [movieId]);
+  }, [id, movieId]);
 
   const handleWatchNow = () => {
     if (!isAuthenticated) {
@@ -121,6 +163,7 @@ export default function MovieDetailPage() {
 
   const isTrailerLocal = movie.trailer_url?.startsWith("http") || movie.trailer_url?.includes("uploads/") || movie.trailer_url?.includes("/uploads");
   const isReleased = !movie.published_start || new Date(movie.published_start) <= new Date();
+  const isPast = movie.is_deleted || (movie.published_end && new Date(movie.published_end) < new Date());
 
   return (
     <main className="min-h-screen bg-background text-foreground selection:bg-brand/30">
@@ -128,10 +171,7 @@ export default function MovieDetailPage() {
       {showAuthModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-in fade-in duration-300">
           {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-background/80 backdrop-blur-sm"
-            onClick={() => setShowAuthModal(false)}
-          />
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setShowAuthModal(false)} />
 
           {/* Modal Card */}
           <div className="relative w-full max-w-md bg-card border border-border rounded-[2.5rem] p-8 md:p-10 shadow-2xl animate-in zoom-in-95 duration-300 flex flex-col items-center text-center space-y-8">
@@ -147,13 +187,8 @@ export default function MovieDetailPage() {
 
             {/* Text Content */}
             <div className="space-y-3">
-              <h2 className="text-2xl md:text-3xl font-black tracking-tight text-foreground">
-                Join SINEA
-              </h2>
-              <p className="text-muted-foreground text-sm md:text-base leading-relaxed">
-                Silakan masuk ke akun Anda atau daftar sekarang untuk menikmati
-                film berkualitas di platform kami secara gratis selama periode launching.
-              </p>
+              <h2 className="text-2xl md:text-3xl font-black tracking-tight text-foreground">Join SINEA</h2>
+              <p className="text-muted-foreground text-sm md:text-base leading-relaxed">Silakan masuk ke akun Anda atau daftar sekarang untuk menikmati film berkualitas di platform kami secara gratis selama periode launching.</p>
             </div>
 
             {/* Action Buttons */}
@@ -164,18 +199,13 @@ export default function MovieDetailPage() {
               >
                 Login Sekarang
               </Link>
-              <button
-                onClick={() => setShowAuthModal(false)}
-                className="flex items-center justify-center w-full py-4 bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground rounded-2xl font-bold transition-all"
-              >
+              <button onClick={() => setShowAuthModal(false)} className="flex items-center justify-center w-full py-4 bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground rounded-2xl font-bold transition-all">
                 Mungkin Nanti
               </button>
             </div>
 
             {/* Footer Text */}
-            <p className="text-[10px] text-muted-foreground/50 uppercase tracking-widest font-bold">
-              Premium Cinema Experience
-            </p>
+            <p className="text-[10px] text-muted-foreground/50 uppercase tracking-widest font-bold">Premium Cinema Experience</p>
           </div>
         </div>
       )}
@@ -194,13 +224,7 @@ export default function MovieDetailPage() {
                 <div className="absolute inset-0 bg-background/20 z-10" />
 
                 {mappedMovie.thumbnail ? (
-                  <Image
-                    src={mappedMovie.thumbnail}
-                    alt={mappedMovie.title}
-                    fill
-                    priority
-                    className="object-cover object-center"
-                  />
+                  <Image src={mappedMovie.thumbnail} alt={mappedMovie.title} fill priority className="object-cover object-center" />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-muted via-background to-brand/10" />
                 )}
@@ -219,25 +243,15 @@ export default function MovieDetailPage() {
               </button>
 
               {/* Close Button */}
-              <button
-                onClick={() => setIsPlaying(false)}
-                className="absolute top-4 right-4 md:top-6 md:right-6 z-50 p-1.5 md:p-2 bg-white/10 hover:bg-white/20 text-white rounded-full backdrop-blur-md transition-all group active:scale-95"
-              >
-                <Icon
-                  name="x"
-                  className="w-4 h-4 md:w-6 h-6 group-hover:rotate-90 transition-transform duration-300"
-                />
+              <button onClick={() => setIsPlaying(false)} className="absolute top-4 right-4 md:top-6 md:right-6 z-50 p-1.5 md:p-2 bg-white/10 hover:bg-white/20 text-white rounded-full backdrop-blur-md transition-all group active:scale-95">
+                <Icon name="x" className="w-4 h-4 md:w-6 h-6 group-hover:rotate-90 transition-transform duration-300" />
               </button>
 
               {/* Player Interface */}
               <div className="w-full h-full flex flex-col items-center justify-center">
                 {movie.trailer_url ? (
                   isTrailerLocal ? (
-                    <Player 
-                      variant="trailer"
-                      src={getMediaUrl(movie.trailer_url)} 
-                      className="w-full h-full object-contain absolute inset-0 bg-black" 
-                    />
+                    <Player variant="trailer" src={getMediaUrl(movie.trailer_url)} className="w-full h-full object-contain absolute inset-0 bg-black" />
                   ) : (
                     <iframe
                       src={`https://iframe.mediadelivery.net/embed/245642/${movie.trailer_url}?autoplay=true`}
@@ -275,80 +289,90 @@ export default function MovieDetailPage() {
                 <span>{mappedMovie.rating}</span>
               </div>
               */}
-              {movie.release_year && (
-                <span className="text-muted-foreground text-[10px] md:text-sm font-medium">
-                  {movie.release_year}
-                </span>
-              )}
-              {movie.duration && (
-                <span className="text-muted-foreground text-[10px] md:text-sm font-medium">
-                  {movie.duration} Menit
-                </span>
-              )}
+              {movie.release_year && <span className="text-muted-foreground text-[10px] md:text-sm font-medium">{movie.release_year}</span>}
+              {movie.duration && <span className="text-muted-foreground text-[10px] md:text-sm font-medium">{movie.duration} Menit</span>}
               <div className="w-0.5 h-0.5 md:w-1 md:h-1 rounded-full bg-muted mx-1 md:mx-2" />
               {movie.categories && movie.categories.length > 0 ? (
                 <div className="flex flex-wrap gap-1.5 items-center">
                   {movie.categories.map((c: any) => (
-                    <span
-                      key={c.id}
-                      className="px-2 py-0.5 md:px-3 md:py-1 bg-brand/10 border border-brand/20 text-brand rounded-full text-[9px] md:text-xs font-bold uppercase tracking-wider"
-                    >
+                    <span key={c.id} className="px-2 py-0.5 md:px-3 md:py-1 bg-brand/10 border border-brand/20 text-brand rounded-full text-[9px] md:text-xs font-bold uppercase tracking-wider">
                       {c.name}
                     </span>
                   ))}
                 </div>
               ) : (
-                <span className="text-brand text-[10px] md:text-sm font-bold uppercase tracking-wider">
-                  Tanpa Kategori
-                </span>
+                <span className="text-brand text-[10px] md:text-sm font-bold uppercase tracking-wider">Tanpa Kategori</span>
               )}
             </div>
 
             {/* Title */}
             <h1 className="text-xl sm:text-4xl md:text-7xl lg:text-8xl font-black tracking-tight leading-tight max-w-4xl">
-              <span className="text-transparent bg-clip-text bg-gradient-to-b from-foreground to-muted-foreground">
-                {mappedMovie.title}
-              </span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-b from-foreground to-muted-foreground">{mappedMovie.title}</span>
             </h1>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex flex-row items-center gap-2 md:gap-4 pt-2 md:pt-4">
-            {isReleased ? (
-              <button
-                onClick={handleWatchNow}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-3 px-3 py-2 md:px-8 md:py-4 bg-brand hover:bg-brand-dark text-white rounded-full text-[10px] md:text-base font-bold transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(2,77,148,0.3)] group"
-              >
-                <Icon
-                  name="play"
-                  className="w-2.5 h-2.5 md:w-5 md:h-5 fill-current transition-transform group-hover:scale-110"
-                />
-                Tonton Sekarang
-              </button>
-            ) : (
-              <button
-                disabled
-                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-3 px-3 py-2 md:px-8 md:py-4 bg-neutral-800 text-neutral-500 border border-neutral-700 rounded-full text-[10px] md:text-base font-bold cursor-not-allowed"
-              >
-                <Icon
-                  name="lock"
-                  className="w-2.5 h-2.5 md:w-5 md:h-5 fill-current"
-                />
-                Segera Hadir
-              </button>
-            )}
-            {movie.trailer_url && (
-              <button
-                onClick={handleWatchTrailer}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-3 px-3 py-2 md:px-8 md:py-4 bg-card/50 hover:bg-card/80 backdrop-blur-md border border-border text-foreground rounded-full text-[10px] md:text-base font-bold transition-all hover:scale-105 active:scale-95"
-              >
-                <Icon name="film" className="w-2.5 h-2.5 md:w-5 md:h-5" />
-                Trailer
-              </button>
-            )}
-          </div>
+          {/* Action Buttons / Notice Banner */}
+          {isPast ? (
+            <div className="hidden md:flex flex-col sm:flex-row sm:items-center gap-3 p-4 md:p-6 bg-amber-500/10 border border-amber-500/20 rounded-[2rem] max-w-2xl w-fit text-amber-500 backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 duration-500">
+              <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                <Icon name="clock" className="w-5 h-5 text-amber-500" />
+              </div>
+              <div className="space-y-0.5">
+                <h4 className="text-xs md:text-sm font-black uppercase tracking-wider">Masa Tayang Berakhir</h4>
+                <p className="text-[10px] md:text-xs text-amber-500/80 leading-relaxed">
+                  {movie.published_end && <span> Terakhir tayang pada tanggal {new Date(movie.published_end).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}.</span>}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-row items-center gap-2 md:gap-4 pt-2 md:pt-4">
+              {isReleased ? (
+                <button
+                  onClick={handleWatchNow}
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-3 px-3 py-2 md:px-8 md:py-4 bg-brand hover:bg-brand-dark text-white rounded-full text-[10px] md:text-base font-bold transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(2,77,148,0.3)] group"
+                >
+                  <Icon name="play" className="w-2.5 h-2.5 md:w-5 md:h-5 fill-current transition-transform group-hover:scale-110" />
+                  Tonton Sekarang
+                </button>
+              ) : (
+                <button
+                  disabled
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-3 px-3 py-2 md:px-8 md:py-4 bg-neutral-800 text-neutral-500 border border-neutral-700 rounded-full text-[10px] md:text-base font-bold cursor-not-allowed"
+                >
+                  <Icon name="lock" className="w-2.5 h-2.5 md:w-5 md:h-5 fill-current" />
+                  Segera Hadir
+                </button>
+              )}
+              {movie.trailer_url && (
+                <button
+                  onClick={handleWatchTrailer}
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-3 px-3 py-2 md:px-8 md:py-4 bg-card/50 hover:bg-card/80 backdrop-blur-md border border-border text-foreground rounded-full text-[10px] md:text-base font-bold transition-all hover:scale-105 active:scale-95"
+                >
+                  <Icon name="film" className="w-2.5 h-2.5 md:w-5 md:h-5" />
+                  Trailer
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Notice Banner for Mobile/Tablet (< md) */}
+      {isPast && (
+        <div className="max-w-7xl mx-auto px-6 pt-6 md:hidden">
+          <div className="flex flex-row items-center gap-3.5 p-5 bg-amber-500/10 border border-amber-500/20 rounded-[2rem] w-fit text-amber-500 animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+              <Icon name="clock" className="w-5 h-5 text-amber-500" />
+            </div>
+            <div className="space-y-0.5">
+              <h4 className="text-xs font-black uppercase tracking-wider">Masa Tayang Berakhir</h4>
+              <p className="text-[10px] text-amber-500/85 leading-relaxed">
+                {movie.published_end && <span> Terakhir tayang pada tanggal {new Date(movie.published_end).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}.</span>}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Detail Section */}
       <section className={cn("relative z-30 px-6 pb-24 max-w-7xl mx-auto transition-all duration-700", isPlaying ? "pt-10" : "-mt-6 md:-mt-20")}>
@@ -364,17 +388,10 @@ export default function MovieDetailPage() {
                 Sinopsis
               </h2>
               <div className="space-y-2 relative">
-                <p className={cn(
-                  "text-neutral-700 dark:text-muted-foreground text-xs md:text-xl leading-relaxed font-normal transition-all duration-300",
-                  !isSynopsisExpanded && "line-clamp-3 md:line-clamp-4"
-                )}>
-                  {mappedMovie.description ||
-                    `Temukan kisah epik dari ${mappedMovie.title}, di mana takdir bertemu dengan ketidaktahuan. Mahakarya sinematik ini membawa Anda dalam perjalanan melalui visual yang tak tertandingi.`}
+                <p className={cn("text-neutral-700 dark:text-muted-foreground text-xs md:text-xl leading-relaxed font-normal transition-all duration-300", !isSynopsisExpanded && "line-clamp-3 md:line-clamp-4")}>
+                  {mappedMovie.description || `Temukan kisah epik dari ${mappedMovie.title}, di mana takdir bertemu dengan ketidaktahuan. Mahakarya sinematik ini membawa Anda dalam perjalanan melalui visual yang tak tertandingi.`}
                 </p>
-                <button 
-                  onClick={() => setIsSynopsisExpanded(!isSynopsisExpanded)}
-                  className="text-brand font-bold text-xs md:text-sm hover:underline transition-colors focus:outline-none flex items-center gap-1"
-                >
+                <button onClick={() => setIsSynopsisExpanded(!isSynopsisExpanded)} className="text-brand font-bold text-xs md:text-sm hover:underline transition-colors focus:outline-none flex items-center gap-1">
                   {isSynopsisExpanded ? "Sembunyikan" : "Baca Selengkapnya"}
                   <Icon name={isSynopsisExpanded ? "chevron-up" : "chevron-down"} className="w-3 h-3 md:w-4 md:h-4" />
                 </button>
@@ -383,27 +400,19 @@ export default function MovieDetailPage() {
 
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-8 pt-4 md:pt-6 border-t border-border">
               <div className="space-y-1 md:space-y-2">
-                <span className="text-[8px] md:text-xs font-black uppercase tracking-widest text-muted-foreground">
-                  Sutradara
-                </span>
+                <span className="text-[8px] md:text-xs font-black uppercase tracking-widest text-muted-foreground">Sutradara</span>
                 <div className="font-bold text-[10px] md:text-base text-foreground flex flex-wrap gap-x-1">
                   {movie.directors && movie.directors.length > 0 ? (
                     movie.directors.map((d: any, idx: number) => (
                       <React.Fragment key={d.id || idx}>
                         {idx > 0 && ", "}
-                        <Link
-                          href={`/movies?search=${encodeURIComponent(d.name)}`}
-                          className="hover:text-brand hover:underline transition-colors inline"
-                        >
+                        <Link href={`/movies?search=${encodeURIComponent(d.name)}`} className="hover:text-brand hover:underline transition-colors inline">
                           {d.name}
                         </Link>
                       </React.Fragment>
                     ))
                   ) : movie.director ? (
-                    <Link
-                      href={`/movies?search=${encodeURIComponent(movie.director)}`}
-                      className="hover:text-brand hover:underline transition-colors inline"
-                    >
+                    <Link href={`/movies?search=${encodeURIComponent(movie.director)}`} className="hover:text-brand hover:underline transition-colors inline">
                       {movie.director}
                     </Link>
                   ) : (
@@ -412,35 +421,23 @@ export default function MovieDetailPage() {
                 </div>
               </div>
               <div className="space-y-1 md:space-y-2">
-                <span className="text-[8px] md:text-xs font-black uppercase tracking-widest text-muted-foreground">
-                  Produser
-                </span>
+                <span className="text-[8px] md:text-xs font-black uppercase tracking-widest text-muted-foreground">Produser</span>
                 {movie.producer ? (
-                  <Link
-                    href={`/movies?search=${encodeURIComponent(movie.producer)}`}
-                    className="block font-bold text-[10px] md:text-base text-foreground hover:text-brand hover:underline transition-colors cursor-pointer"
-                  >
+                  <Link href={`/movies?search=${encodeURIComponent(movie.producer)}`} className="block font-bold text-[10px] md:text-base text-foreground hover:text-brand hover:underline transition-colors cursor-pointer">
                     {movie.producer}
                   </Link>
                 ) : (
-                  <p className="font-bold text-[10px] md:text-base">
-                    —
-                  </p>
+                  <p className="font-bold text-[10px] md:text-base">—</p>
                 )}
               </div>
               <div className="space-y-1 md:space-y-2">
-                <span className="text-[8px] md:text-xs font-black uppercase tracking-widest text-muted-foreground">
-                  Rumah Produksi
-                </span>
+                <span className="text-[8px] md:text-xs font-black uppercase tracking-widest text-muted-foreground">Rumah Produksi</span>
                 <div className="flex flex-col gap-2">
                   {movie.production_houses && movie.production_houses.length > 0 ? (
                     movie.production_houses.map((ph: any, idx: number) => (
                       <div key={ph.id || idx} className="flex items-center gap-2 md:gap-4">
                         {ph.logo_url && ph.logo_url !== "" && (
-                          <Link
-                            href={`/movies?search=${encodeURIComponent(ph.name || '')}`}
-                            className="w-8 h-8 md:w-14 md:h-14 flex items-center justify-center overflow-hidden flex-shrink-0"
-                          >
+                          <Link href={`/movies?search=${encodeURIComponent(ph.name || "")}`} className="w-8 h-8 md:w-14 md:h-14 flex items-center justify-center overflow-hidden flex-shrink-0">
                             <img
                               src={getMediaUrl(ph.logo_url)}
                               alt={`${ph.name} Logo`}
@@ -449,21 +446,15 @@ export default function MovieDetailPage() {
                             />
                           </Link>
                         )}
-                        <Link
-                          href={`/movies?search=${encodeURIComponent(ph.name || '')}`}
-                          className="font-bold text-[10px] md:text-base leading-tight text-foreground hover:text-brand hover:underline transition-colors cursor-pointer"
-                        >
-                          {ph.name || ''}
+                        <Link href={`/movies?search=${encodeURIComponent(ph.name || "")}`} className="font-bold text-[10px] md:text-base leading-tight text-foreground hover:text-brand hover:underline transition-colors cursor-pointer">
+                          {ph.name || ""}
                         </Link>
                       </div>
                     ))
                   ) : movie.production_house ? (
                     <div className="flex items-center gap-2 md:gap-4">
                       {movie.production_house_logo && movie.production_house_logo !== "" && (
-                        <Link
-                          href={`/movies?search=${encodeURIComponent(movie.production_house || '')}`}
-                          className="w-8 h-8 md:w-14 md:h-14 flex items-center justify-center overflow-hidden flex-shrink-0"
-                        >
+                        <Link href={`/movies?search=${encodeURIComponent(movie.production_house || "")}`} className="w-8 h-8 md:w-14 md:h-14 flex items-center justify-center overflow-hidden flex-shrink-0">
                           <img
                             src={getMediaUrl(movie.production_house_logo)}
                             alt="Studio Logo"
@@ -473,10 +464,10 @@ export default function MovieDetailPage() {
                         </Link>
                       )}
                       <Link
-                        href={`/movies?search=${encodeURIComponent(movie.production_house || '')}`}
+                        href={`/movies?search=${encodeURIComponent(movie.production_house || "")}`}
                         className="font-bold text-[10px] md:text-base leading-tight text-foreground hover:text-brand hover:underline transition-colors cursor-pointer"
                       >
-                        {movie.production_house || ''}
+                        {movie.production_house || ""}
                       </Link>
                     </div>
                   ) : (
@@ -485,18 +476,13 @@ export default function MovieDetailPage() {
                 </div>
               </div>
               <div className="space-y-1 md:space-y-2">
-                <span className="text-[8px] md:text-xs font-black uppercase tracking-widest text-muted-foreground">
-                  Genre
-                </span>
+                <span className="text-[8px] md:text-xs font-black uppercase tracking-widest text-muted-foreground">Genre</span>
                 <div className="font-bold text-[10px] md:text-base text-foreground flex flex-wrap gap-x-1">
                   {movie.genres && movie.genres.length > 0 ? (
                     movie.genres.map((g: any, idx: number) => (
                       <React.Fragment key={g.id}>
                         {idx > 0 && ", "}
-                        <Link
-                          href={`/movies?search=${encodeURIComponent(g.name)}`}
-                          className="hover:text-brand hover:underline transition-colors inline"
-                        >
+                        <Link href={`/movies?search=${encodeURIComponent(g.name)}`} className="hover:text-brand hover:underline transition-colors inline">
                           {g.name}
                         </Link>
                       </React.Fragment>
@@ -507,12 +493,8 @@ export default function MovieDetailPage() {
                 </div>
               </div>
               <div className="space-y-1 md:space-y-2">
-                <span className="text-[8px] md:text-xs font-black uppercase tracking-widest text-muted-foreground">
-                  Tahun Rilis
-                </span>
-                <p className="font-bold text-[10px] md:text-base">
-                  {movie.release_year || '—'}
-                </p>
+                <span className="text-[8px] md:text-xs font-black uppercase tracking-widest text-muted-foreground">Tahun Rilis</span>
+                <p className="font-bold text-[10px] md:text-base">{movie.release_year || "—"}</p>
               </div>
             </div>
           </div>
@@ -521,56 +503,33 @@ export default function MovieDetailPage() {
           <div className="space-y-8 bg-muted/20 p-6 md:p-8 rounded-[2rem] border border-border backdrop-blur-sm h-fit">
             {/* Directors Group */}
             <div className="space-y-4">
-              <h3 className="text-xs md:text-sm font-black uppercase tracking-wider text-muted-foreground border-b border-border/50 pb-2">
-                Sutradara
-              </h3>
+              <h3 className="text-xs md:text-sm font-black uppercase tracking-wider text-muted-foreground border-b border-border/50 pb-2">Sutradara</h3>
               <div className="grid grid-cols-1 gap-4">
                 {movie.directors && movie.directors.length > 0 ? (
                   movie.directors.map((director: any, i: number) => (
-                    <Link
-                      key={director.id || i}
-                      href={`/movies?search=${encodeURIComponent(director.name)}`}
-                      className="flex items-center gap-3 group cursor-pointer"
-                    >
+                    <Link key={director.id || i} href={`/movies?search=${encodeURIComponent(director.name)}`} className="flex items-center gap-3 group cursor-pointer">
                       <div className="w-12 h-12 rounded-full overflow-hidden border border-border bg-muted flex-shrink-0 relative group-hover:scale-105 transition-transform duration-300">
                         {director.photo_url ? (
-                          <img
-                            src={getMediaUrl(director.photo_url)}
-                            alt={director.name}
-                            className="w-full h-full object-cover"
-                          />
+                          <img src={getMediaUrl(director.photo_url)} alt={director.name} className="w-full h-full object-cover" />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-brand/10 text-brand font-black text-sm uppercase">
-                            {director.name.slice(0, 2)}
-                          </div>
+                          <div className="w-full h-full flex items-center justify-center bg-brand/10 text-brand font-black text-sm uppercase">{director.name.slice(0, 2)}</div>
                         )}
                       </div>
                       <div className="space-y-0.5">
-                        <p className="text-xs md:text-sm font-bold text-foreground group-hover:text-brand group-hover:underline transition-all">
-                          {director.name}
-                        </p>
-                        <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-black">
-                          Sutradara
-                        </p>
+                        <p className="text-xs md:text-sm font-bold text-foreground group-hover:text-brand group-hover:underline transition-all">{director.name}</p>
+                        <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-black">Sutradara</p>
                       </div>
                     </Link>
                   ))
                 ) : movie.director ? (
                   // Fallback to legacy director text
-                  <Link
-                    href={`/movies?search=${encodeURIComponent(movie.director)}`}
-                    className="flex items-center gap-3 group cursor-pointer"
-                  >
+                  <Link href={`/movies?search=${encodeURIComponent(movie.director)}`} className="flex items-center gap-3 group cursor-pointer">
                     <div className="w-12 h-12 rounded-full overflow-hidden border border-border bg-muted flex-shrink-0 flex items-center justify-center bg-brand/10 text-brand font-black text-sm uppercase group-hover:scale-105 transition-transform duration-300">
                       {movie.director.slice(0, 2)}
                     </div>
                     <div className="space-y-0.5">
-                      <p className="text-xs md:text-sm font-bold text-foreground group-hover:text-brand group-hover:underline transition-all">
-                        {movie.director}
-                      </p>
-                      <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-black">
-                        Sutradara
-                      </p>
+                      <p className="text-xs md:text-sm font-bold text-foreground group-hover:text-brand group-hover:underline transition-all">{movie.director}</p>
+                      <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-black">Sutradara</p>
                     </div>
                   </Link>
                 ) : (
@@ -581,37 +540,21 @@ export default function MovieDetailPage() {
 
             {/* Actors Group */}
             <div className="space-y-4">
-              <h3 className="text-xs md:text-sm font-black uppercase tracking-wider text-muted-foreground border-b border-border/50 pb-2">
-                Pemeran / Aktor
-              </h3>
+              <h3 className="text-xs md:text-sm font-black uppercase tracking-wider text-muted-foreground border-b border-border/50 pb-2">Pemeran / Aktor</h3>
               <div className="grid grid-cols-1 gap-4 max-h-[350px] overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-brand/35 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-brand transition-colors">
                 {movie.actors && movie.actors.length > 0 ? (
                   movie.actors.map((actor: any, i: number) => (
-                    <Link
-                      key={actor.id || i}
-                      href={`/movies?search=${encodeURIComponent(actor.name)}`}
-                      className="flex items-center gap-3 group cursor-pointer"
-                    >
+                    <Link key={actor.id || i} href={`/movies?search=${encodeURIComponent(actor.name)}`} className="flex items-center gap-3 group cursor-pointer">
                       <div className="w-12 h-12 rounded-full overflow-hidden border border-border bg-muted flex-shrink-0 relative group-hover:scale-105 transition-transform duration-300">
                         {actor.photo_url ? (
-                          <img
-                            src={getMediaUrl(actor.photo_url)}
-                            alt={actor.name}
-                            className="w-full h-full object-cover"
-                          />
+                          <img src={getMediaUrl(actor.photo_url)} alt={actor.name} className="w-full h-full object-cover" />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-brand/10 text-brand font-black text-sm uppercase">
-                            {actor.name.slice(0, 2)}
-                          </div>
+                          <div className="w-full h-full flex items-center justify-center bg-brand/10 text-brand font-black text-sm uppercase">{actor.name.slice(0, 2)}</div>
                         )}
                       </div>
                       <div className="space-y-0.5">
-                        <p className="text-xs md:text-sm font-bold text-foreground group-hover:text-brand group-hover:underline transition-all">
-                          {actor.name}
-                        </p>
-                        <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-black">
-                          Aktor
-                        </p>
+                        <p className="text-xs md:text-sm font-bold text-foreground group-hover:text-brand group-hover:underline transition-all">{actor.name}</p>
+                        <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-black">Aktor</p>
                       </div>
                     </Link>
                   ))
@@ -631,12 +574,8 @@ export default function MovieDetailPage() {
 
             <div className="flex items-end justify-between">
               <div className="space-y-1 md:space-y-3">
-                <h2 className="text-xl md:text-5xl font-bold tracking-tight">
-                  Film Serupa
-                </h2>
-                <p className="text-[10px] md:text-base text-muted-foreground">
-                  Film pilihan yang mungkin Anda sukai berdasarkan minat Anda.
-                </p>
+                <h2 className="text-xl md:text-5xl font-bold tracking-tight">Film Serupa</h2>
+                <p className="text-[10px] md:text-base text-muted-foreground">Film pilihan yang mungkin Anda sukai berdasarkan minat Anda.</p>
               </div>
             </div>
 

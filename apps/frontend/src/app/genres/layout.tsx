@@ -14,9 +14,7 @@ export default function GenresLayout({ children }: { children: React.ReactNode }
     setIsMounted(true);
   }, []);
 
-  // Use isAuthenticated directly to avoid flickering during client-side navigation.
-  // The Navbar component handles its own hydration safety internally.
-  const isMember = isAuthenticated;
+  const isMember = isMounted && isAuthenticated;
 
   return (
     <div className="flex flex-col min-h-screen bg-background">

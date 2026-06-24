@@ -45,7 +45,7 @@ export class HomeSectionService {
 
     if (!titleToSave) {
       if (sectionNum === 2) titleToSave = 'Segera Hadir';
-      else if (sectionNum === 1) titleToSave = 'Lolos Kurasi FFAB 2026';
+      else if (sectionNum === 1) titleToSave = 'FFAB 2026';
       else titleToSave = 'Film Pilihan';
     }
 

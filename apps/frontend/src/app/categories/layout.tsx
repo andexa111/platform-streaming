@@ -14,7 +14,7 @@ export default function CategoriesLayout({ children }: { children: React.ReactNo
     setIsMounted(true);
   }, []);
 
-  const isMember = isAuthenticated;
+  const isMember = isMounted && isAuthenticated;
 
   return (
     <div className="flex flex-col min-h-screen bg-background">

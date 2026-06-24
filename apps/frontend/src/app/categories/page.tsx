@@ -40,7 +40,7 @@ export default function CategoriesPage() {
         const dbFilms = filmsRes.data?.data || [];
 
         // Map categories and associate their films
-        const mappedCategories = dbCategories.map((c: any): CategoryData => {
+        let mappedCategories = dbCategories.map((c: any): CategoryData => {
           const slugKey = (c.slug || "").toLowerCase();
           const style = CATEGORY_STYLES[slugKey] || {
             color: "from-brand/20 to-transparent",
@@ -73,6 +73,22 @@ export default function CategoriesPage() {
             films: filteredFilms,
           };
         });
+
+        if (mappedCategories.length === 0) {
+          mappedCategories = [
+            {
+              id: 999,
+              name: "FFAB 2026",
+              slug: "lolos-kurasi-ffab-2026",
+              color: "from-brand/20 to-transparent",
+              films: [
+                { id: "mock-1", title: "Lakon Cinta Pertama", genre: "Romance" },
+                { id: "mock-2", title: "Jalur Sutra Nusantara", genre: "Documentary" },
+                { id: "mock-3", title: "Tragedi 1998", genre: "Historical" }
+              ] as any
+            }
+          ];
+        }
 
         setCategories(mappedCategories);
       })
@@ -119,7 +135,7 @@ export default function CategoriesPage() {
             {categories.map((category, index) => (
               <Link
                 key={category.id}
-                href={`/movies?category=${encodeURIComponent(category.name)}`}
+                href={`/categories/${category.slug}`}
                 className="group bg-card/40 backdrop-blur-sm rounded-[2.5rem] border border-border p-10 hover:border-brand/50 hover:bg-card/60 transition-all duration-500 relative overflow-hidden flex flex-col justify-between min-h-[280px] shadow-2xl hover:-translate-y-2"
                 style={{ animationDelay: `${index * 100}ms` }}
               >

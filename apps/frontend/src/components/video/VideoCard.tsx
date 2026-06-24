@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Icon } from "@/components/ui/Icon";
@@ -10,15 +11,34 @@ interface VideoCardProps {
   isLast?: boolean;
   basePath?: string;
   isComingSoon?: boolean;
+  filmStatus?: 'now_showing' | 'past';
 }
 
-export function VideoCard({ video, priority = false, isFirst, isLast, basePath = "/movies", isComingSoon = false }: VideoCardProps) {
+export function VideoCard({ video, priority = false, isFirst, isLast, basePath = "/movies", isComingSoon: initialComingSoon = false, filmStatus }: VideoCardProps) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isComingSoon = mounted 
+    ? (initialComingSoon || (!!video.publishedStart && new Date(video.publishedStart) > new Date()))
+    : initialComingSoon;
+
+  const status = filmStatus || video.filmStatus;
+
+  let borderClasses = "border-border group-hover:border-brand/50 shadow-lg group-hover:shadow-brand/20";
+  if (status === 'now_showing') {
+    borderClasses = "border-brand/40 shadow-md group-hover:border-brand shadow-brand/10 group-hover:shadow-brand/25";
+  } else if (status === 'past') {
+    borderClasses = "border-amber-500/40 shadow-md group-hover:border-amber-500 shadow-amber-500/10 group-hover:shadow-amber-500/25";
+  }
+
   return (
     <Link
       href={`${basePath}/${video.id}`}
       className="group block snap-start flex-shrink-0 w-full cursor-pointer hover:z-20 transition-all duration-300"
     >
-      <div className={`relative aspect-[2/3] rounded-xl overflow-hidden bg-secondary border border-border group-hover:border-brand/50 transition-all duration-500 shadow-lg group-hover:shadow-brand/20 group-hover:scale-[1.02] ${
+      <div className={`relative aspect-[2/3] rounded-xl overflow-hidden bg-secondary border transition-all duration-500 group-hover:scale-[1.02] ${borderClasses} ${
         isFirst ? "origin-left" : isLast ? "origin-right" : "origin-center"
       }`}>
         {/* Coming Soon Badge */}
@@ -26,6 +46,20 @@ export function VideoCard({ video, priority = false, isFirst, isLast, basePath =
           <div className="absolute top-3 left-3 bg-neutral-950/80 backdrop-blur-md border border-amber-500/30 text-amber-400 px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-wider flex items-center gap-1 z-10">
             <Icon name="lock" className="w-2.5 h-2.5" />
             <span>Segera Hadir</span>
+          </div>
+        )}
+
+        {/* Status Badge */}
+        {!isComingSoon && status === 'now_showing' && (
+          <div className="absolute top-3 left-3 bg-brand/90 backdrop-blur-md border border-white/20 text-white px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-wider flex items-center gap-1 z-10">
+            <span className="w-1 h-1 rounded-full bg-white animate-pulse block" />
+            <span>NOW SHOWING</span>
+          </div>
+        )}
+        {!isComingSoon && status === 'past' && (
+          <div className="absolute top-3 left-3 bg-amber-500/90 backdrop-blur-md border border-white/20 text-white px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-wider flex items-center gap-1 z-10">
+            <span className="w-1 h-1 rounded-full bg-white block" />
+            <span>PAST</span>
           </div>
         )}
 
@@ -56,8 +90,8 @@ export function VideoCard({ video, priority = false, isFirst, isLast, basePath =
             <div className="absolute inset-0 bg-gradient-to-b from-black via-black/60 to-transparent z-10 pointer-events-none" />
             
             {/* Release Date Badge (from frontend team) */}
-            <div className="absolute top-2 right-2 z-20 bg-brand/90 backdrop-blur-sm text-white text-[9px] md:text-xs font-bold px-2 py-1 rounded-md shadow-lg border border-white/10">
-              {new Date(video.publishedStart).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+            <div suppressHydrationWarning className="absolute top-2 right-2 z-20 bg-brand/90 backdrop-blur-sm text-white text-[9px] md:text-xs font-bold px-2 py-1 rounded-md shadow-lg border border-white/10">
+              {mounted ? new Date(video.publishedStart).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : ""}
             </div>
           </>
         )}
@@ -87,8 +121,8 @@ export function VideoCard({ video, priority = false, isFirst, isLast, basePath =
           {video.title}
         </h3>
         {isComingSoon && video.publishedStart && (
-          <span className="block text-amber-500 text-[8px] md:text-[10px] font-bold">
-            Tayang: {new Date(video.publishedStart).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}
+          <span suppressHydrationWarning className="block text-amber-500 text-[8px] md:text-[10px] font-bold">
+            Tayang: {mounted ? new Date(video.publishedStart).toLocaleDateString("id-ID", { day: "numeric", month: "short" }) : ""}
           </span>
         )}
       </div>

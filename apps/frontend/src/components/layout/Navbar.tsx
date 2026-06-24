@@ -115,14 +115,7 @@ function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
 
   return (
     <>
-      <nav
-        className={cn(
-          "fixed top-0 w-full z-50 transition-all duration-500",
-          isScrolled 
-            ? "bg-background border-b border-border h-20 shadow-sm" 
-            : "bg-transparent h-24"
-        )}
-      >
+      <nav className={cn("fixed top-0 w-full z-50 transition-all duration-500", isScrolled ? "bg-background border-b border-border h-20 shadow-sm" : "bg-transparent h-24")}>
         <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between relative">
           {/* Left Section: Mobile Hamburger & Desktop Logo */}
           <div className="flex items-center flex-1 md:flex-none">
@@ -168,7 +161,9 @@ function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
           <div className="flex items-center gap-4 flex-1 justify-end">
             {variant === "public" ? (
               <div className="flex items-center gap-4">
-                <div className="flex"><ThemeToggle /></div>
+                <div className="flex">
+                  <ThemeToggle />
+                </div>
                 <div className="hidden md:flex items-center gap-4 border-l border-border pl-4">
                   <Link href="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
                     Login
@@ -180,7 +175,9 @@ function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
               </div>
             ) : (
               <div className="flex items-center gap-4">
-                <div className="hidden md:flex"><ThemeToggle /></div>
+                <div className="hidden md:flex">
+                  <ThemeToggle />
+                </div>
 
                 {/* Search Trigger */}
                 <button

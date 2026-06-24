@@ -73,7 +73,12 @@
     display: none;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: var(--font-oswald), sans-serif;
   }
 
@@ -319,13 +324,9 @@ media-player img[src=""] {
 
 /* Custom logo contrast outlines for transparent logos in Light/Dark themes */
 .logo-contrast-light {
-  filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.35))
-          drop-shadow(0 2px 8px rgba(0, 0, 0, 0.12));
+  filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.35)) drop-shadow(0 2px 8px rgba(0, 0, 0, 0.12));
 }
 
 .logo-contrast-dark {
-  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.75))
-          drop-shadow(0 4px 16px rgba(255, 255, 255, 0.25));
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.75)) drop-shadow(0 4px 16px rgba(255, 255, 255, 0.25));
 }
-
-
