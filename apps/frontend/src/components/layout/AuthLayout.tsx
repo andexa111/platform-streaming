@@ -29,7 +29,7 @@ export default function AuthLayout({ mode, children }: AuthLayoutProps) {
             {/* Logo */}
             <div className={`flex items-center gap-3 mb-12 ${!isLogin ? "justify-end" : "justify-start"}`}>
               <Image 
-                src="/SINEA - Logo Horisontal.webp" 
+                src="/SINEA - Logo Horisontal.webp?v=3" 
                 alt="SINEA" 
                 width={200}
                 height={56}

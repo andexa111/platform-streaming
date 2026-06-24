@@ -61,7 +61,7 @@ export function AdminSidebar({ isOpen, isCollapsed, onClose, onToggleCollapse }:
               {!isCollapsed ? (
                 <Link href="/admin" className="flex items-center gap-3 group" onClick={onClose}>
                   <img 
-                    src="/SINEA - Logo Horisontal.webp" 
+                    src="/SINEA - Logo Horisontal.webp?v=3" 
                     alt="SINEA" 
                     className="h-10 w-auto object-contain brightness-[1.6] contrast-[1.2] group-hover:scale-105 transition-transform" 
                   />
@@ -72,7 +72,7 @@ export function AdminSidebar({ isOpen, isCollapsed, onClose, onToggleCollapse }:
               ) : (
                 <Link href="/admin" className="flex items-center justify-center w-full" onClick={onClose}>
                   <img 
-                    src="/SINEA - Logo Vertikal.webp" 
+                    src="/SINEA - Logo Vertikal.webp?v=3" 
                     alt="SINEA" 
                     className="h-12 w-auto object-contain brightness-[1.6] contrast-[1.2] hover:scale-110 transition-transform" 
                   />

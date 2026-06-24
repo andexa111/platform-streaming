@@ -125,7 +125,7 @@ function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
 
             <Link href={variant === "member" ? "/home" : "/"} className="hidden md:flex items-center gap-2 group">
               <img
-                src="/SINEA - Logo Horisontal.webp"
+                src="/SINEA - Logo Horisontal.webp?v=3"
                 alt="SINEA"
                 className="h-12 w-auto object-contain dark:brightness-[1.6] brightness-[1.1] contrast-[1.2] dark:drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] drop-shadow-[0_0_15px_rgba(0,0,0,0.1)] group-hover:brightness-[1.8] group-hover:scale-105 transition-all duration-300"
               />
@@ -137,7 +137,7 @@ function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
             {/* Mobile Logo */}
             <Link href={variant === "member" ? "/home" : "/"} className="md:hidden flex items-center gap-2">
               <img
-                src="/SINEA - Logo Horisontal.webp"
+                src="/SINEA - Logo Horisontal.webp?v=3"
                 alt="SINEA"
                 className="h-10 w-auto object-contain dark:brightness-[1.6] brightness-[1.1] contrast-[1.2] dark:drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] drop-shadow-[0_0_15px_rgba(0,0,0,0.1)]"
               />

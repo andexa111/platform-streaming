@@ -45,7 +45,7 @@ export default function MaintenancePage() {
         {/* Logo SINEA */}
         <div className="flex justify-center">
           <img 
-            src="/SINEA - Logo Horisontal.webp" 
+            src="/SINEA - Logo Horisontal.webp?v=3" 
             alt="SINEA" 
             className="h-10 md:h-14 w-auto object-contain brightness-[1.5] contrast-125 drop-shadow-[0_0_20px_rgba(255,255,255,0.15)]" 
           />

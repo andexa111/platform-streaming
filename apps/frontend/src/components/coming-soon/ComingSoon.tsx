@@ -185,7 +185,7 @@ export default function ComingSoon({ onComplete }: { onComplete?: () => void }) 
 
             {/* Title */}
             <Image
-              src="/SINEA - Logo Horisontal.webp"
+              src="/SINEA - Logo Horisontal.webp?v=3"
               alt="Sinea"
               width={400}
               height={120}

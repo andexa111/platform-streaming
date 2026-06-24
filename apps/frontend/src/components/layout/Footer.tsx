@@ -15,7 +15,7 @@ function Footer() {
         {/* Logo */}
         <div className="flex items-center flex-shrink-0">
           <img
-            src="/SINEA - Logo Horisontal.webp"
+            src="/SINEA - Logo Horisontal.webp?v=3"
             alt="SINEA"
             className="h-5 md:h-8 w-auto object-contain dark:brightness-[1.6] contrast-[1.2] drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]"
           />
