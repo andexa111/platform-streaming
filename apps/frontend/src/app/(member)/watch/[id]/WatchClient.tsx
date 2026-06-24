@@ -13,7 +13,7 @@ import { Player } from "@/components/video/Player";
 
 export default function WatchClient({ movieId }: { movieId: number }) {
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuthStore();
 
   const [mounted, setMounted] = useState(false);
   const [movie, setMovie] = useState<any>(null);
@@ -22,6 +22,7 @@ export default function WatchClient({ movieId }: { movieId: number }) {
   const [relatedMovies, setRelatedMovies] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   // Keyboard shortcut blockers (PrintScreen, Ctrl+P, Ctrl+Shift+S)
   useEffect(() => {
@@ -46,6 +47,18 @@ export default function WatchClient({ movieId }: { movieId: number }) {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  useEffect(() => {
+    if (mounted && !authLoading && !isAuthenticated) {
+      setShowAuthModal(true);
+    }
+  }, [mounted, authLoading, isAuthenticated]);
+
+  useEffect(() => {
+    if (streamError === "Unauthorized") {
+      setShowAuthModal(true);
+    }
+  }, [streamError]);
 
   useEffect(() => {
     if (movieId === undefined || isNaN(movieId)) return;
@@ -163,6 +176,49 @@ export default function WatchClient({ movieId }: { movieId: number }) {
 
   return (
     <div className="bg-background min-h-screen text-foreground selection:bg-brand/30 pb-20 font-sans transition-colors duration-500">
+      {/* Auth Modal Overlay */}
+      {showAuthModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-in fade-in duration-300">
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setShowAuthModal(false)} />
+
+          {/* Modal Card */}
+          <div className="relative w-full max-w-md bg-card border border-border rounded-[2.5rem] p-8 md:p-10 shadow-2xl animate-in zoom-in-95 duration-300 flex flex-col items-center text-center space-y-8">
+            {/* Icon Group */}
+            <div className="relative">
+              <div className="w-20 h-20 rounded-3xl bg-brand/10 flex items-center justify-center border border-brand/20">
+                <Icon name="lock" className="w-10 h-10 text-brand" />
+              </div>
+              <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-4 border-card">
+                <div className="w-1.5 h-1.5 bg-white rounded-full animate-ping" />
+              </div>
+            </div>
+
+            {/* Text Content */}
+            <div className="space-y-3">
+              <h2 className="text-2xl md:text-3xl font-black tracking-tight text-foreground">Join SINEA</h2>
+              <p className="text-muted-foreground text-sm md:text-base leading-relaxed">Silakan masuk ke akun Anda atau daftar sekarang untuk menikmati film berkualitas di platform kami secara gratis selama periode launching.</p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="w-full space-y-4">
+              <Link
+                href="/login"
+                className="flex items-center justify-center w-full py-4 bg-brand hover:bg-brand-dark text-white rounded-2xl font-black transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_10px_30px_rgba(2,77,148,0.3)]"
+              >
+                Login Sekarang
+              </Link>
+              <button onClick={() => setShowAuthModal(false)} className="flex items-center justify-center w-full py-4 bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground rounded-2xl font-bold transition-all">
+                Mungkin Nanti
+              </button>
+            </div>
+
+            {/* Footer Text */}
+            <p className="text-[10px] text-muted-foreground/50 uppercase tracking-widest font-bold">Premium Cinema Experience</p>
+          </div>
+        </div>
+      )}
+
       {/* Breadcrumb / Back Navigation */}
       <div className="max-w-[1600px] mx-auto px-6 pt-6 flex items-center gap-4">
         <button 
@@ -211,10 +267,20 @@ export default function WatchClient({ movieId }: { movieId: number }) {
                   {streamError || "Stream Tidak Tersedia"}
                 </h3>
                 <p className="text-sm text-neutral-400 max-w-md leading-relaxed">
-                  {streamError 
-                    ? "Film ini belum memasuki jadwal tayang resminya. Silakan kembali lagi saat film telah dirilis." 
-                    : "Video asli belum ditautkan ke film ini di Cloudflare R2, atau sesi otentikasi Anda telah berakhir."}
+                  {streamError === "Unauthorized"
+                    ? "Silakan masuk ke akun Sinea Anda terlebih dahulu untuk dapat menonton film ini."
+                    : streamError 
+                      ? "Film ini belum memasuki jadwal tayang resminya. Silakan kembali lagi saat film telah dirilis." 
+                      : "Video asli belum ditautkan ke film ini di Cloudflare R2, atau sesi otentikasi Anda telah berakhir."}
                 </p>
+                {streamError === "Unauthorized" && (
+                  <button 
+                    onClick={() => setShowAuthModal(true)}
+                    className="mt-2 px-5 py-2.5 bg-brand hover:bg-brand-dark text-white text-xs font-bold rounded-xl transition-all shadow-lg"
+                  >
+                    Login Sekarang
+                  </button>
+                )}
               </div>
             )}
           </div>
