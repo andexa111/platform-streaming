@@ -370,7 +370,7 @@ export class FilmController {
     fs.writeFileSync(keyInfoPath, keyInfoContent);
 
     // Segmentasi cepat HLS menggunakan FFmpeg dengan enkripsi
-    const cmd = `ffmpeg -y -i "${absoluteRawPath}" -c copy -hls_time 10 -hls_key_info_file "${path.resolve(keyInfoPath)}" -hls_playlist_type vod -hls_segment_filename "${absoluteHlsDir}/segment_%03d.ts" "${absoluteHlsDir}/index.m3u8"`;
+    const cmd = `ffmpeg -y -i "${absoluteRawPath}" -c:v libx264 -preset superfast -crf 26 -g 48 -keyint_min 48 -sc_threshold 0 -c:a aac -b:a 128k -hls_time 4 -hls_key_info_file "${path.resolve(keyInfoPath)}" -hls_playlist_type vod -hls_segment_filename "${absoluteHlsDir}/segment_%03d.ts" "${absoluteHlsDir}/index.m3u8"`;
 
     const { exec } = require('child_process');
     exec(cmd, async (err: any) => {
@@ -636,7 +636,7 @@ export class FilmController {
       const keyInfoContent = `${keyUri}\n${path.resolve(keyPath)}\n${iv}`;
       fs.writeFileSync(keyInfoPath, keyInfoContent);
 
-      const cmd = `ffmpeg -y -i "${absoluteRawPath}" -c copy -hls_time 10 -hls_key_info_file "${path.resolve(keyInfoPath)}" -hls_playlist_type vod -hls_segment_filename "${absoluteHlsDir}/segment_%03d.ts" "${absoluteHlsDir}/index.m3u8"`;
+      const cmd = `ffmpeg -y -i "${absoluteRawPath}" -c:v libx264 -preset superfast -crf 26 -g 48 -keyint_min 48 -sc_threshold 0 -c:a aac -b:a 128k -hls_time 4 -hls_key_info_file "${path.resolve(keyInfoPath)}" -hls_playlist_type vod -hls_segment_filename "${absoluteHlsDir}/segment_%03d.ts" "${absoluteHlsDir}/index.m3u8"`;
 
       const { exec } = require('child_process');
       exec(cmd, async (err: any) => {
