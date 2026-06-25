@@ -101,6 +101,7 @@ export const Player = forwardRef<MediaPlayerInstance, PlayerProps>(
 
             provider.config = {
               ...provider.config,
+              debug: true,
               xhrSetup: (xhr: XMLHttpRequest, url: string) => {
                 if (crossOrigin !== "anonymous") {
                   xhr.withCredentials = true;
