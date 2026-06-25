@@ -864,11 +864,34 @@ export default function EditMoviePage() {
                   />
                 </label>
                 {formData.video_id && !selectedVideoFile && (
-                  <div className="p-4 bg-secondary border border-border rounded-2xl">
-                    <p className="text-[10px] font-black uppercase text-muted-foreground mb-2">Video Utama Saat Ini (R2)</p>
-                    <div className="flex items-center gap-2 text-xs text-foreground font-mono break-all bg-card p-2 rounded border border-border">
-                      <span className="truncate flex-1">{formData.video_id}</span>
+                  <div className="p-4 bg-secondary border border-border rounded-2xl space-y-3">
+                    <div>
+                      <p className="text-[10px] font-black uppercase text-muted-foreground mb-2">Video Utama Saat Ini (R2)</p>
+                      <div className="flex items-center gap-2 text-xs text-foreground font-mono break-all bg-card p-2 rounded border border-border">
+                        <span className="truncate flex-1">{formData.video_id}</span>
+                      </div>
                     </div>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          setSaving(true);
+                          setError("");
+                          setSuccess("");
+                          const res = await api.post(`/films/${filmId}/process-uploaded-video`);
+                          setSuccess(res.data.message || "Pemrosesan HLS dimulai di background.");
+                        } catch (err: any) {
+                          console.error("Gagal memproses ulang:", err);
+                          setError(err.response?.data?.message || "Gagal memicu proses ulang HLS.");
+                        } finally {
+                          setSaving(false);
+                        }
+                      }}
+                      disabled={saving || uploadingVideo}
+                      className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-600/50 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all disabled:opacity-50"
+                    >
+                      {saving ? "Memproses..." : "Proses Ulang HLS (Pakai File di R2)"}
+                    </button>
                   </div>
                 )}
               </div>
