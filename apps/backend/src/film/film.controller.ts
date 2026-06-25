@@ -35,6 +35,8 @@ const streamSessions = new Map<string, { url: string; expiresAt: number }>();
 
 @Controller('films')
 export class FilmController {
+  private processingFilms = new Set<number>();
+
   constructor(
     private filmService: FilmService,
     private r2Service: R2Service,
@@ -289,6 +291,11 @@ export class FilmController {
   @Roles('admin', 'superadmin')
   @Post(':id/process-uploaded-video')
   async processUploadedVideo(@Param('id', ParseIntPipe) id: number) {
+    if (this.processingFilms.has(id)) {
+      throw new BadRequestException('Film ini sedang diproses di background. Silakan tunggu.');
+    }
+    this.processingFilms.add(id);
+
     // Mulai proses pemecahan HLS di background dengan mendownload dari R2 dahulu
     this.processHlsVideoFromR2(id);
 
@@ -299,10 +306,7 @@ export class FilmController {
   }
 
   /**
-   * POST /films/:id/upload-video
-   * Upload video film utama (.mp4), memicu segmentasi HLS asinkron dan upload ke R2
-   */
-  @UseGuards(JwtAuthGuard, RolesGuard)
+   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'superadmin')
   @Post(':id/upload-video')
   @UseInterceptors(
@@ -331,6 +335,10 @@ export class FilmController {
     if (!file) {
       throw new BadRequestException('File video tidak ditemukan');
     }
+    if (this.processingFilms.has(id)) {
+      throw new BadRequestException('Film ini sedang diproses di background. Silakan tunggu.');
+    }
+    this.processingFilms.add(id);
 
     // Mulai proses pemecahan HLS & upload ke R2 di background
     this.processHlsVideo(id, file.path);
@@ -442,6 +450,7 @@ export class FilmController {
       } catch (uploadErr) {
         console.error(`❌ [HLS Process] Upload/Update DB gagal untuk Film ID ${filmId}:`, uploadErr);
       } finally {
+        this.processingFilms.delete(filmId);
         // Hapus file sementara
         if (fs.existsSync(absoluteRawPath)) {
           try { fs.unlinkSync(absoluteRawPath); } catch (e) {}
@@ -691,6 +700,7 @@ export class FilmController {
         } catch (uploadErr) {
           console.error(`❌ [HLS Process] Upload/Update DB gagal untuk Film ID ${filmId}:`, uploadErr);
         } finally {
+          this.processingFilms.delete(filmId);
           if (fs.existsSync(absoluteRawPath)) {
             try { fs.unlinkSync(absoluteRawPath); } catch (e) {}
           }
@@ -700,6 +710,7 @@ export class FilmController {
         }
       });
     } catch (downloadErr) {
+      this.processingFilms.delete(filmId);
       console.error(`❌ [HLS Process] Gagal mengunduh berkas mentah dari R2 untuk Film ID ${filmId}:`, downloadErr);
       // Jika download gagal, pastikan hapus folder temp
       if (fs.existsSync(absoluteHlsDir)) {
