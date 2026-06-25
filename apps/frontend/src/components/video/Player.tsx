@@ -141,6 +141,7 @@ export const Player = forwardRef<MediaPlayerInstance, PlayerProps>(
               src={poster} 
               alt={title || "Poster"} 
               className="object-cover w-full h-full" 
+              crossOrigin="anonymous"
               onError={() => setHasPosterError(true)}
             />
           )}
