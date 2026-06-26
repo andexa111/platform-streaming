@@ -13,8 +13,8 @@ const oswald = Oswald({
 });
 
 export const metadata: Metadata = {
-  title: "SINEA - Your Visual Storytellers",
-  description: "SINEA - Your Visual Storytellers",
+  title: "SINEA - Your visual storytellers",
+  description: "SINEA - Your visual storytellers",
   verification: {
     google: "9PNUu_XT_IS4piYE6OPjOBfzLtswvNUsvls71pKwnYg",
   },

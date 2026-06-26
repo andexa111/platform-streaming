@@ -62,8 +62,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   } catch (error) {
     return {
-      title: "SINEA - Your Visual Storytellers",
-      description: "SINEA - Your Visual Storytellers",
+      title: "SINEA - Your visual storytellers",
+      description: "SINEA - Your visual storytellers",
     };
   }
 }

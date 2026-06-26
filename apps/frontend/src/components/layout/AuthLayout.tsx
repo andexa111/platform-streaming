@@ -46,7 +46,7 @@ export default function AuthLayout({ mode, children }: AuthLayoutProps) {
               <p className="text-muted-foreground text-lg leading-relaxed mt-4">
                 A new streaming space for 
                 <br />
-                Visual Storytellers
+                your visual storytellers
               </p>
             </div>
 
