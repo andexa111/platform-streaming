@@ -8,6 +8,7 @@ export interface User {
   avatar_url?: string | null;
   role: 'guest' | 'user' | 'subscriber' | 'admin' | 'superadmin';
   email_verified_at: string | null;
+  ip?: string;
 }
 
 interface AuthState {

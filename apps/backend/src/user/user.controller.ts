@@ -10,8 +10,14 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get('profile')
-  getProfile(@Req() req: any) {
-    return this.userService.getProfile(req.user.id);
+  async getProfile(@Req() req: any) {
+    const profile = await this.userService.getProfile(req.user.id);
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
+    const cleanIp = typeof ip === 'string' ? ip.split(',')[0].trim() : (Array.isArray(ip) ? ip[0] : '127.0.0.1');
+    return {
+      ...profile,
+      ip: cleanIp,
+    };
   }
 
   @Patch('profile')

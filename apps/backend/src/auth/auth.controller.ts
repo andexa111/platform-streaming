@@ -49,8 +49,14 @@ export class AuthController {
    */
   @UseGuards(JwtAuthGuard)
   @Get('profile')
-  getProfile(@Request() req: any) {
-    return this.authService.getProfile(req.user.sub);
+  async getProfile(@Request() req: any) {
+    const profile = await this.authService.getProfile(req.user.sub);
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
+    const cleanIp = typeof ip === 'string' ? ip.split(',')[0].trim() : (Array.isArray(ip) ? ip[0] : '127.0.0.1');
+    return {
+      ...profile,
+      ip: cleanIp,
+    };
   }
 
   // ==================== GOOGLE OAUTH ====================

@@ -8,6 +8,7 @@ import { defaultLayoutIcons, DefaultVideoLayout } from '@vidstack/react/player/l
 import { cn } from "@/lib/utils";
 import Cookies from "js-cookie";
 import { RotateCcw, RotateCw } from "lucide-react";
+import { useAuthStore } from "@/lib/auth-store";
 
 export type PlayerVariant = "banner" | "trailer" | "movie";
 
@@ -58,36 +59,145 @@ function CenterControls() {
     </div>
   );
 }
-
 // ─── Main Player Component ────────────────────────────────────────────────────
 export const Player = forwardRef<MediaPlayerInstance, PlayerProps>(
   ({ variant, src, poster, title, className, crossOrigin = "use-credentials", onTimeUpdate, onEnded, loop }, ref) => {
 
   const isBanner = variant === "banner";
+  const isMovie = variant === "movie";
   const shouldLoop = loop !== undefined ? loop : isBanner;
   const [hasPosterError, setHasPosterError] = useState(false);
+
+  // local ref to programmatically trigger play after intro
+  const localRef = React.useRef<MediaPlayerInstance>(null);
+
+  // Sync external ref with local ref
+  React.useEffect(() => {
+    if (!ref) return;
+    if (typeof ref === "function") {
+      ref(localRef.current);
+    } else {
+      (ref as React.MutableRefObject<MediaPlayerInstance | null>).current = localRef.current;
+    }
+  }, [ref]);
 
   useEffect(() => {
     setHasPosterError(false);
   }, [poster]);
 
+  // Intro states & effects
+  const [introUrl, setIntroUrl] = useState<string>("");
+  const [isPlayingIntro, setIsPlayingIntro] = useState(isMovie);
+  const [introEnded, setIntroEnded] = useState(false);
+
+  useEffect(() => {
+    if (isMovie && typeof window !== "undefined") {
+      const storedIntro = localStorage.getItem("intro_video_url");
+      setIntroUrl(storedIntro || "https://assets.mixkit.co/videos/preview/mixkit-abstract-laser-lights-background-glow-41753-large.mp4");
+      setIsPlayingIntro(true);
+      setIntroEnded(false);
+    } else {
+      setIsPlayingIntro(false);
+      setIntroEnded(false);
+    }
+  }, [src, isMovie]);
+
+  const activeSrc = isMovie && isPlayingIntro && introUrl ? introUrl : src;
+  const shouldAutoplay = isBanner || (isMovie && isPlayingIntro);
+
+  const handleIntroEnd = () => {
+    setIsPlayingIntro(false);
+    setIntroEnded(true);
+    // Auto play the main video
+    setTimeout(() => {
+      if (localRef.current) {
+        localRef.current.play().catch(() => {});
+      }
+    }, 150);
+  };
+
+  // Watermark details
+  const { user } = useAuthStore();
+  const [clientIp, setClientIp] = useState<string>("127.0.0.1");
+
+  useEffect(() => {
+    if (user?.ip) {
+      setClientIp(user.ip);
+    } else {
+      fetch("https://api.ipify.org?format=json")
+        .then((r) => r.json())
+        .then((data) => {
+          if (data && data.ip) {
+            setClientIp(data.ip);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [user]);
+
+  const watermarkText = user 
+    ? `${user.name} (${user.email}) - ${clientIp} - SINEA`
+    : `Guest - ${clientIp} - SINEA`;
+
+  // Watermark positions (percentage based for smooth transitions)
+  const positions = [
+    { top: "8%", left: "8%" },
+    { top: "8%", left: "70%" },
+    { top: "80%", left: "8%" },
+    { top: "80%", left: "70%" },
+    { top: "45%", left: "38%" }
+  ];
+
+  const [posIdx, setPosIdx] = useState(0);
+
+  useEffect(() => {
+    if (!isMovie) return;
+    const interval = setInterval(() => {
+      setPosIdx((prev) => {
+        let next = Math.floor(Math.random() * positions.length);
+        while (next === prev) {
+          next = Math.floor(Math.random() * positions.length);
+        }
+        return next;
+      });
+    }, 12000); // 12 seconds
+    return () => clearInterval(interval);
+  }, [isMovie]);
+
+  const showControls = !isBanner && (!isMovie || !isPlayingIntro);
+
   return (
     <div className={cn(
-      "w-full h-full overflow-hidden bg-background dark:bg-black", 
+      "w-full h-full overflow-hidden bg-background dark:bg-black relative", 
       isBanner ? "banner-player" : "shadow-2xl",
       className
     )}>
       <MediaPlayer 
-        ref={ref}
-        src={src} 
-        title={title}
-        autoplay={isBanner}
+        ref={localRef}
+        src={activeSrc} 
+        title={isPlayingIntro ? "Intro Sinea" : title}
+        autoplay={shouldAutoplay}
         muted={isBanner}
-        loop={shouldLoop}
+        loop={isPlayingIntro ? false : shouldLoop}
         playsInline={true}
         className={cn("w-full h-full bg-black", isBanner ? "object-cover" : "hide-settings")}
-        onTimeUpdate={onTimeUpdate}
-        onEnded={onEnded}
+        onTimeUpdate={(e) => {
+          if (isMovie && isPlayingIntro) {
+            const currentTime = e.currentTime;
+            if (currentTime >= 5) {
+              handleIntroEnd();
+            }
+          } else if (onTimeUpdate) {
+            onTimeUpdate(e);
+          }
+        }}
+        onEnded={() => {
+          if (isMovie && isPlayingIntro) {
+            handleIntroEnd();
+          } else if (onEnded) {
+            onEnded();
+          }
+        }}
         crossOrigin={crossOrigin}
         onProviderChange={(provider) => {
           if (isHLSProvider(provider)) {
@@ -137,7 +247,7 @@ export const Player = forwardRef<MediaPlayerInstance, PlayerProps>(
         }}
       >
         <MediaProvider>
-          {poster && !hasPosterError && (
+          {poster && !hasPosterError && !isPlayingIntro && (
             <Poster 
               src={poster} 
               alt={title || "Poster"} 
@@ -149,9 +259,9 @@ export const Player = forwardRef<MediaPlayerInstance, PlayerProps>(
         </MediaProvider>
         
         {/* Center overlay controls: play/pause + 15s skip buttons */}
-        {!isBanner && <CenterControls />}
+        {showControls && <CenterControls />}
 
-        {!isBanner && (
+        {showControls && (
           <DefaultVideoLayout 
             icons={defaultLayoutIcons} 
             smallLayoutWhen={false as any}
@@ -175,6 +285,27 @@ export const Player = forwardRef<MediaPlayerInstance, PlayerProps>(
           />
         )}
       </MediaPlayer>
+
+      {/* Dynamic Watermark for Movie Screen Recording Protection */}
+      {isMovie && (
+        <div 
+          className="absolute pointer-events-none z-[100] text-white/10 dark:text-white/10 font-mono text-[9px] sm:text-xs md:text-sm select-none transition-all duration-1000 ease-in-out font-semibold tracking-widest whitespace-nowrap"
+          style={{
+            top: positions[posIdx].top,
+            left: positions[posIdx].left,
+            textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
+          }}
+        >
+          {watermarkText}
+        </div>
+      )}
+
+      {/* Dynamic Intro Tag Overlay */}
+      {isMovie && isPlayingIntro && (
+        <div className="absolute top-4 left-4 z-50 bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-white border border-white/10 pointer-events-none select-none">
+          Intro Sinea
+        </div>
+      )}
     </div>
   );
 });
