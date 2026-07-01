@@ -306,7 +306,10 @@ export class FilmController {
   }
 
   /**
-   @UseGuards(JwtAuthGuard, RolesGuard)
+   * POST /films/:id/upload-video
+   * Upload video utama film langsung ke backend (fallback)
+   */
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'superadmin')
   @Post(':id/upload-video')
   @UseInterceptors(
