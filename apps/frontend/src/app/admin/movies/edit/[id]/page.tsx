@@ -271,20 +271,40 @@ export default function EditMoviePage() {
         const { upload_url } = presignedRes.data;
 
         // 2. Upload file langsung ke Cloudflare R2 via presigned URL (menggunakan axios mentah agar tidak memicu auth interceptor default)
-        await axios.put(upload_url, selectedVideoFile, {
-          headers: {
-            "Content-Type": selectedVideoFile.type,
-          },
-          onUploadProgress: (progressEvent) => {
-            if (progressEvent.total) {
-              const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-              setVideoUploadProgress(percentCompleted);
+        try {
+          await axios.put(upload_url, selectedVideoFile, {
+            headers: {
+              "Content-Type": selectedVideoFile.type,
+            },
+            onUploadProgress: (progressEvent) => {
+              if (progressEvent.total) {
+                const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                setVideoUploadProgress(percentCompleted);
+              }
             }
-          }
-        });
+          });
 
-        // 3. Memicu backend untuk mendownload dan memproses HLS di background
-        await api.post(`/films/${filmId}/process-uploaded-video`);
+          // 3. Memicu backend untuk mendownload dan memproses HLS di background
+          await api.post(`/films/${filmId}/process-uploaded-video`);
+        } catch (uploadErr) {
+          console.warn("R2 presigned upload failed, attempting direct upload fallback to backend:", uploadErr);
+          
+          // Fallback: upload langsung ke backend
+          const formDataObj = new FormData();
+          formDataObj.append("file", selectedVideoFile);
+          
+          await api.post(`/films/${filmId}/upload-video`, formDataObj, {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+            onUploadProgress: (progressEvent) => {
+              if (progressEvent.total) {
+                const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                setVideoUploadProgress(percentCompleted);
+              }
+            }
+          });
+        }
       }
 
       setSuccess("Film berhasil diperbarui!");
