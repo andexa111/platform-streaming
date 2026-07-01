@@ -411,6 +411,7 @@ export class FilmController {
         } catch (fallbackErr) {
           console.error(`❌ [HLS Process] Fallback MP4 gagal untuk Film ID ${filmId}:`, fallbackErr);
         } finally {
+          this.processingFilms.delete(filmId);
           if (fs.existsSync(absoluteRawPath)) {
             try { fs.unlinkSync(absoluteRawPath); } catch (e) {}
           }
