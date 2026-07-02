@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import Cookies from "js-cookie";
 import { RotateCcw, RotateCw } from "lucide-react";
 import { useAuthStore } from "@/lib/auth-store";
+import { getMediaUrl } from "@/lib/api";
 
 export type PlayerVariant = "banner" | "trailer" | "movie";
 
@@ -111,7 +112,7 @@ export const Player = forwardRef<MediaPlayerInstance, PlayerProps>(
     }
   }, [src, isMovie]);
 
-  const activeSrc = isMovie && isPlayingIntro && introUrl ? introUrl : src;
+  const activeSrc = isMovie && isPlayingIntro && introUrl ? getMediaUrl(introUrl) : src;
   const shouldAutoplay = isBanner || (isMovie && isPlayingIntro);
 
   const handleIntroEnd = () => {

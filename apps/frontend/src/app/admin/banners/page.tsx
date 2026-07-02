@@ -406,7 +406,7 @@ export default function BannersPage() {
             <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-black border border-white/5 shadow-2xl flex items-center justify-center group">
               {previewPlaying ? (
                 <>
-                  <video key={previewKey} src={uploadedFileUrl || introVideoUrl} autoPlay controls className="w-full h-full object-cover" />
+                  <video key={previewKey} src={uploadedFileUrl || getMediaUrl(introVideoUrl)} autoPlay controls className="w-full h-full object-cover" />
                 </>
               ) : (
                 <div className="flex flex-col items-center justify-center p-6 text-center space-y-4">

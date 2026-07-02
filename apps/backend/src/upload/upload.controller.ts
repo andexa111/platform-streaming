@@ -223,10 +223,27 @@ export class UploadController {
 
   /**
    * POST /upload/intro
-   * Upload video intro ke Cloudflare R2
+   * Upload video intro ke penyimpanan lokal VPS
    */
   @Post('intro')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: (req, file, cb) => {
+          const dir = './public/uploads/intros';
+          if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+          }
+          cb(null, dir);
+        },
+        filename: (req, file, cb) => {
+          const uniqueSuffix = uuidv4();
+          const ext = extname(file.originalname);
+          cb(null, `intro-${uniqueSuffix}${ext}`);
+        },
+      }),
+    }),
+  )
   async uploadIntro(
     @UploadedFile(
       new ParseFilePipe({
@@ -243,17 +260,14 @@ export class UploadController {
     file: Express.Multer.File,
   ) {
     const ext = extname(file.originalname);
-    const uniqueSuffix = uuidv4();
-    const fileName = `intro-${uniqueSuffix}${ext}`;
+    const filenameWithoutExt = path.basename(file.filename, ext);
+    const targetFilename = `${filenameWithoutExt}.mp4`;
+    const url = `uploads/intros/${targetFilename}`;
     
-    const publicUrl = await this.r2Service.uploadToStorage(
-      'intros',
-      fileName,
-      file.buffer,
-      file.mimetype,
-    );
+    // Pemicu kompresi background
+    compressVideoInBackground(file.path, targetFilename);
 
-    return { url: publicUrl, fileName };
+    return { url, fileName: targetFilename };
   }
 }
 
