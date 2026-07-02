@@ -96,7 +96,7 @@ export const Player = forwardRef<MediaPlayerInstance, PlayerProps>(
       const hasIntroParam = params.get("intro") === "true";
       const isDemoPage = window.location.pathname.includes("/watch/demo");
 
-      if (hasIntroParam || isDemoPage) {
+      if (hasIntroParam) {
         const storedIntro = localStorage.getItem("intro_video_url");
         setIntroUrl(storedIntro || "https://assets.mixkit.co/videos/preview/mixkit-abstract-laser-lights-background-glow-41753-large.mp4");
         setIsPlayingIntro(true);
