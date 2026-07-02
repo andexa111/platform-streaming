@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
 import Image from "next/image";
 import { Player } from "@/components/video/Player";
+import { api, getMediaUrl } from "@/lib/api";
 
 // ─── DUMMY DATA ───────────────────────────────────────────────────────────────
 // HLS stream publik dari Mux untuk testing (Big Buck Bunny)
@@ -60,11 +61,44 @@ export default function WatchDemoPage() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
 
+  const [movie, setMovie] = useState<any>(DUMMY_MOVIE);
+  const [streamUrl, setStreamUrl] = useState<string>(DUMMY_STREAM_URL);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     setMounted(true);
+
+    const params = new URLSearchParams(window.location.search);
+    const filmIdStr = params.get("id");
+    if (filmIdStr) {
+      const filmId = parseInt(filmIdStr);
+      if (!isNaN(filmId)) {
+        setLoading(true);
+        setError(null);
+        Promise.all([
+          api.get(`/films/${filmId}`, { withCredentials: true }),
+          api.get(`/films/${filmId}/stream`, { withCredentials: true })
+        ])
+          .then(([movieRes, streamRes]) => {
+            setMovie(movieRes.data);
+            setStreamUrl(streamRes.data?.stream_url || "");
+            if (streamRes.data?.error) {
+              setError(streamRes.data.error);
+            }
+          })
+          .catch((err) => {
+            console.error("Gagal memuat film riil untuk demo:", err);
+            setError(err.response?.data?.message || "Gagal memuat film.");
+          })
+          .finally(() => {
+            setLoading(false);
+          });
+      }
+    }
   }, []);
 
-  if (!mounted) {
+  if (!mounted || loading) {
     return (
       <div className="bg-background min-h-screen flex items-center justify-center">
         <div className="w-12 h-12 border-4 border-brand border-t-transparent rounded-full animate-spin" />
@@ -72,7 +106,9 @@ export default function WatchDemoPage() {
     );
   }
 
-  const movie = DUMMY_MOVIE;
+  const resolvedPoster = movie.id === undefined || movie.id === 0 
+    ? movie.poster_url 
+    : (movie.poster_url ? getMediaUrl(movie.poster_url) : "");
 
   return (
     <div className="bg-background min-h-screen text-foreground selection:bg-brand/30 pb-20 font-sans transition-colors duration-500">
@@ -80,7 +116,7 @@ export default function WatchDemoPage() {
       <div className="w-full bg-yellow-500/10 border-b border-yellow-500/20 py-2 px-6 flex items-center justify-center gap-2">
         <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse" />
         <span className="text-[11px] font-black uppercase tracking-widest text-yellow-400">
-          Halaman Demo — Data dummy untuk preview tampilan video player
+          Halaman Demo — Data {movie.id === undefined || movie.id === 0 ? "dummy" : "riil"} untuk preview tampilan video player
         </span>
       </div>
 
@@ -115,14 +151,28 @@ export default function WatchDemoPage() {
             className="group relative aspect-video bg-black overflow-hidden shadow-2xl shadow-brand/10"
             onContextMenu={(e) => e.preventDefault()}
           >
-            <Player
-              variant="movie"
-              title={movie.title}
-              src={DUMMY_STREAM_URL}
-              poster={DUMMY_POSTER}
-              className="w-full h-full"
-              crossOrigin="anonymous"
-            />
+            {error ? (
+              <div className="w-full h-full flex flex-col items-center justify-center text-center p-6 space-y-4">
+                <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center justify-center text-red-500 animate-pulse">
+                  <Icon name="lock" className="w-8 h-8" />
+                </div>
+                <h3 className="text-xl font-bold text-white">
+                  {error}
+                </h3>
+                <p className="text-sm text-neutral-400 max-w-md leading-relaxed">
+                  Silakan login atau pastikan film sudah memiliki file video asli yang terunggah.
+                </p>
+              </div>
+            ) : (
+              <Player
+                variant="movie"
+                title={movie.title}
+                src={streamUrl}
+                poster={resolvedPoster}
+                className="w-full h-full"
+                crossOrigin="anonymous"
+              />
+            )}
           </div>
 
           {/* Movie Info */}
@@ -139,7 +189,7 @@ export default function WatchDemoPage() {
                   Genre
                 </span>
                 <span className="text-sm font-bold text-foreground/80">
-                  {movie.genres[0].name}
+                  {movie.genres && movie.genres.length > 0 ? movie.genres[0].name : "Other"}
                 </span>
               </div>
               <div className="w-1.5 h-1.5 rounded-full bg-border" />
@@ -148,7 +198,7 @@ export default function WatchDemoPage() {
                   Rilis
                 </span>
                 <span className="text-sm font-bold text-foreground/80">
-                  {movie.release_year}
+                  {movie.release_year || "-"}
                 </span>
               </div>
               <div className="w-1.5 h-1.5 rounded-full bg-border" />
@@ -157,13 +207,13 @@ export default function WatchDemoPage() {
                   Durasi
                 </span>
                 <span className="text-sm font-bold text-foreground/80">
-                  {movie.duration} Menit
+                  {movie.duration ? `${movie.duration} Menit` : "-"}
                 </span>
               </div>
             </div>
 
             <p className="text-lg md:text-xl text-neutral-400 leading-relaxed font-light max-w-4xl">
-              {movie.description}
+              {movie.description || "Discover the epic journey of this masterpiece. Immerse yourself in the world of storytelling with high-quality visual experience only on Sinea."}
             </p>
           </div>
         </div>
