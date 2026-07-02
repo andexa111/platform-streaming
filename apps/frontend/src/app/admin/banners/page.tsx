@@ -34,16 +34,19 @@ export default function BannersPage() {
   const [introVideoUrl, setIntroVideoUrl] = useState("https://assets.mixkit.co/videos/preview/mixkit-abstract-laser-lights-background-glow-41753-large.mp4");
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [uploadedFileUrl, setUploadedFileUrl] = useState<string>("");
+  const [introEnabled, setIntroEnabled] = useState(false);
 
   // Live preview interactive state
   const [previewKey, setPreviewKey] = useState(0);
   const [previewPlaying, setPreviewPlaying] = useState(false);
 
-  // Sync intro URL from localStorage on mount
+  // Sync intro URL and activation status from localStorage on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedIntroVideoUrl = localStorage.getItem("intro_video_url");
       if (storedIntroVideoUrl) setIntroVideoUrl(storedIntroVideoUrl);
+      const storedIntroEnabled = localStorage.getItem("intro_enabled_global");
+      if (storedIntroEnabled) setIntroEnabled(storedIntroEnabled === "true");
     }
   }, []);
 
@@ -66,7 +69,7 @@ export default function BannersPage() {
       if (uploadedFile) {
         // Tampilkan loading modal/status saat mengunggah berkas besar
         setStatusType("success");
-        setStatusMessage("Sedang mengunggah video intro ke Cloudflare R2...");
+        setStatusMessage("Sedang mengunggah video intro ke server...");
         setIsStatusOpen(true);
 
         const formData = new FormData();
@@ -89,14 +92,15 @@ export default function BannersPage() {
       }
 
       localStorage.setItem("intro_video_url", finalIntroUrl);
+      localStorage.setItem("intro_enabled_global", introEnabled ? "true" : "false");
 
       setStatusType("success");
-      setStatusMessage("Konfigurasi Video Intro berhasil disimpan dan diunggah ke Cloudflare R2!");
+      setStatusMessage("Konfigurasi Video Intro berhasil disimpan!");
       setIsStatusOpen(true);
     } catch (err: any) {
       console.error("Gagal mengunggah/menyimpan video intro:", err);
       setStatusType("error");
-      setStatusMessage("Gagal mengunggah video intro ke server R2. Pastikan format berkas benar dan coba lagi.");
+      setStatusMessage("Gagal mengunggah/menyimpan video intro ke server. Pastikan format berkas benar dan coba lagi.");
       setIsStatusOpen(true);
     }
   };
@@ -375,6 +379,23 @@ export default function BannersPage() {
                 placeholder="https://example.com/intro.mp4"
                 className="w-full px-5 py-4 bg-secondary/10 border-2 border-border rounded-xl text-foreground font-semibold placeholder:text-muted-foreground/60 focus:outline-none focus:border-brand transition-all text-sm"
               />
+            </div>
+
+            {/* Toggle Global Activation */}
+            <div className="flex items-center justify-between p-4 bg-secondary/5 rounded-xl border border-border">
+              <div className="space-y-0.5">
+                <span className="text-xs font-bold text-foreground block">Aktifkan Intro untuk Semua Film</span>
+                <span className="text-[10px] text-muted-foreground block">Putar intro sebelum film utama dimulai secara global</span>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  checked={introEnabled} 
+                  onChange={(e) => setIntroEnabled(e.target.checked)} 
+                  className="sr-only peer" 
+                />
+                <div className="w-11 h-6 bg-neutral-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand"></div>
+              </label>
             </div>
 
             {/* Action Buttons */}

@@ -95,13 +95,18 @@ export const Player = forwardRef<MediaPlayerInstance, PlayerProps>(
     if (isMovie && typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const hasIntroParam = params.get("intro") === "true";
-      const isDemoPage = window.location.pathname.includes("/watch/demo");
+      const isIntroEnabledGlobal = localStorage.getItem("intro_enabled_global") === "true";
 
-      if (hasIntroParam) {
+      if (hasIntroParam || isIntroEnabledGlobal) {
         const storedIntro = localStorage.getItem("intro_video_url");
-        setIntroUrl(storedIntro || "https://assets.mixkit.co/videos/preview/mixkit-abstract-laser-lights-background-glow-41753-large.mp4");
-        setIsPlayingIntro(true);
-        setIntroEnded(false);
+        if (storedIntro) {
+          setIntroUrl(storedIntro);
+          setIsPlayingIntro(true);
+          setIntroEnded(false);
+        } else {
+          setIsPlayingIntro(false);
+          setIntroEnded(false);
+        }
       } else {
         setIsPlayingIntro(false);
         setIntroEnded(false);
@@ -185,7 +190,7 @@ export const Player = forwardRef<MediaPlayerInstance, PlayerProps>(
     return () => clearInterval(interval);
   }, [isMovie]);
 
-  const showControls = !isBanner && (!isMovie || !isPlayingIntro);
+  const showControls = !isBanner;
 
   return (
     <div className={cn(
@@ -323,9 +328,17 @@ export const Player = forwardRef<MediaPlayerInstance, PlayerProps>(
 
       {/* Dynamic Intro Tag Overlay */}
       {isMovie && isPlayingIntro && (
-        <div className="absolute top-4 left-4 z-50 bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-white border border-white/10 pointer-events-none select-none">
-          Intro Sinea
-        </div>
+        <>
+          <div className="absolute top-4 left-4 z-50 bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-white border border-white/10 pointer-events-none select-none">
+            Intro Sinea
+          </div>
+          <button
+            onClick={handleIntroEnd}
+            className="absolute bottom-20 right-4 z-50 bg-black/80 hover:bg-brand text-white font-black uppercase tracking-widest text-[9px] sm:text-xs px-4 py-2.5 rounded-xl border border-white/10 transition-all cursor-pointer shadow-xl active:scale-95"
+          >
+            Lewati Intro
+          </button>
+        </>
       )}
     </div>
   );
