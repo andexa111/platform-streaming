@@ -90,6 +90,21 @@ export const Player = forwardRef<MediaPlayerInstance, PlayerProps>(
   const [introUrl, setIntroUrl] = useState<string>("");
   const [isPlayingIntro, setIsPlayingIntro] = useState(false);
   const [introEnded, setIntroEnded] = useState(false);
+  const [introPaused, setIntroPaused] = useState(true);
+  const introVideoRef = React.useRef<HTMLVideoElement | null>(null);
+
+  const toggleIntroPlay = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (introVideoRef.current) {
+      if (introVideoRef.current.paused) {
+        introVideoRef.current.play().catch(() => {});
+        setIntroPaused(false);
+      } else {
+        introVideoRef.current.pause();
+        setIntroPaused(true);
+      }
+    }
+  };
 
   useEffect(() => {
     if (isMovie && typeof window !== "undefined") {
@@ -117,8 +132,7 @@ export const Player = forwardRef<MediaPlayerInstance, PlayerProps>(
     }
   }, [src, isMovie]);
 
-  const activeSrc = isMovie && isPlayingIntro && introUrl ? getMediaUrl(introUrl) : src;
-  const shouldAutoplay = isBanner || (isMovie && isPlayingIntro);
+  const shouldAutoplay = isBanner || (isMovie && !isPlayingIntro);
 
   const handleIntroEnd = () => {
     setIsPlayingIntro(false);
@@ -200,30 +214,15 @@ export const Player = forwardRef<MediaPlayerInstance, PlayerProps>(
     )}>
       <MediaPlayer 
         ref={localRef}
-        src={activeSrc} 
-        title={isPlayingIntro ? "Intro Sinea" : title}
+        src={src} 
+        title={title}
         autoplay={shouldAutoplay}
         muted={isBanner}
-        loop={isPlayingIntro ? false : shouldLoop}
+        loop={shouldLoop}
         playsInline={true}
         className={cn("w-full h-full bg-black", isBanner ? "object-cover" : "hide-settings")}
-        onTimeUpdate={(e) => {
-          if (isMovie && isPlayingIntro) {
-            const currentTime = e.currentTime;
-            if (currentTime >= 5) {
-              handleIntroEnd();
-            }
-          } else if (onTimeUpdate) {
-            onTimeUpdate(e);
-          }
-        }}
-        onEnded={() => {
-          if (isMovie && isPlayingIntro) {
-            handleIntroEnd();
-          } else if (onEnded) {
-            onEnded();
-          }
-        }}
+        onTimeUpdate={onTimeUpdate}
+        onEnded={onEnded}
         crossOrigin={crossOrigin}
         onProviderChange={(provider) => {
           if (isHLSProvider(provider)) {
@@ -310,36 +309,70 @@ export const Player = forwardRef<MediaPlayerInstance, PlayerProps>(
             seekStep={15}
           />
         )}
-      </MediaPlayer>
 
-      {/* Dynamic Watermark for Movie Screen Recording Protection */}
-      {shouldShowWatermark && (
-        <div 
-          className="absolute pointer-events-none z-[100] text-white/35 dark:text-white/35 font-mono text-[9px] sm:text-xs md:text-sm select-none transition-all duration-1000 ease-in-out font-semibold tracking-widest whitespace-nowrap"
-          style={{
-            top: positions[posIdx].top,
-            left: positions[posIdx].left,
-            textShadow: '1px 1px 2px #000, -1px -1px 2px #000, 1px -1px 2px #000, -1px 1px 2px #000',
-          }}
-        >
-          {watermarkText}
-        </div>
-      )}
-
-      {/* Dynamic Intro Tag Overlay */}
-      {isMovie && isPlayingIntro && (
-        <>
-          <div className="absolute top-4 left-4 z-50 bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-white border border-white/10 pointer-events-none select-none">
-            Intro Sinea
-          </div>
-          <button
-            onClick={handleIntroEnd}
-            className="absolute bottom-20 right-4 z-50 bg-black/80 hover:bg-brand text-white font-black uppercase tracking-widest text-[9px] sm:text-xs px-4 py-2.5 rounded-xl border border-white/10 transition-all cursor-pointer shadow-xl active:scale-95"
+        {/* Dynamic Watermark for Movie Screen Recording Protection (Placed inside MediaPlayer to survive Fullscreen) */}
+        {shouldShowWatermark && (
+          <div 
+            className="absolute pointer-events-none z-[100] text-white/35 dark:text-white/35 font-mono text-[9px] sm:text-xs md:text-sm select-none transition-all duration-1000 ease-in-out font-semibold tracking-widest whitespace-nowrap"
+            style={{
+              top: positions[posIdx].top,
+              left: positions[posIdx].left,
+              textShadow: '1px 1px 2px #000, -1px -1px 2px #000, 1px -1px 2px #000, -1px 1px 2px #000',
+            }}
           >
-            Lewati Intro
-          </button>
-        </>
-      )}
+            {watermarkText}
+          </div>
+        )}
+
+        {/* Seamless Intro Video Overlay (Placed inside MediaPlayer to survive Fullscreen) */}
+        {isMovie && isPlayingIntro && introUrl && (
+          <div className="absolute inset-0 z-[49] bg-black flex items-center justify-center">
+            <video
+              ref={introVideoRef}
+              src={getMediaUrl(introUrl)}
+              autoPlay
+              playsInline
+              controls={false}
+              onPlay={() => setIntroPaused(false)}
+              onPause={() => setIntroPaused(true)}
+              onEnded={handleIntroEnd}
+              onTimeUpdate={(e) => {
+                const currentTime = (e.target as HTMLVideoElement).currentTime;
+                if (currentTime >= 5) {
+                  handleIntroEnd();
+                }
+              }}
+              onClick={toggleIntroPlay}
+              className="w-full h-full object-cover cursor-pointer"
+            />
+
+            {/* Intro Play Button Overlay (when blocked/paused) */}
+            {introPaused && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/40 z-50 pointer-events-none">
+                <button
+                  onClick={toggleIntroPlay}
+                  className="w-16 h-16 rounded-full bg-black/60 hover:bg-brand/90 text-white flex items-center justify-center transition-all transform hover:scale-110 active:scale-95 pointer-events-auto border border-white/10 shadow-2xl"
+                >
+                  <defaultLayoutIcons.PlayButton.Play className="w-8 h-8 fill-white translate-x-0.5" />
+                </button>
+              </div>
+            )}
+
+            {/* Dynamic Intro Tag Overlay */}
+            <div className="absolute top-4 left-4 z-50 bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-white border border-white/10 pointer-events-none select-none">
+              Intro Sinea
+            </div>
+
+            {/* Skip Intro Button */}
+            <button
+              onClick={handleIntroEnd}
+              className="absolute bottom-20 right-4 z-50 bg-black/80 hover:bg-brand text-white font-black uppercase tracking-widest text-[9px] sm:text-xs px-4 py-2.5 rounded-xl border border-white/10 transition-all cursor-pointer shadow-xl active:scale-95"
+            >
+              Lewati Intro
+            </button>
+          </div>
+        )}
+      </MediaPlayer>
     </div>
   );
 });
