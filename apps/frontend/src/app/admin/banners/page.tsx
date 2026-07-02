@@ -59,40 +59,44 @@ export default function BannersPage() {
   };
 
   // Handle saving configurations
-  const handleSaveIntroSettings = () => {
-    if (uploadedFile) {
-      if (uploadedFile.size > 4.5 * 1024 * 1024) {
-        setStatusType("error");
-        setStatusMessage("Berkas video terlalu besar! Maksimal ukuran video intro yang diunggah langsung adalah 4.5 MB agar dapat disimpan di browser. Untuk video yang lebih besar, gunakan kolom URL Video Intro (Alternatif).");
+  const handleSaveIntroSettings = async () => {
+    try {
+      let finalIntroUrl = introVideoUrl;
+
+      if (uploadedFile) {
+        // Tampilkan loading modal/status saat mengunggah berkas besar
+        setStatusType("success");
+        setStatusMessage("Sedang mengunggah video intro ke Cloudflare R2...");
         setIsStatusOpen(true);
-        return;
+
+        const formData = new FormData();
+        formData.append("file", uploadedFile);
+
+        const response = await api.post("/upload/intro", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+
+        if (response.data?.url) {
+          finalIntroUrl = response.data.url;
+          setIntroVideoUrl(finalIntroUrl);
+          setUploadedFile(null);
+          setUploadedFileUrl("");
+        } else {
+          throw new Error("Invalid response from server");
+        }
       }
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const base64Url = e.target?.result as string;
-          localStorage.setItem("intro_video_url", base64Url);
-          localStorage.setItem("intro_uploaded_file_name", uploadedFile.name);
-          setIntroVideoUrl(base64Url);
-
-          setStatusType("success");
-          setStatusMessage("Berkas Video Intro berhasil diunggah dan disimpan!");
-          setIsStatusOpen(true);
-        } catch (err) {
-          console.error("Failed to save to localStorage:", err);
-          setStatusType("error");
-          setStatusMessage("Penyimpanan browser penuh! Gagal menyimpan file video ke lokal browser. Gunakan kolom URL Video Intro (Alternatif).");
-          setIsStatusOpen(true);
-        }
-      };
-      reader.readAsDataURL(uploadedFile);
-    } else {
-      localStorage.setItem("intro_video_url", introVideoUrl);
-      localStorage.removeItem("intro_uploaded_file_name");
+      localStorage.setItem("intro_video_url", finalIntroUrl);
 
       setStatusType("success");
-      setStatusMessage("Konfigurasi Video Intro berhasil disimpan!");
+      setStatusMessage("Konfigurasi Video Intro berhasil disimpan dan diunggah ke Cloudflare R2!");
+      setIsStatusOpen(true);
+    } catch (err: any) {
+      console.error("Gagal mengunggah/menyimpan video intro:", err);
+      setStatusType("error");
+      setStatusMessage("Gagal mengunggah video intro ke server R2. Pastikan format berkas benar dan coba lagi.");
       setIsStatusOpen(true);
     }
   };

@@ -220,6 +220,41 @@ export class UploadController {
 
     return { url, fileName: targetFilename };
   }
+
+  /**
+   * POST /upload/intro
+   * Upload video intro ke Cloudflare R2
+   */
+  @Post('intro')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadIntro(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 100 * 1024 * 1024 }), // 100MB
+          new FileTypeValidator({ 
+            fileType: /video\/(mp4|webm|quicktime|x-matroska|avi)/,
+            skipMagicNumbersValidation: true,
+            fallbackToMimetype: true,
+          }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
+    const ext = extname(file.originalname);
+    const uniqueSuffix = uuidv4();
+    const fileName = `intro-${uniqueSuffix}${ext}`;
+    
+    const publicUrl = await this.r2Service.uploadToStorage(
+      'intros',
+      fileName,
+      file.buffer,
+      file.mimetype,
+    );
+
+    return { url: publicUrl, fileName };
+  }
 }
 
 // Background helper for FFmpeg video compression (CRF 24, AAC audio)
