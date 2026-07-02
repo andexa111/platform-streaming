@@ -309,11 +309,11 @@ export const Player = forwardRef<MediaPlayerInstance, PlayerProps>(
       {/* Dynamic Watermark for Movie Screen Recording Protection */}
       {shouldShowWatermark && (
         <div 
-          className="absolute pointer-events-none z-[100] text-white/10 dark:text-white/10 font-mono text-[9px] sm:text-xs md:text-sm select-none transition-all duration-1000 ease-in-out font-semibold tracking-widest whitespace-nowrap"
+          className="absolute pointer-events-none z-[100] text-white/35 dark:text-white/35 font-mono text-[9px] sm:text-xs md:text-sm select-none transition-all duration-1000 ease-in-out font-semibold tracking-widest whitespace-nowrap"
           style={{
             top: positions[posIdx].top,
             left: positions[posIdx].left,
-            textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
+            textShadow: '1px 1px 2px #000, -1px -1px 2px #000, 1px -1px 2px #000, -1px 1px 2px #000',
           }}
         >
           {watermarkText}
