@@ -87,15 +87,24 @@ export const Player = forwardRef<MediaPlayerInstance, PlayerProps>(
 
   // Intro states & effects
   const [introUrl, setIntroUrl] = useState<string>("");
-  const [isPlayingIntro, setIsPlayingIntro] = useState(isMovie);
+  const [isPlayingIntro, setIsPlayingIntro] = useState(false);
   const [introEnded, setIntroEnded] = useState(false);
 
   useEffect(() => {
     if (isMovie && typeof window !== "undefined") {
-      const storedIntro = localStorage.getItem("intro_video_url");
-      setIntroUrl(storedIntro || "https://assets.mixkit.co/videos/preview/mixkit-abstract-laser-lights-background-glow-41753-large.mp4");
-      setIsPlayingIntro(true);
-      setIntroEnded(false);
+      const params = new URLSearchParams(window.location.search);
+      const hasIntroParam = params.get("intro") === "true";
+      const isDemoPage = window.location.pathname.includes("/watch/demo");
+
+      if (hasIntroParam || isDemoPage) {
+        const storedIntro = localStorage.getItem("intro_video_url");
+        setIntroUrl(storedIntro || "https://assets.mixkit.co/videos/preview/mixkit-abstract-laser-lights-background-glow-41753-large.mp4");
+        setIsPlayingIntro(true);
+        setIntroEnded(false);
+      } else {
+        setIsPlayingIntro(false);
+        setIntroEnded(false);
+      }
     } else {
       setIsPlayingIntro(false);
       setIntroEnded(false);
@@ -134,6 +143,17 @@ export const Player = forwardRef<MediaPlayerInstance, PlayerProps>(
         .catch(() => {});
     }
   }, [user]);
+
+  const [shouldShowWatermark, setShouldShowWatermark] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const hasWatermarkParam = params.get("watermark") === "true";
+      const isDemoPage = window.location.pathname.includes("/watch/demo");
+      setShouldShowWatermark(isMovie && (hasWatermarkParam || isDemoPage));
+    }
+  }, [isMovie]);
 
   const watermarkText = user 
     ? `${user.name} (${user.email}) - ${clientIp} - SINEA`
@@ -287,7 +307,7 @@ export const Player = forwardRef<MediaPlayerInstance, PlayerProps>(
       </MediaPlayer>
 
       {/* Dynamic Watermark for Movie Screen Recording Protection */}
-      {isMovie && (
+      {shouldShowWatermark && (
         <div 
           className="absolute pointer-events-none z-[100] text-white/10 dark:text-white/10 font-mono text-[9px] sm:text-xs md:text-sm select-none transition-all duration-1000 ease-in-out font-semibold tracking-widest whitespace-nowrap"
           style={{
