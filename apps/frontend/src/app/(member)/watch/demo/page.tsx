@@ -170,7 +170,6 @@ export default function WatchDemoPage() {
                 src={streamUrl}
                 poster={resolvedPoster}
                 className="w-full h-full"
-                crossOrigin="anonymous"
               />
             )}
           </div>
