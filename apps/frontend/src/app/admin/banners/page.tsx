@@ -60,15 +60,41 @@ export default function BannersPage() {
 
   // Handle saving configurations
   const handleSaveIntroSettings = () => {
-    localStorage.setItem("intro_video_url", introVideoUrl);
-    // If there is an uploaded file, simulate saving details
     if (uploadedFile) {
-      localStorage.setItem("intro_uploaded_file_name", uploadedFile.name);
-    }
+      if (uploadedFile.size > 4.5 * 1024 * 1024) {
+        setStatusType("error");
+        setStatusMessage("Berkas video terlalu besar! Maksimal ukuran video intro yang diunggah langsung adalah 4.5 MB agar dapat disimpan di browser. Untuk video yang lebih besar, gunakan kolom URL Video Intro (Alternatif).");
+        setIsStatusOpen(true);
+        return;
+      }
 
-    setStatusType("success");
-    setStatusMessage("Konfigurasi Video Intro berhasil disimpan!");
-    setIsStatusOpen(true);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const base64Url = e.target?.result as string;
+          localStorage.setItem("intro_video_url", base64Url);
+          localStorage.setItem("intro_uploaded_file_name", uploadedFile.name);
+          setIntroVideoUrl(base64Url);
+
+          setStatusType("success");
+          setStatusMessage("Berkas Video Intro berhasil diunggah dan disimpan!");
+          setIsStatusOpen(true);
+        } catch (err) {
+          console.error("Failed to save to localStorage:", err);
+          setStatusType("error");
+          setStatusMessage("Penyimpanan browser penuh! Gagal menyimpan file video ke lokal browser. Gunakan kolom URL Video Intro (Alternatif).");
+          setIsStatusOpen(true);
+        }
+      };
+      reader.readAsDataURL(uploadedFile);
+    } else {
+      localStorage.setItem("intro_video_url", introVideoUrl);
+      localStorage.removeItem("intro_uploaded_file_name");
+
+      setStatusType("success");
+      setStatusMessage("Konfigurasi Video Intro berhasil disimpan!");
+      setIsStatusOpen(true);
+    }
   };
 
   const handleStartIntroPreview = () => {
