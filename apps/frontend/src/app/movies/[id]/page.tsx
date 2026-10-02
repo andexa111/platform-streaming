@@ -12,6 +12,9 @@ import { Video } from "@/types/video";
 import { api, getMediaUrl } from "@/lib/api";
 import { Player } from "@/components/video/Player";
 import { VideoRow } from "@/components/video/VideoRow";
+import { PurchaseModal } from "@/components/ui/PurchaseModal";
+import { useCoinStore } from "@/lib/coin-store";
+import { useReportStore } from "@/lib/report-store";
 
 export default function MovieDetailPage() {
   const { id } = useParams();
@@ -28,6 +31,20 @@ export default function MovieDetailPage() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isSynopsisExpanded, setIsSynopsisExpanded] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+
+  // States for Like & Bug Reporting
+  const [isLiked, setIsLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(128);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportText, setReportText] = useState("");
+  const [reportSuccess, setReportSuccess] = useState(false);
+  const [isCaptchaVerified, setIsCaptchaVerified] = useState(false);
+
+  const addReport = useReportStore((s) => s.addReport);
+
+  // States for Purchase Modal
+  const [showPurchaseModal, setShowPurchaseModal] = useState(false);
+  const hasUnlocked = useCoinStore((s) => s.hasUnlocked);
 
   useEffect(() => {
     if (!id) return;
@@ -112,13 +129,21 @@ export default function MovieDetailPage() {
       });
   }, [id, movieId]);
 
+  const filmPrice = movie?.coin_price || 15;
+  const filmUnlocked = hasUnlocked(String(movieId));
+
   const handleWatchNow = () => {
     if (!isAuthenticated) {
       setShowAuthModal(true);
       return;
     }
-    // Authenticated users go to /watch/[id]
-    router.push(`/watch/${movieId}`);
+    // If already unlocked, go directly to watch
+    if (filmUnlocked) {
+      router.push(`/watch/${movieId}`);
+      return;
+    }
+    // Show purchase modal
+    setShowPurchaseModal(true);
   };
 
   const handleWatchTrailer = () => {
@@ -210,6 +235,140 @@ export default function MovieDetailPage() {
         </div>
       )}
 
+      {/* Bug Report Modal */}
+      {showReportModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-in fade-in duration-300">
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setShowReportModal(false)} />
+
+          {/* Modal Card */}
+          <div className="relative w-full max-w-lg bg-card border border-border rounded-[2.5rem] p-6 md:p-8 shadow-2xl animate-in zoom-in-95 duration-300 flex flex-col space-y-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-border pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-red-500/10 flex items-center justify-center border border-red-500/20 text-red-500">
+                  <Icon name="flag" className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-foreground">Laporkan Masalah / Bug</h3>
+                </div>
+              </div>
+              <button onClick={() => setShowReportModal(false)} className="p-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
+                <Icon name="x" className="w-5 h-5" />
+              </button>
+            </div>
+
+            {reportSuccess ? (
+              <div className="py-6 flex flex-col items-center text-center space-y-5">
+                <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
+                  <Icon name="check" className="w-8 h-8" />
+                </div>
+                <div className="space-y-2 max-w-md">
+                  <h4 className="text-xl font-bold text-foreground">✅ Laporan Anda Berhasil Terkirim.</h4>
+                  <p className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold">Terima kasih atas masukan Anda!</p>
+                  <p className="text-xs text-muted-foreground pt-2">Jika ada keluhan lebih lanjut silahkan click button dibawah ini</p>
+                </div>
+
+                {/* Direct WhatsApp Button */}
+                <a
+                  href={`https://wa.me/6281234567890?text=${encodeURIComponent(`Halo Admin Lalakon, saya butuh bantuan terkait keluhan pada film "${mappedMovie.title}".`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2.5 w-full py-3.5 px-6 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-black text-xs uppercase tracking-wider transition-all shadow-[0_4px_20px_rgba(16,185,129,0.3)] hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <Icon name="bell" className="w-4 h-4" />
+                  Hubungi via WhatsApp
+                </a>
+
+                <button onClick={() => setShowReportModal(false)} className="w-full py-3 bg-muted hover:bg-muted/80 text-foreground font-bold text-xs rounded-xl transition-all">
+                  Tutup
+                </button>
+              </div>
+            ) : (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!reportText.trim() || !isCaptchaVerified) return;
+
+                  // Save report to report-store for admin page
+                  addReport({
+                    name: user?.name || "Tamu / User",
+                    email: user?.email || "user@example.com",
+                    movieId: String(movieId),
+                    movieTitle: mappedMovie.title,
+                    message: reportText,
+                  });
+
+                  setReportSuccess(true);
+                  setReportText("");
+                  setIsCaptchaVerified(false);
+                }}
+                className="space-y-4"
+              >
+                {/* Auto-filled read-only user & movie data */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Nama Pelapor</label>
+                    <input type="text" value={user?.name || "Tamu / User"} readOnly disabled className="w-full px-3 py-2 rounded-xl bg-muted/60 border border-border text-xs text-muted-foreground font-medium cursor-not-allowed" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Email Pelapor</label>
+                    <input type="text" value={user?.email || "user@example.com"} readOnly disabled className="w-full px-3 py-2 rounded-xl bg-muted/60 border border-border text-xs text-muted-foreground font-medium cursor-not-allowed" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Judul Film</label>
+                  <input type="text" value={mappedMovie.title} readOnly disabled className="w-full px-3 py-2 rounded-xl bg-muted/60 border border-border text-xs text-brand font-bold cursor-not-allowed" />
+                </div>
+
+                {/* Editable message textarea */}
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
+                    Pesan / Detail Kendala <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    value={reportText}
+                    onChange={(e) => setReportText(e.target.value)}
+                    placeholder="Jelaskan masalah yang Anda temui (misal: pemutar video error, audio tidak sinkron, dll)..."
+                    rows={3}
+                    required
+                    className="w-full p-3 rounded-xl bg-muted/40 border border-border focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none text-xs text-foreground placeholder:text-muted-foreground/60 resize-none transition-all"
+                  />
+                </div>
+
+                {/* reCAPTCHA Widget */}
+                <div className="flex items-center justify-between p-3.5 rounded-xl bg-muted/30 border border-border select-none">
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" checked={isCaptchaVerified} onChange={(e) => setIsCaptchaVerified(e.target.checked)} className="w-4 h-4 rounded border-neutral-400 text-brand focus:ring-brand accent-brand cursor-pointer" />
+                    <span className="text-xs font-semibold text-foreground">Saya bukan robot</span>
+                  </label>
+                  <div className="flex flex-col items-center justify-center text-[9px] text-muted-foreground/70">
+                    <Icon name="shield-check" className="w-4 h-4 text-emerald-500 mb-0.5" />
+                    <span>reCAPTCHA</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-3 pt-2">
+                  <button type="button" onClick={() => setShowReportModal(false)} className="px-4 py-2.5 rounded-xl bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground font-bold text-xs transition-all">
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={!isCaptchaVerified || !reportText.trim()}
+                    className={cn(
+                      "px-5 py-2.5 rounded-xl text-white font-bold text-xs transition-all shadow-md",
+                      isCaptchaVerified && reportText.trim() ? "bg-red-600 hover:bg-red-500 shadow-[0_4px_14px_rgba(220,38,38,0.4)] cursor-pointer" : "bg-neutral-600 opacity-60 cursor-not-allowed",
+                    )}
+                  >
+                    Kirim Laporan
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Media & Content Wrapper */}
       <div className="relative">
         {/* Hero Media Section */}
@@ -251,7 +410,17 @@ export default function MovieDetailPage() {
               <div className="w-full h-full flex flex-col items-center justify-center">
                 {movie.trailer_url ? (
                   isTrailerLocal ? (
-                    <Player variant="trailer" src={getMediaUrl(movie.trailer_url)} className="w-full h-full object-contain absolute inset-0 bg-black" />
+                    <Player
+                      variant="trailer"
+                      src={getMediaUrl(movie.trailer_url)}
+                      className="w-full h-full object-contain absolute inset-0 bg-black"
+                      onEnded={() => {
+                        setIsPlaying(false);
+                        if (isAuthenticated && !filmUnlocked) {
+                          setShowPurchaseModal(true);
+                        }
+                      }}
+                    />
                   ) : (
                     <iframe
                       src={`https://iframe.mediadelivery.net/embed/245642/${movie.trailer_url}?autoplay=true`}
@@ -382,6 +551,58 @@ export default function MovieDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-12 lg:gap-20">
           {/* Left: Synopsis & Info */}
           <div className="lg:col-span-2 space-y-6 md:space-y-10">
+            {/* Action Bar: Fitur Like, Harga Coin, dan Laporkan Bug (Hanya untuk User/Member terautentikasi) */}
+            {isAuthenticated && (
+              <div className="flex items-center justify-between gap-2 md:gap-4 p-3 md:p-5 rounded-[2rem] bg-muted/20 border border-border backdrop-blur-sm shadow-sm text-foreground">
+                <div className="flex items-center gap-1.5 md:gap-3">
+                  {/* Fitur Like (Tanpa Angka Counter) */}
+                  <button
+                    onClick={() => setIsLiked(!isLiked)}
+                    className={cn(
+                      "flex items-center gap-1.5 md:gap-2 px-2.5 md:px-4 py-2 md:py-2.5 rounded-xl font-bold text-[10px] md:text-sm transition-all duration-300 border active:scale-95 whitespace-nowrap",
+                      isLiked ? "bg-rose-500/15 border-rose-500/30 text-rose-500 dark:text-rose-400 hover:bg-rose-500/25" : "bg-background/60 border-border text-muted-foreground hover:text-foreground hover:bg-background",
+                    )}
+                  >
+                    <Icon name="heart" className={cn("w-3.5 h-3.5 md:w-5 md:h-5 transition-transform duration-300", isLiked && "fill-current scale-110 text-rose-500")} />
+                    <span>{isLiked ? "Menyukai" : "Suka"}</span>
+                  </button>
+
+                  {/* Informasi Harga Film dalam Coin (Biru SNEA & Logo coin 1.png) */}
+                  {filmUnlocked ? (
+                    <div className="flex items-center gap-1.5 md:gap-2 px-2.5 md:px-4 py-2 md:py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 font-bold text-[10px] md:text-sm shadow-sm overflow-hidden whitespace-nowrap">
+                      <Icon name="check" className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                      <span className="font-extrabold">Sudah Dibeli</span>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setShowPurchaseModal(true);
+                      }}
+                      className="flex items-center gap-1.5 md:gap-2 px-2.5 md:px-4 py-2 md:py-2.5 rounded-xl bg-brand/10 border border-brand/20 text-brand font-bold text-[10px] md:text-sm shadow-sm overflow-hidden whitespace-nowrap hover:bg-brand/20 transition-all active:scale-95 cursor-pointer"
+                    >
+                      <div className="relative w-5 h-5 flex-shrink-0">
+                        <Image src="/coin 1.png" alt="Koin" fill className="object-contain drop-shadow-md scale-[2.5]" sizes="40px" />
+                      </div>
+                      <span className="text-muted-foreground font-normal text-[10px] md:text-xs hidden sm:inline">Harga:</span>
+                      <span className="font-extrabold text-brand">{filmPrice} Coin</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Tombol Reporting Bug (Warna Merah ternotice) */}
+                <button
+                  onClick={() => {
+                    setShowReportModal(true);
+                    setReportSuccess(false);
+                  }}
+                  className="flex items-center gap-1.5 md:gap-2 px-2.5 md:px-4 py-2 md:py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-[10px] md:text-sm transition-all duration-300 shadow-[0_4px_14px_rgba(220,38,38,0.4)] hover:shadow-[0_6px_20px_rgba(220,38,38,0.6)] active:scale-95 border border-red-400/30 whitespace-nowrap flex-shrink-0"
+                >
+                  <Icon name="flag" className="w-3.5 h-3.5 md:w-5 md:h-5" />
+                  <span>Laporkan Bug</span>
+                </button>
+              </div>
+            )}
+
             <div className="space-y-4 md:space-y-6">
               <h2 className="text-lg md:text-3xl font-bold flex items-center gap-2 md:gap-3">
                 <div className="w-1 h-5 md:h-8 bg-brand rounded-full" />
@@ -583,6 +804,21 @@ export default function MovieDetailPage() {
           </div>
         )}
       </section>
+
+      {/* Purchase Modal */}
+      {movie && (
+        <PurchaseModal
+          isOpen={showPurchaseModal}
+          onClose={() => setShowPurchaseModal(false)}
+          filmId={movieId}
+          filmTitle={mappedMovie.title}
+          filmPrice={filmPrice}
+          filmPoster={mappedMovie.thumbnail}
+          onPurchaseSuccess={() => {
+            router.push(`/watch/${movieId}`);
+          }}
+        />
+      )}
     </main>
   );
 }
