@@ -9,6 +9,8 @@ import { SearchOverlay } from "./SearchOverlay";
 import { useAuthStore } from "@/lib/auth-store";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
+import { useCoinStore } from "@/lib/coin-store";
 
 interface NavbarProps {
   variant?: "public" | "member";
@@ -60,6 +62,7 @@ function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
   const pathname = usePathname();
   const [isMounted, setIsMounted] = useState(false);
   const { user, logout, isAuthenticated } = useAuthStore();
+  const coins = useCoinStore((state) => state.coins);
 
   useEffect(() => {
     setIsMounted(true);
@@ -180,19 +183,25 @@ function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
               </div>
             ) : (
               <div className="flex items-center gap-4">
-                <div className="hidden md:flex">
+                {/* ThemeToggle: desktop only in navbar */}
+                <div className="hidden lg:flex">
                   <ThemeToggle />
                 </div>
 
-                {mounted && user && (
+                {/* Coin Balance Indicator: tablet + desktop in navbar */}
+                <div className="hidden md:flex items-center gap-1 bg-muted/50 border border-border/50 rounded-full pl-2 pr-1 py-1 hover:bg-muted/80 transition-all">
+                  <div className="relative w-10 h-10 flex-shrink-0 scale-150">
+                    <Image src="/coin 1.png" alt="Koin" fill className="object-contain drop-shadow-md" sizes="40px" />
+                  </div>
+                  <span className="text-sm font-black text-foreground mx-1.5 tabular-nums">{user?.coins ?? coins}</span>
                   <Link
-                    href="/coins"
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-500 hover:bg-amber-500/20 transition-all font-bold text-xs shadow-sm hover:scale-105 active:scale-95"
+                    href="/topup"
+                    className="w-6 h-6 rounded-full bg-brand flex items-center justify-center text-white hover:bg-brand/80 transition-colors flex-shrink-0"
+                    title="Top Up Koin"
                   >
-                    <span>🪙</span>
-                    <span>{user.coins ?? 0} Koin</span>
+                    <Icon name="plus" className="w-3.5 h-3.5" />
                   </Link>
-                )}
+                </div>
 
                 {/* Search Trigger */}
                 <button
@@ -206,10 +215,10 @@ function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
                 <div ref={profileRef} className="relative group">
                   <button
                     onClick={() => setIsProfileOpen(!isProfileOpen)}
-                    className={`w-10 h-10 rounded-full bg-muted/50 border-2 ${currentTier.border} flex items-center justify-center hover:brightness-125 transition-all cursor-pointer shadow-lg overflow-hidden`}
+                    className="w-10 h-10 rounded-full bg-muted/50 border-2 border-brand/70 hover:border-brand flex items-center justify-center hover:brightness-125 transition-all cursor-pointer shadow-lg shadow-brand/10 overflow-hidden"
                   >
                     <div className="w-full h-full flex items-center justify-center bg-muted/30">
-                      {user?.avatar_url ? <img src={user.avatar_url} alt={user.name} className="w-full h-full object-cover" /> : <Icon name="user" className={`w-5 h-5 ${currentTier.color}`} />}
+                      {user?.avatar_url ? <img src={user.avatar_url} alt={user.name} className="w-full h-full object-cover" /> : <Icon name="user" className="w-5 h-5 text-brand" />}
                     </div>
                   </button>
 
@@ -249,8 +258,26 @@ function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
                       </div>
                       */}
 
-                      {/* Theme Toggle in Profile Dropdown (Mobile Only) */}
+                      {/* Coin Balance in Popup (Mobile only, below md) */}
                       <div className="md:hidden flex items-center justify-between px-3 py-2 bg-muted/30 rounded-xl">
+                        <div className="flex items-center gap-2">
+                          <div className="relative w-10 h-10 flex-shrink-0 scale-150">
+                            <Image src="/coin 1.png" alt="Koin" fill className="object-contain drop-shadow-md" sizes="40px" />
+                          </div>
+                          <span className="text-sm font-black text-foreground tabular-nums">{coins} Koin</span>
+                        </div>
+                        <Link
+                          href="/topup"
+                          onClick={() => setIsProfileOpen(false)}
+                          className="w-7 h-7 rounded-full bg-brand flex items-center justify-center text-white hover:bg-brand/80 transition-colors"
+                          title="Top Up Koin"
+                        >
+                          <Icon name="plus" className="w-3.5 h-3.5" />
+                        </Link>
+                      </div>
+
+                      {/* Theme Toggle in Popup (Mobile + Tablet, below lg) */}
+                      <div className="lg:hidden flex items-center justify-between px-3 py-2 bg-muted/30 rounded-xl">
                         <span className="text-sm font-medium text-black dark:text-neutral-300">Tema</span>
                         <ThemeToggle />
                       </div>
@@ -269,6 +296,15 @@ function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
                             Dashboard Admin
                           </Link>
                         )}
+
+                        <Link
+                          href="/my-films"
+                          className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-black dark:text-neutral-300 hover:text-brand hover:bg-muted/50 rounded-xl transition-all"
+                          onClick={() => setIsProfileOpen(false)}
+                        >
+                          <Icon name="film" className="w-4 h-4" />
+                          Film Saya
+                        </Link>
 
                         <Link
                           href="/profile"

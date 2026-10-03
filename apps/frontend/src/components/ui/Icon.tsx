@@ -60,7 +60,14 @@ import {
   ChevronLeft,
   AlertTriangle,
   Info,
-  Folder
+  Folder,
+  Heart,
+  ThumbsUp,
+  Flag,
+  Coins,
+  Zap,
+  Infinity as LucideInfinity,
+  ShieldCheck
 } from "lucide-react";
 
 const ICON_MAP = {
@@ -125,6 +132,13 @@ const ICON_MAP = {
   "chevron-left": ChevronLeft,
   warning: AlertTriangle,
   folder: Folder,
+  heart: Heart,
+  "thumbs-up": ThumbsUp,
+  flag: Flag,
+  coins: Coins,
+  zap: Zap,
+  infinity: LucideInfinity,
+  "shield-check": ShieldCheck,
 };
 
 interface IconProps extends LucideProps {

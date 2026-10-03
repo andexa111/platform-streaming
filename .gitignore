@@ -40,6 +40,9 @@ apps/backend/prisma/*.db
 
 # Internal Documentation (Do not track)
 docs/
+KPI_BATCH_1.md
+KPI*.md
+
 
 # Uploads
 apps/backend/public/uploads/

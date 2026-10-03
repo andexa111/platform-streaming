@@ -31,7 +31,22 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "api.sinea.id",
-      }
+      },
+
+      //code development (bisa dihapus saat production)
+      {
+        protocol: "https",
+        hostname: "placehold.co",
+      },
+      {
+        protocol: "https",
+        hostname: "via.placeholder.com",
+      },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
+      //end code development
     ],
   },
   async rewrites() {

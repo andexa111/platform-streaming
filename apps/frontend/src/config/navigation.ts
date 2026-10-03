@@ -19,6 +19,7 @@ export const NAV_LINKS = {
     { name: "Banners", href: "/admin/banners", icon: "image" },
     { name: "Ads", href: "/admin/ads", icon: "ads" },
     { name: "Banner Ads", href: "/admin/banner-ads", icon: "ads" },
+    { name: "Laporan Bug", href: "/admin/reports", icon: "flag" },
     { name: "Users", href: "/admin/users", icon: "users" },
   ],
 
@@ -34,6 +35,7 @@ export const NAV_LINKS = {
     { name: "Banner Ads", href: "/superadmin/banner-ads", icon: "ads" },
     { name: "Subscriptions", href: "/superadmin/subscriptions", icon: "subscription" },
     { name: "Discounts", href: "/superadmin/discounts", icon: "tag" },
+    { name: "Laporan Bug", href: "/admin/reports", icon: "flag" },
     { name: "Users", href: "/superadmin/users", icon: "users" },
   ],
 
@@ -47,6 +49,7 @@ export const NAV_LINKS = {
     { name: "Banners", href: "/admin/banners", icon: "image" },
     { name: "Subscriptions", href: "/admin/subscriptions", icon: "subscription" },
     { name: "Ads", href: "/admin/ads", icon: "ads" },
+    { name: "Laporan Bug", href: "/admin/reports", icon: "flag" },
     { name: "Users", href: "/admin/users", icon: "users" },
   ],
 };

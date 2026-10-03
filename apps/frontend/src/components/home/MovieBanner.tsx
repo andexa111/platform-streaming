@@ -3,9 +3,13 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
 import { Video } from "@/types/video";
 import { Player } from "@/components/video/Player";
+import { PurchaseModal } from "@/components/ui/PurchaseModal";
+import { useCoinStore } from "@/lib/coin-store";
+import { useAuthStore } from "@/lib/auth-store";
 import type { MediaPlayerInstance } from "@vidstack/react";
 
 interface MovieBannerProps {
@@ -15,9 +19,16 @@ interface MovieBannerProps {
 }
 
 export function MovieBanner({ movies, autoPlayInterval = 5000, basePath = "/watch" }: MovieBannerProps) {
+  const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const videoRefs = useRef<(MediaPlayerInstance | null)[]>([]);
+  const { isAuthenticated } = useAuthStore();
+  const hasUnlocked = useCoinStore((s) => s.hasUnlocked);
+
+  // Purchase modal state
+  const [showPurchaseModal, setShowPurchaseModal] = useState(false);
+  const [purchaseFilm, setPurchaseFilm] = useState<Video | null>(null);
 
   const nextSlide = useCallback(() => {
     if (isAnimating) return;
@@ -167,13 +178,28 @@ export function MovieBanner({ movies, autoPlayInterval = 5000, basePath = "/watc
           </div>
 
           <div className="flex items-center gap-3 pt-2">
-            <Link
-              href={currentMovie.id === 0 && basePath === "/movies" ? "/login?redirect=/watch/0" : `${basePath}/${currentMovie.id}`}
+            <button
+              onClick={() => {
+                if (!isAuthenticated) {
+                  router.push("/login");
+                  return;
+                }
+                if (currentMovie.id === 0 && basePath === "/movies") {
+                  router.push("/watch/0");
+                  return;
+                }
+                if (hasUnlocked(String(currentMovie.id))) {
+                  router.push(`${basePath}/${currentMovie.id}`);
+                  return;
+                }
+                setPurchaseFilm(currentMovie);
+                setShowPurchaseModal(true);
+              }}
               className="px-6 py-2.5 md:px-8 md:py-3 bg-brand hover:bg-brand-dark text-white rounded-full text-xs md:text-sm font-bold flex items-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-xl shadow-brand/20"
             >
               <Icon name="play" className="w-3 h-3 md:w-4 md:h-4 fill-current" />
               Tonton Sekarang
-            </Link>
+            </button>
           </div>
         </div>
       </div>
@@ -204,6 +230,21 @@ export function MovieBanner({ movies, autoPlayInterval = 5000, basePath = "/watc
       >
         <Icon name="chevron-right" className="w-6 h-6" />
       </button>
+
+      {/* Purchase Modal */}
+      {purchaseFilm && (
+        <PurchaseModal
+          isOpen={showPurchaseModal}
+          onClose={() => setShowPurchaseModal(false)}
+          filmId={purchaseFilm.id}
+          filmTitle={purchaseFilm.title}
+          filmPrice={(purchaseFilm as any).coinPrice || 15}
+          filmPoster={purchaseFilm.thumbnail}
+          onPurchaseSuccess={() => {
+            router.push(`${basePath}/${purchaseFilm.id}`);
+          }}
+        />
+      )}
     </section>
   );
 }

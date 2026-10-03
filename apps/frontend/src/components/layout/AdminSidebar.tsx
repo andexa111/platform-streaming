@@ -7,6 +7,8 @@ import { NAV_LINKS } from "@/config/navigation";
 import { useAuthStore } from "@/lib/auth-store";
 import { cn } from "@/lib/utils";
 
+import { useReportStore } from "@/lib/report-store";
+
 interface AdminSidebarProps {
   isOpen: boolean;
   isCollapsed: boolean;
@@ -17,6 +19,7 @@ interface AdminSidebarProps {
 export function AdminSidebar({ isOpen, isCollapsed, onClose, onToggleCollapse }: AdminSidebarProps) {
   const pathname = usePathname();
   const user = useAuthStore((s) => s.user);
+  const unreadCount = useReportStore((s) => s.unreadCount);
 
   // Pilih menu berdasarkan role user
   const links = user?.role === 'superadmin' ? NAV_LINKS.adminSuper : NAV_LINKS.adminBasic;
@@ -90,6 +93,9 @@ export function AdminSidebar({ isOpen, isCollapsed, onClose, onToggleCollapse }:
             <nav className="flex-1 space-y-2 relative">
               {links.map((link) => {
                 const isActive = pathname === link.href;
+                const isReportLink = link.href.includes("/reports");
+                const hasReportUnread = isReportLink && unreadCount > 0;
+
                 return (
                   <Link
                     key={link.href}
@@ -111,17 +117,30 @@ export function AdminSidebar({ isOpen, isCollapsed, onClose, onToggleCollapse }:
                       <div className="absolute left-0 w-1.5 h-8 bg-white rounded-r-full" />
                     )}
                     
-                    <Icon 
-                      name={link.icon as any} 
-                      className={cn(
-                        "w-5 h-5 transition-transform duration-300 flex-shrink-0",
-                        isActive ? "text-white scale-110" : "text-brand group-hover:scale-110"
+                    <div className="relative flex items-center justify-center">
+                      <Icon 
+                        name={link.icon as any} 
+                        className={cn(
+                          "w-5 h-5 transition-transform duration-300 flex-shrink-0",
+                          isActive ? "text-white scale-110" : "text-brand group-hover:scale-110"
+                        )}
+                      />
+                      {isCollapsed && hasReportUnread && (
+                        <span className="absolute -top-2 -right-2.5 w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-black flex items-center justify-center animate-pulse border-2 border-card shadow-md">
+                          {unreadCount > 9 ? "9+" : unreadCount}
+                        </span>
                       )}
-                    />
+                    </div>
                     
                     {!isCollapsed && (
-                      <span className="text-sm tracking-wide leading-none flex items-center">
-                        {link.name}
+                      <span className="text-sm tracking-wide leading-none flex items-center justify-between flex-1">
+                        <span>{link.name}</span>
+                        {hasReportUnread && (
+                          <span className="ml-2 px-2 py-0.5 rounded-full bg-red-500 text-white text-[10px] font-black animate-pulse shadow-md shadow-red-500/30 flex items-center gap-1">
+                            <Icon name="bell" className="w-3 h-3" />
+                            {unreadCount}
+                          </span>
+                        )}
                       </span>
                     )}
                   </Link>
