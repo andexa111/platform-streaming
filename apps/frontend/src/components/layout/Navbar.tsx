@@ -79,6 +79,11 @@ function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
     return "PREMIUM";
   }, [user]);
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const currentTier = TIER_CONFIG[membershipTier];
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -178,6 +183,16 @@ function Navbar({ variant: initialVariant = "public" }: NavbarProps) {
                 <div className="hidden md:flex">
                   <ThemeToggle />
                 </div>
+
+                {mounted && user && (
+                  <Link
+                    href="/coins"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-500 hover:bg-amber-500/20 transition-all font-bold text-xs shadow-sm hover:scale-105 active:scale-95"
+                  >
+                    <span>🪙</span>
+                    <span>{user.coins ?? 0} Koin</span>
+                  </Link>
+                )}
 
                 {/* Search Trigger */}
                 <button

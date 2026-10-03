@@ -1,6 +1,6 @@
 "use client";
 
-import React, { forwardRef, useState, useEffect } from "react";
+import React, { forwardRef, useState, useEffect, useMemo } from "react";
 import '@vidstack/react/player/styles/default/theme.css';
 import '@vidstack/react/player/styles/default/layouts/video.css';
 import { MediaPlayer, MediaProvider, Poster, type MediaPlayerInstance, isHLSProvider, SeekButton, Time, FullscreenButton, useMediaState, useMediaRemote } from '@vidstack/react';
@@ -167,42 +167,26 @@ export const Player = forwardRef<MediaPlayerInstance, PlayerProps>(
   const [shouldShowWatermark, setShouldShowWatermark] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      const hasWatermarkParam = params.get("watermark") === "true";
-      const isDemoPage = window.location.pathname.includes("/watch/demo");
-      setShouldShowWatermark(isMovie && (hasWatermarkParam || isDemoPage));
-    }
+    setShouldShowWatermark(isMovie);
   }, [isMovie]);
 
-  const watermarkText = user 
-    ? `${user.name} (${user.email}) - ${clientIp} - SINEA`
-    : `Guest - ${clientIp} - SINEA`;
+  // Generate random 4-digit salt per session (e.g. 00042-8492)
+  const sessionSalt = useMemo(() => Math.floor(1000 + Math.random() * 9000), []);
 
-  // Watermark positions (percentage based for smooth transitions)
+  const watermarkText = useMemo(() => {
+    if (!user) return "SINEA • GUEST";
+    const paddedId = String(user.id).padStart(5, "0");
+    return `SINEA • ${paddedId}-${sessionSalt}`;
+  }, [user, sessionSalt]);
+
+  // Watermark positions (tengah atas atau tengah bawah)
   const positions = [
-    { top: "8%", left: "8%" },
-    { top: "8%", left: "70%" },
-    { top: "80%", left: "8%" },
-    { top: "80%", left: "70%" },
-    { top: "45%", left: "38%" }
+    { top: "8%", left: "50%", transform: "translateX(-50%)" },
+    { top: "80%", left: "50%", transform: "translateX(-50%)" }
   ];
 
-  const [posIdx, setPosIdx] = useState(0);
-
-  useEffect(() => {
-    if (!isMovie) return;
-    const interval = setInterval(() => {
-      setPosIdx((prev) => {
-        let next = Math.floor(Math.random() * positions.length);
-        while (next === prev) {
-          next = Math.floor(Math.random() * positions.length);
-        }
-        return next;
-      });
-    }, 12000); // 12 seconds
-    return () => clearInterval(interval);
-  }, [isMovie]);
+  // Randomize position ONCE per page load / session
+  const [posIdx] = useState(() => Math.floor(Math.random() * 2));
 
   const showControls = !isBanner;
 
@@ -317,6 +301,7 @@ export const Player = forwardRef<MediaPlayerInstance, PlayerProps>(
             style={{
               top: positions[posIdx].top,
               left: positions[posIdx].left,
+              transform: positions[posIdx].transform,
               textShadow: '1px 1px 2px #000, -1px -1px 2px #000, 1px -1px 2px #000, -1px 1px 2px #000',
             }}
           >

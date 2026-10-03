@@ -8,3 +8,14 @@ export interface Payment {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface CoinPackage {
+  id: number;
+  slug: string;
+  name: string;
+  coins_amount: number;
+  price: number;
+  description: string | null;
+  is_active: boolean;
+}
+

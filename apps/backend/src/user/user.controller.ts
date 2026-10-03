@@ -4,6 +4,8 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 
+import { UpdateProfileDto } from './dto/update-profile.dto';
+
 @Controller('user')
 @UseGuards(JwtAuthGuard)
 export class UserController {
@@ -21,8 +23,8 @@ export class UserController {
   }
 
   @Patch('profile')
-  updateProfile(@Req() req: any, @Body() body: any) {
-    return this.userService.updateProfile(req.user.id, body);
+  updateProfile(@Req() req: any, @Body() dto: UpdateProfileDto) {
+    return this.userService.updateProfile(req.user.id, dto);
   }
 
   @Patch('change-password')

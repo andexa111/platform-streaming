@@ -54,3 +54,7 @@ temp-uploads/
 apps/backend/check-db.js
 apps/backend/publish-all.js
 apps/backend/test-update.js
+
+# DevOps Learning Folder
+devops-learn/
+

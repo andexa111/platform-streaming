@@ -22,6 +22,7 @@ import { PartnerLogoModule } from './partner-logo/partner-logo.module';
 import { CategoryModule } from './category/category.module';
 import { MailModule } from './mail/mail.module';
 import { HomeSectionModule } from './home-section/home-section.module';
+import { BannerAdModule } from './banner-ad/banner-ad.module';
 
 @Module({
   imports: [
@@ -48,8 +49,10 @@ import { HomeSectionModule } from './home-section/home-section.module';
     CategoryModule,
     MailModule,
     HomeSectionModule,
+    BannerAdModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}
+

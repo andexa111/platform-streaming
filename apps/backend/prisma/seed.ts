@@ -175,13 +175,14 @@ async function seedCategories() {
     { name: 'Sedang Tayang', slug: 'sedang-tayang' },
   ];
   for (const cat of categories) {
-    await prisma.category.upsert({
-      where: { slug: cat.slug },
-      update: { name: cat.name },
-      create: cat,
+    const existing = await prisma.category.findFirst({
+      where: { OR: [{ slug: cat.slug }, { name: cat.name }] },
     });
+    if (!existing) {
+      await prisma.category.create({ data: cat });
+    }
   }
-  console.log(`   ✅ ${categories.length} categories seeded`);
+  console.log(`   ✅ ${categories.length} categories checked/seeded`);
 }
 
 async function seedHomeSections() {
@@ -220,6 +221,54 @@ async function seedHomeSections() {
   console.log('   ✅ 3 home sections seeded');
 }
 
+const coinPackages = [
+  {
+    slug: 'coin_50',
+    name: 'Paket Basic (50 Koin)',
+    coins_amount: 50,
+    price: 20000,
+    description: 'Cukup untuk menonton 3-4 film pilihan',
+  },
+  {
+    slug: 'coin_120',
+    name: 'Paket Popular (120 Koin)',
+    coins_amount: 120,
+    price: 45000,
+    description: 'Hemat 25%! Cukup untuk menonton 8 film pilihan',
+  },
+  {
+    slug: 'coin_300',
+    name: 'Paket Super (300 Koin)',
+    coins_amount: 300,
+    price: 100000,
+    description: 'Bonus Koin terbanyak! Nonton puasa sebulan penuh',
+  },
+  {
+    slug: 'coin_700',
+    name: 'Paket Sultan (700 Koin)',
+    coins_amount: 700,
+    price: 200000,
+    description: 'Akses tanpa batas, paling hemat untuk penikmat film',
+  },
+];
+
+async function seedCoinPackages() {
+  console.log('🪙 Seeding coin packages...');
+  for (const pkg of coinPackages) {
+    await prisma.coinPackage.upsert({
+      where: { slug: pkg.slug },
+      update: {
+        name: pkg.name,
+        coins_amount: pkg.coins_amount,
+        price: pkg.price,
+        description: pkg.description,
+      },
+      create: pkg,
+    });
+  }
+  console.log(`   ✅ ${coinPackages.length} coin packages seeded`);
+}
+
 // ==================== MAIN ====================
 
 async function main() {
@@ -230,6 +279,7 @@ async function main() {
   await seedSuperAdmin();
   await seedAdmin();
   await seedMembershipPlans();
+  await seedCoinPackages();
   await seedDummyUsers();
   await seedHomeSections();
 
@@ -249,3 +299,4 @@ main()
     await prisma.$disconnect();
     await pool.end();
   });
+

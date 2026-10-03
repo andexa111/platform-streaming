@@ -8,6 +8,7 @@ import { MovieBanner } from "@/components/home/MovieBanner";
 import { api, getMediaUrl } from "@/lib/api";
 import { Video } from "@/types/video";
 import { Ads } from "@/components/home/Ads";
+import { BannerAdsRow } from "@/components/home/BannerAdsRow";
 
 export default function MemberHomePage() {
   const [sections, setSections] = useState<any[]>([]);
@@ -111,16 +112,18 @@ export default function MemberHomePage() {
 
       {/* Content Sections */}
       <div className="space-y-4 md:space-y-8 pb-20">
-        {sections.map((sec) => (
-          <VideoSection
-            key={sec.sectionNum}
-            title={sec.title}
-            subtitle={sec.description}
-            videos={sec.films}
-            isComingSoon={sec.sectionNum === 2}
-            viewAllHref={sec.sectionNum === 2 ? "/movies?upcoming=true" : sec.categorySlug ? `/movies?category=${encodeURIComponent(sec.categorySlug)}` : "/movies"}
-            className={sec.sectionNum % 2 === 0 ? "bg-muted/30" : ""}
-          />
+        {sections.map((sec, index) => (
+          <React.Fragment key={sec.sectionNum}>
+            <VideoSection
+              title={sec.title}
+              subtitle={sec.description}
+              videos={sec.films}
+              isComingSoon={sec.sectionNum === 2}
+              viewAllHref={sec.sectionNum === 2 ? "/movies?upcoming=true" : sec.categorySlug ? `/movies?category=${encodeURIComponent(sec.categorySlug)}` : "/movies"}
+              className={sec.sectionNum % 2 === 0 ? "bg-muted/30" : ""}
+            />
+            {index === 0 && <BannerAdsRow />}
+          </React.Fragment>
         ))}
 
         {/* Ads Section */}

@@ -1,10 +1,12 @@
 import { create } from 'zustand';
 import Cookies from 'js-cookie';
+import { api } from './api';
 
 export interface User {
   id: number;
   name: string;
   email: string;
+  coins?: number;
   avatar_url?: string | null;
   role: 'guest' | 'user' | 'subscriber' | 'admin' | 'superadmin';
   email_verified_at: string | null;
@@ -17,10 +19,11 @@ interface AuthState {
   isLoading: boolean;
   setAuth: (user: User, token: string) => void;
   logout: () => void;
-  checkAuth: (fetchProfile: () => Promise<User | null>) => Promise<void>;
+  fetchProfile: () => Promise<User | null>;
+  checkAuth: (fetchProfileFunc?: () => Promise<User | null>) => Promise<void>;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   isAuthenticated: !!Cookies.get('token'), // Initial state based on cookie presence
   isLoading: true, // Initially loading until checkAuth completes
@@ -45,7 +48,20 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ user: null, isAuthenticated: false, isLoading: false });
   },
 
-  checkAuth: async (fetchProfile) => {
+  fetchProfile: async () => {
+    try {
+      const res = await api.get('/auth/profile');
+      const user = res.data;
+      if (user) {
+        set({ user, isAuthenticated: true, isLoading: false });
+      }
+      return user;
+    } catch (error) {
+      return null;
+    }
+  },
+
+  checkAuth: async (fetchProfileFunc) => {
     const token = Cookies.get('token');
     if (!token) {
       set({ user: null, isAuthenticated: false, isLoading: false });
@@ -54,7 +70,8 @@ export const useAuthStore = create<AuthState>((set) => ({
 
     try {
       set({ isLoading: true });
-      const user = await fetchProfile();
+      const fetcher = fetchProfileFunc || get().fetchProfile;
+      const user = await fetcher();
       if (user) {
         set({ user, isAuthenticated: true, isLoading: false });
       } else {
@@ -71,3 +88,4 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 }));
+

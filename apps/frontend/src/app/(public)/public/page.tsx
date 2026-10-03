@@ -10,6 +10,7 @@ import { api, getMediaUrl } from "@/lib/api";
 import { Video } from "@/types/video";
 import { GENRES } from "@/constants/video-data";
 import { Ads } from "@/components/home/Ads";
+import { BannerAdsRow } from "@/components/home/BannerAdsRow";
 
 export default function PublicPage() {
   const [sections, setSections] = useState<any[]>([]);
@@ -125,15 +126,17 @@ export default function PublicPage() {
         </div>
       ) : (
         <div className="space-y-4 md:space-y-8 pb-20">
-          {sections.map((sec) => (
-            <VideoSection
-              key={sec.sectionNum}
-              title={sec.title}
-              videos={sec.films}
-              isComingSoon={sec.sectionNum === 2}
-              viewAllHref={sec.sectionNum === 2 ? "/movies?upcoming=true" : sec.categorySlug ? `/movies?category=${encodeURIComponent(sec.categorySlug)}` : "/movies"}
-              className={sec.sectionNum % 2 === 0 ? "bg-secondary/20" : ""}
-            />
+          {sections.map((sec, index) => (
+            <React.Fragment key={sec.sectionNum}>
+              <VideoSection
+                title={sec.title}
+                videos={sec.films}
+                isComingSoon={sec.sectionNum === 2}
+                viewAllHref={sec.sectionNum === 2 ? "/movies?upcoming=true" : sec.categorySlug ? `/movies?category=${encodeURIComponent(sec.categorySlug)}` : "/movies"}
+                className={sec.sectionNum % 2 === 0 ? "bg-secondary/20" : ""}
+              />
+              {index === 0 && <BannerAdsRow />}
+            </React.Fragment>
           ))}
         </div>
       )}

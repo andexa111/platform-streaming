@@ -2,10 +2,12 @@
 
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { Icon } from "@/components/ui/Icon";
+import { Button } from "@/components/ui/button";
 import { ButtonAction } from "@/components/ui/ButtonAction";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/lib/auth-store";
 import { api } from "@/lib/api";
+
 
 // --- Types ---
 interface UserData {
@@ -122,12 +124,51 @@ export default function UsersManagementPage() {
 
   // Filtered Users
   const filteredUsers = useMemo(() => {
+    const cleanSearch = searchQuery.trim().toLowerCase().replace("#", "");
     return users.filter(user => {
-      const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) || user.email.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesId = isSuperAdmin && user.id.toString() === cleanSearch;
+      const matchesSearch = 
+        matchesId ||
+        user.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        user.email.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesRole = selectedRole === "All" || user.role === selectedRole;
       return matchesSearch && matchesRole;
     });
-  }, [users, searchQuery, selectedRole]);
+  }, [users, searchQuery, selectedRole, isSuperAdmin]);
+
+  // Export to Excel / CSV
+  const handleExportCSV = () => {
+    if (filteredUsers.length === 0) return;
+    
+    // Header
+    const headers = ["ID", "Nama", "Email", "Role", "Status Email", "Tanggal Registrasi", "Paket Aktif", "Kedaluwarsa Paket"];
+    
+    // Rows
+    const rows = filteredUsers.map(user => [
+      user.id,
+      `"${user.name.replace(/"/g, '""')}"`,
+      `"${user.email.replace(/"/g, '""')}"`,
+      user.role,
+      user.email_verified_at ? "Terverifikasi" : "Belum Verifikasi",
+      new Date(user.createdAt).toLocaleDateString("id-ID"),
+      user.activePlan || "Free",
+      user.subExpiredAt ? new Date(user.subExpiredAt).toLocaleDateString("id-ID") : "-"
+    ]);
+    
+    // Combine
+    const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+    
+    // Download
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `data_user_export_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   // Stats
   const stats = useMemo(() => ({
@@ -135,6 +176,7 @@ export default function UsersManagementPage() {
     totalAdmins: users.filter(u => u.role === "admin" || u.role === "superadmin").length,
     activeSubs: users.filter(u => u.activePlan !== null).length,
   }), [users]);
+
 
   // --- Handlers (superadmin only) ---
 
@@ -252,13 +294,13 @@ export default function UsersManagementPage() {
 
       {/* Toolbar & Table */}
       <div className="bg-card rounded-[2rem] border border-border overflow-hidden shadow-sm">
-        <div className="p-6 border-b border-border flex flex-col md:flex-row gap-4 justify-between items-center">
-          <div className="flex items-center gap-4 w-full md:w-auto">
-            <div className="relative flex-1 md:w-80">
+        <div className="p-6 border-b border-border flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center">
+          <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+            <div className="relative flex-1 min-w-[200px] md:w-80">
               <Icon name="search" className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input 
                 type="text" 
-                placeholder="Cari nama atau email..."
+                placeholder="Cari ID, nama, atau email..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-11 pr-4 py-2.5 bg-secondary border border-border rounded-xl text-sm focus:outline-none focus:border-brand transition-all text-foreground placeholder:text-muted-foreground"
@@ -267,12 +309,20 @@ export default function UsersManagementPage() {
             <select 
               value={selectedRole}
               onChange={(e) => setSelectedRole(e.target.value)}
-              className="px-4 py-2.5 bg-secondary border border-border rounded-xl text-xs font-black uppercase focus:outline-none focus:border-brand hidden sm:block shadow-sm text-foreground"
+              className="px-4 py-2.5 bg-secondary border border-border rounded-xl text-xs font-black uppercase focus:outline-none focus:border-brand shadow-sm text-foreground"
             >
               {ROLES_FILTER.map(r => <option key={r} value={r} className="bg-card">{r === "All" ? "Semua Role" : r}</option>)}
             </select>
+            <Button
+              onClick={handleExportCSV}
+              variant="outline"
+              className="flex items-center gap-2 border border-border bg-secondary hover:bg-secondary/80 text-foreground rounded-xl px-4 py-2.5 text-xs font-black uppercase shadow-sm h-auto"
+            >
+              <Icon name="download-cloud" className="w-4 h-4 text-brand" />
+              Export Excel/CSV
+            </Button>
           </div>
-          <div className="text-xs text-muted-foreground font-bold">
+          <div className="text-xs text-muted-foreground font-bold flex items-center justify-end">
             {filteredUsers.length} dari {users.length} user
           </div>
         </div>
@@ -315,7 +365,14 @@ export default function UsersManagementPage() {
                         </div>
                       )}
                       <div>
-                        <p className="text-sm font-black text-foreground">{user.name}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-black text-foreground">{user.name}</p>
+                          {isSuperAdmin && (
+                            <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500 font-mono text-[9px] font-bold border border-amber-500/20">
+                              ID #{user.id}
+                            </span>
+                          )}
+                        </div>
                         <p className="text-[11px] text-muted-foreground font-bold">{user.email}</p>
                       </div>
                     </div>

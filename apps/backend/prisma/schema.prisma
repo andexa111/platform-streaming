@@ -40,6 +40,7 @@ model User {
   email             String    @unique
   password          String?   // nullable untuk Google OAuth
   avatar_url        String?
+  coins             Int       @default(0)
   role              Role      @default(guest)
   email_verified_at DateTime?
   createdAt         DateTime  @default(now())
@@ -47,6 +48,8 @@ model User {
 
   subscriptions  Subscription[]
   payments       Payment[]
+  coinPayments   CoinPayment[]
+  filmAccesses   UserFilmAccess[]
   tokens         EmailToken[]
   filmViews      FilmView[]
   watchHistories WatchHistory[]
@@ -67,6 +70,7 @@ model Film {
   poster_url   String?
   trailer_url  String?
   video_id     String?   // Bunny Stream video ID
+  coin_price   Int       @default(15) // harga sewa/beli film dalam koin
   clip_start   Int?      // detik mulai highlight trailer
   clip_end     Int?      // detik akhir highlight trailer
   is_published          Boolean   @default(false)
@@ -88,6 +92,7 @@ model Film {
   filmViews      FilmView[]
   watchHistories WatchHistory[]
   featuredFilms  FeaturedFilm[]
+  userAccesses   UserFilmAccess[]
 
   @@map("films")
 }
@@ -329,3 +334,68 @@ model ProductionHouse {
 
   @@map("production_houses")
 }
+
+// ==================== BANNER ADS ====================
+model BannerAd {
+  id        Int      @id @default(autoincrement())
+  title     String
+  image_url String
+  link_url  String?
+  is_active Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("banner_ads")
+}
+
+// ==================== COIN PACKAGES & ACCESS ====================
+
+model CoinPackage {
+  id           Int           @id @default(autoincrement())
+  slug         String        @unique
+  name         String
+  coins_amount Int
+  price        Int           // harga Rupiah
+  description  String?
+  is_active    Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  coinPayments CoinPayment[]
+
+  @@map("coin_packages")
+}
+
+model CoinPayment {
+  id           Int           @id @default(autoincrement())
+  order_id     String        @unique
+  userId       Int
+  packageId    Int
+  coins_added  Int
+  amount       Int           // nominal Rupiah
+  status       PaymentStatus @default(pending)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  package CoinPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+
+  @@map("coin_payments")
+}
+
+model UserFilmAccess {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  filmId       Int
+  coins_spent  Int
+  expires_at   DateTime
+  purchased_at DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  film Film @relation(fields: [filmId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, filmId])
+  @@map("user_film_accesses")
+}
+
+

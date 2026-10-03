@@ -27,9 +27,13 @@ export class UserService {
   }
 
   async updateProfile(userId: number, data: { name?: string; avatar_url?: string }) {
+    const allowedData: { name?: string; avatar_url?: string } = {};
+    if (data.name !== undefined) allowedData.name = data.name;
+    if (data.avatar_url !== undefined) allowedData.avatar_url = data.avatar_url;
+
     const user = await this.prisma.user.update({
       where: { id: userId },
-      data,
+      data: allowedData,
     });
     const { password, ...result } = user;
     return result;

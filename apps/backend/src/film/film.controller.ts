@@ -10,6 +10,7 @@ import {
   UseGuards,
   ParseIntPipe,
   BadRequestException,
+  ForbiddenException,
   Req,
   Res,
   UseInterceptors,
@@ -159,14 +160,35 @@ export class FilmController {
   }
 
   /**
-   * GET /films/:id/stream
-   * Generate signed URL untuk streaming video film
-   * User harus login, film harus punya video_id
+   * GET /films/:id/access
+   * Cek status akses film user (apakah sudah beli & aktif 30 hari)
    */
+  @UseGuards(JwtAuthGuard)
+  @Get(':id/access')
+  async getFilmAccess(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: any,
+  ) {
+    return this.filmService.getFilmAccess(id, req.user.id);
+  }
+
+  /**
+   * POST /films/:id/buy
+   * Beli/Sewa film menggunakan koin untuk masa berlaku 30 hari
+   */
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/buy')
+  async buyFilm(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: any,
+  ) {
+    return this.filmService.buyFilm(id, req.user.id);
+  }
+
   /**
    * GET /films/:id/stream
    * Mengatur cookie sinea_stream_auth (JWT) dan mengembalikan URL streaming index.m3u8 di R2.
-   * User harus login (memiliki token JWT di header/cookie) dan film harus memiliki video_id.
+   * User harus login, film harus dibeli (30 hari aktif), dan film harus memiliki video_id.
    */
   @UseGuards(JwtAuthGuard)
   @Get(':id/stream')
@@ -180,8 +202,16 @@ export class FilmController {
     res.setHeader('Expires', '0');
 
     const film = await this.filmService.findOne(id);
-
     const user = req.user;
+
+    // Check 30-day access or admin privileges
+    const accessInfo = await this.filmService.getFilmAccess(id, user.id);
+    if (!accessInfo.has_access) {
+      throw new ForbiddenException(
+        `Anda belum membeli akses ke film ini (atau masa berlaku 30 hari telah habis). Silakan beli dengan ${film.coin_price || 15} koin.`
+      );
+    }
+
     const now = new Date();
     if (
       film.published_start &&
@@ -244,8 +274,14 @@ export class FilmController {
   @Get(':id/key')
   async getDecryptionKey(
     @Param('id', ParseIntPipe) id: number,
+    @Req() req: any,
     @Res() res: express.Response,
   ) {
+    const accessInfo = await this.filmService.getFilmAccess(id, req.user.id);
+    if (!accessInfo.has_access) {
+      throw new ForbiddenException('Anda belum memiliki akses ke film ini');
+    }
+
     try {
       const keyBuffer = await this.r2Service.getFromStorage(`keys/film-${id}.key`);
       

@@ -1,6 +1,7 @@
 import {
   Injectable,
   NotFoundException,
+  BadRequestException,
   Logger,
 } from '@nestjs/common';
 import * as fs from 'fs';
@@ -596,6 +597,130 @@ export class FilmService {
     return { message: 'View successfully counted', counted: true };
   }
 
+  // ==================== FILM PURCHASE / ACCESS ====================
+
+  async getFilmAccess(filmId: number, userId: number) {
+    const film = await this.findOne(filmId);
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+
+    if (!user) {
+      return {
+        has_access: false,
+        expires_at: null,
+        coin_price: film.coin_price || 15,
+        user_coins: 0,
+        is_admin: false,
+      };
+    }
+
+    // Admin / Superadmin always have access
+    if (user.role === 'admin' || user.role === 'superadmin') {
+      return {
+        has_access: true,
+        expires_at: null,
+        coin_price: film.coin_price || 15,
+        user_coins: user.coins,
+        is_admin: true,
+      };
+    }
+
+    const access = await this.prisma.userFilmAccess.findUnique({
+      where: {
+        userId_filmId: { userId, filmId },
+      },
+    });
+
+    const now = new Date();
+    const hasAccess = !!access && access.expires_at > now;
+
+    return {
+      has_access: hasAccess,
+      expires_at: access ? access.expires_at : null,
+      coin_price: film.coin_price || 15,
+      user_coins: user.coins,
+      is_admin: false,
+    };
+  }
+
+  async buyFilm(filmId: number, userId: number) {
+    const film = await this.findOne(filmId);
+    const coinPrice = film.coin_price || 15;
+
+    return this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.findUnique({ where: { id: userId } });
+      if (!user) {
+        throw new NotFoundException('User tidak ditemukan');
+      }
+
+      // Cek apakah sudah punya akses aktif
+      const existingAccess = await tx.userFilmAccess.findUnique({
+        where: {
+          userId_filmId: { userId, filmId },
+        },
+      });
+
+      const now = new Date();
+      if (existingAccess && existingAccess.expires_at > now) {
+        return {
+          message: 'Anda sudah memiliki akses ke film ini.',
+          expires_at: existingAccess.expires_at,
+          coins_remaining: user.coins,
+        };
+      }
+
+      // Potong koin HANYA JIKA coins >= coinPrice secara atomic di level SQL
+      const updateResult = await tx.user.updateMany({
+        where: {
+          id: userId,
+          coins: { gte: coinPrice },
+        },
+        data: {
+          coins: {
+            decrement: coinPrice,
+          },
+        },
+      });
+
+      if (updateResult.count === 0) {
+        throw new BadRequestException(
+          `Koin Anda tidak cukup (${user.coins} koin). Harga film ini adalah ${coinPrice} koin. Silakan top up koin dahulu.`
+        );
+      }
+
+      // 30 hari akses
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 30);
+
+      const userAccess = await tx.userFilmAccess.upsert({
+        where: {
+          userId_filmId: { userId, filmId },
+        },
+        create: {
+          userId,
+          filmId,
+          coins_spent: coinPrice,
+          expires_at: expiresAt,
+        },
+        update: {
+          coins_spent: coinPrice,
+          expires_at: expiresAt,
+          purchased_at: now,
+        },
+      });
+
+      const updatedUser = await tx.user.findUnique({ where: { id: userId } });
+
+      this.logger.log(`User ${userId} bought film ${filmId} for ${coinPrice} coins. Expires at ${expiresAt}`);
+
+      return {
+        success: true,
+        message: `Berhasil membeli akses film "${film.title}" selama 30 hari!`,
+        expires_at: userAccess.expires_at,
+        coins_remaining: updatedUser?.coins ?? 0,
+      };
+    });
+  }
+
   private getWibStart(dateInput: string | Date): Date {
     const dateStr = typeof dateInput === 'string' ? dateInput : dateInput.toISOString();
     const datePart = dateStr.substring(0, 10);
@@ -615,3 +740,4 @@ export class FilmService {
     return new Date(`${prevDatePart}T23:59:59+07:00`);
   }
 }
+

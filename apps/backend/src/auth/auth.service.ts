@@ -138,6 +138,7 @@ export class AuthService {
         name: user.name,
         email: user.email,
         role: user.role,
+        coins: user.coins,
         avatar_url: user.avatar_url,
       },
     };
@@ -153,6 +154,7 @@ export class AuthService {
         name: true,
         email: true,
         role: true,
+        coins: true,
         avatar_url: true,
         email_verified_at: true,
         createdAt: true,

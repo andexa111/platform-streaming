@@ -9,6 +9,7 @@ export interface Film {
   poster_url: string | null;
   trailer_url: string | null;
   video_id: string | null;
+  coin_price?: number;
   is_published: boolean;
   is_deleted: boolean;
   scheduled_at: string | null;
@@ -21,6 +22,8 @@ export interface FilmCard {
   title: string;
   genre: string | null;
   poster_url: string | null;
+  coin_price?: number;
   scheduled_at: string | null;
   is_published: boolean;
 }
+
