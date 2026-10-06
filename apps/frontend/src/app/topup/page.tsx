@@ -7,65 +7,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCoinStore } from "@/lib/coin-store";
-
-const PLANS = [
-  {
-    name: "Paket 1",
-    coins: 50,
-    price: "20.000",
-    badge: "Pemula",
-    imageSrc: "/coin 1.png",
-    color: "text-amber-500",
-    borderColor: "border-amber-500/30 hover:border-amber-500/60",
-    bgColor: "bg-amber-500/5",
-    glowColor: "group-hover:shadow-[0_0_40px_-10px_rgba(245,158,11,0.4)]",
-    buttonText: "Beli Sekarang",
-    popular: false,
-    buttonClass: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 hover:bg-amber-500 hover:text-white hover:border-amber-500",
-  },
-  {
-    name: "Paket 2",
-    coins: 120,
-    price: "45.000",
-    badge: "Populer (+20 Koin Bonus)",
-    imageSrc: "/coin 2.png",
-    color: "text-blue-500",
-    borderColor: "border-blue-500/40 hover:border-blue-500/80",
-    bgColor: "bg-blue-500/5",
-    glowColor: "group-hover:shadow-[0_0_50px_-10px_rgba(59,130,246,0.5)]",
-    buttonText: "Beli Sekarang",
-    popular: true,
-    buttonClass: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/30 hover:bg-blue-500 hover:text-white hover:border-blue-500",
-  },
-  {
-    name: "Paket 3",
-    coins: 300,
-    price: "100.000",
-    badge: "Hemat (+100 Koin Bonus)",
-    imageSrc: "/coin 3.png",
-    color: "text-purple-500",
-    borderColor: "border-purple-500/30 hover:border-purple-500/60",
-    bgColor: "bg-purple-500/5",
-    glowColor: "group-hover:shadow-[0_0_40px_-10px_rgba(168,85,247,0.4)]",
-    buttonText: "Beli Sekarang",
-    popular: false,
-    buttonClass: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 hover:bg-purple-500 hover:text-white hover:border-purple-500",
-  },
-  {
-    name: "Paket 4",
-    coins: 620,
-    price: "200.000",
-    badge: "Best Value (+220 Koin Bonus)",
-    imageSrc: "/coin 4.png",
-    color: "text-[#FFD700]",
-    borderColor: "border-[#FFD700]/40 hover:border-[#FFD700]/80",
-    bgColor: "bg-[#FFD700]/5",
-    glowColor: "group-hover:shadow-[0_0_60px_-10px_rgba(255,215,0,0.6)]",
-    buttonText: "Beli Sekarang",
-    popular: false,
-    buttonClass: "bg-gradient-to-r from-[#FFD700]/20 to-amber-500/20 text-[#B8860B] dark:text-[#FFD700] border border-[#FFD700]/30 hover:from-[#FFD700] hover:to-amber-500 hover:text-neutral-950 hover:border-[#FFD700]",
-  },
-];
+import { PLANS } from "./PLANS";
 
 export default function TopUpPage() {
   const router = useRouter();
