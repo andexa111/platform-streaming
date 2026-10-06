@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
 import { VideoCard } from "@/components/video/VideoCard";
 import { useAuthStore } from "@/lib/auth-store";
-import { useCoinStore } from "@/lib/coin-store";
+import { useCoinStore, getFilmRemainingTime } from "@/lib/coin-store";
 import { cn } from "@/lib/utils";
 import { Video } from "@/types/video";
 import { api, getMediaUrl } from "@/lib/api";
@@ -175,17 +175,26 @@ export default function MyFilmsPage() {
           </div>
         ) : films.length > 0 ? (
           <div className="grid grid-cols-3 md:grid-cols-5 xl:grid-cols-6 gap-x-3 md:gap-x-4 gap-y-10">
-            {films.map((film, index) => (
-              <div
-                key={film.id}
-                className={cn(
-                  "w-full animate-in fade-in slide-in-from-bottom-4 duration-500"
-                )}
-                style={{ animationDelay: `${(index % 6) * 100}ms` }}
-              >
-                <VideoCard video={film} />
-              </div>
-            ))}
+            {films.map((film, index) => {
+              const purchasedAt = useCoinStore.getState().getPurchasedAt(String(film.id));
+              const remaining = getFilmRemainingTime(purchasedAt);
+              return (
+                <div
+                  key={film.id}
+                  className={cn(
+                    "w-full animate-in fade-in slide-in-from-bottom-4 duration-500 relative group/filmcard"
+                  )}
+                  style={{ animationDelay: `${(index % 6) * 100}ms` }}
+                >
+                  <VideoCard video={film} />
+                  {/* Active Expiration Overlay Badge */}
+                  <div className="absolute top-2.5 left-2.5 z-20 bg-neutral-950/85 backdrop-blur-md border border-emerald-500/40 text-emerald-400 px-2 py-0.5 rounded-lg text-[8px] md:text-[9px] font-black tracking-wide flex items-center gap-1 shadow-md">
+                    <Icon name="clock" className="w-2.5 h-2.5 text-emerald-400" />
+                    <span>{remaining.text}</span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         ) : (
           <div className="py-32 text-center space-y-6">

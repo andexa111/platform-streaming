@@ -13,7 +13,7 @@ import { api, getMediaUrl } from "@/lib/api";
 import { Player } from "@/components/video/Player";
 import { VideoRow } from "@/components/video/VideoRow";
 import { PurchaseModal } from "@/components/ui/PurchaseModal";
-import { useCoinStore } from "@/lib/coin-store";
+import { useCoinStore, getFilmRemainingTime } from "@/lib/coin-store";
 import { useReportStore } from "@/lib/report-store";
 
 export default function MovieDetailPage() {
@@ -31,6 +31,15 @@ export default function MovieDetailPage() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isSynopsisExpanded, setIsSynopsisExpanded] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [nowTick, setNowTick] = useState(Date.now());
+
+  // Dynamic real-time timer update every 10 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNowTick(Date.now());
+    }, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   // States for Like & Bug Reporting
   const [isLiked, setIsLiked] = useState(false);
@@ -45,6 +54,7 @@ export default function MovieDetailPage() {
   // States for Purchase Modal
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const hasUnlocked = useCoinStore((s) => s.hasUnlocked);
+  const getPurchasedAt = useCoinStore((s) => s.getPurchasedAt);
 
   useEffect(() => {
     if (!id) return;
@@ -270,7 +280,7 @@ export default function MovieDetailPage() {
 
                 {/* Direct WhatsApp Button */}
                 <a
-                  href={`https://wa.me/6281234567890?text=${encodeURIComponent(`Halo Admin Lalakon, saya butuh bantuan terkait keluhan pada film "${mappedMovie.title}".`)}`}
+                  href={`https://wa.me/628122872180?text=${encodeURIComponent(`Halo Admin Lalakon, saya butuh bantuan terkait keluhan pada film "${mappedMovie.title}".`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2.5 w-full py-3.5 px-6 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-black text-xs uppercase tracking-wider transition-all shadow-[0_4px_20px_rgba(16,185,129,0.3)] hover:scale-[1.02] active:scale-[0.98]"
@@ -567,12 +577,19 @@ export default function MovieDetailPage() {
                     <span>{isLiked ? "Menyukai" : "Suka"}</span>
                   </button>
 
-                  {/* Informasi Harga Film dalam Coin (Biru SNEA & Logo coin 1.png) */}
+                  {/* Informasi Harga Film / Status Akses (Split Pill Badge dengan Countdown 30 Hari) */}
                   {filmUnlocked ? (
-                    <div className="flex items-center gap-1.5 md:gap-2 px-2.5 md:px-4 py-2 md:py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 font-bold text-[10px] md:text-sm shadow-sm overflow-hidden whitespace-nowrap">
-                      <Icon name="check" className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                      <span className="font-extrabold">Sudah Dibeli</span>
-                    </div>
+                    (() => {
+                      const purchasedAt = getPurchasedAt(String(movieId));
+                      // pass nowTick to enforce dynamic reactive calculation
+                      const remaining = getFilmRemainingTime(purchasedAt);
+                      return (
+                        <div className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 md:py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 font-bold text-[10px] md:text-sm shadow-sm whitespace-nowrap">
+                          <Icon name="clock" className="w-3.5 h-3.5 md:w-4 md:h-4 text-emerald-500" />
+                          <span>{remaining.text}</span>
+                        </div>
+                      );
+                    })()
                   ) : (
                     <button
                       onClick={() => {
