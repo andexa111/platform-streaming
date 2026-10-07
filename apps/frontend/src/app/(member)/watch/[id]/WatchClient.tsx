@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
 import { useAuthStore } from "@/lib/auth-store";
+import { useCoinStore } from "@/lib/coin-store";
 import { api, getMediaUrl } from "@/lib/api";
 import { Video } from "@/types/video";
 import { Player } from "@/components/video/Player";
@@ -192,6 +193,17 @@ export default function WatchClient({ movieId }: { movieId: number }) {
       setBuyError(null);
 
       const res = await api.post(`/films/${movieId}/buy`, {}, { withCredentials: true });
+      if (res.data?.coins_remaining !== undefined) {
+        const currentUser = useAuthStore.getState().user;
+        if (currentUser) {
+          useAuthStore.setState({
+            user: { ...currentUser, coins: res.data.coins_remaining },
+          });
+        }
+      }
+      useCoinStore.setState((state) => ({
+        unlockedFilmIds: Array.from(new Set([...state.unlockedFilmIds, String(movieId)])),
+      }));
       
       // Successfully bought film
       const accessRes = await api.get(`/films/${movieId}/access`, { withCredentials: true });
@@ -202,7 +214,7 @@ export default function WatchClient({ movieId }: { movieId: number }) {
       setIsPlayingTrailer(false);
       
       // Update global user profile to reflect remaining coins
-      useAuthStore.getState().fetchProfile();
+      await useAuthStore.getState().fetchProfile();
     } catch (err: any) {
       const msg = err.response?.data?.message || "Gagal membeli film.";
       if (msg.includes("Koin Anda tidak cukup") || msg.includes("koin")) {

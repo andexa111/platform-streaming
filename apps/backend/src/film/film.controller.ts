@@ -151,6 +151,17 @@ export class FilmController {
   }
 
   /**
+   * GET /films/my-accesses
+   * Daftar film yang sudah dibeli & aktif milik user login
+   */
+  @UseGuards(JwtAuthGuard)
+  @Get('my-accesses')
+  async getMyPurchasedFilms(@Req() req: any) {
+    const userId = req.user.id || req.user.sub;
+    return this.filmService.getMyPurchasedFilms(userId);
+  }
+
+  /**
    * GET /films/:id
    * Detail 1 film — PUBLIC (Guest bisa akses)
    */

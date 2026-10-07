@@ -1,6 +1,8 @@
-import { Controller, Get, Post, Body, UseGuards, Req, HttpCode, HttpStatus, Logger, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param, UseGuards, Req, HttpCode, HttpStatus, Logger, ParseIntPipe } from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
 
 @Controller('payment')
 export class PaymentController {
@@ -11,6 +13,23 @@ export class PaymentController {
   @Get('coin-packages')
   async getCoinPackages() {
     return this.paymentService.getCoinPackages();
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'superadmin')
+  @Patch('admin/coin-packages/:id')
+  async updateCoinPackage(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: { price?: number; coins_amount?: number; name?: string },
+  ) {
+    return this.paymentService.updateCoinPackage(id, body);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'superadmin')
+  @Get('admin/transactions')
+  async getAdminTransactions() {
+    return this.paymentService.getAdminTransactions();
   }
 
   @UseGuards(JwtAuthGuard)

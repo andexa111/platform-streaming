@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
 import { VideoCard } from "@/components/video/VideoCard";
 import { useAuthStore } from "@/lib/auth-store";
-import { useCoinStore } from "@/lib/coin-store";
+import { useCoinStore, getFilmRemainingTime } from "@/lib/coin-store";
 import { cn } from "@/lib/utils";
 import { Video } from "@/types/video";
 import { api, getMediaUrl } from "@/lib/api";
@@ -15,6 +15,7 @@ export default function MyFilmsPage() {
   const router = useRouter();
   const { isAuthenticated, user } = useAuthStore();
   const unlockedFilmIds = useCoinStore((s) => s.unlockedFilmIds);
+  const getPurchasedAt = useCoinStore((s) => s.getPurchasedAt);
   const coins = useCoinStore((s) => s.coins);
 
   const [films, setFilms] = useState<Video[]>([]);
@@ -32,55 +33,58 @@ export default function MyFilmsPage() {
     }
   }, [mounted, isAuthenticated, router]);
 
-  // Fetch all films then filter by unlocked IDs
+  // Fetch purchased films from backend DB, with fallback to unlockedFilmIds
   useEffect(() => {
     if (!mounted || !isAuthenticated) return;
 
-    if (unlockedFilmIds.length === 0) {
-      setFilms([]);
-      setLoading(false);
-      return;
-    }
-
     setLoading(true);
+
+    const mapFilmToVideo = (film: any): Video => ({
+      id: film.id,
+      title: film.title,
+      genre: film.genres && film.genres.length > 0 ? film.genres[0].name : "Other",
+      rating: "4.8",
+      quality: "4K UHD",
+      thumbnail: film.poster_url ? getMediaUrl(film.poster_url) : "",
+      backdrop: film.poster_url ? getMediaUrl(film.poster_url) : "",
+      description: film.description || "",
+      trailerUrl: film.trailer_url ? getMediaUrl(film.trailer_url) : "",
+      productionHouse: film.production_house || "",
+      productionHouseLogo: film.production_house_logo ? getMediaUrl(film.production_house_logo) : "",
+    });
+
     api
-      .get("/films?limit=100")
+      .get("/films/my-accesses")
       .then((res) => {
-        const allFilms = res.data?.data || [];
-        const mapped = allFilms
-          .filter((film: any) => unlockedFilmIds.includes(String(film.id)))
-          .map(
-            (film: any): Video => ({
-              id: film.id,
-              title: film.title,
-              genre:
-                film.genres && film.genres.length > 0
-                  ? film.genres[0].name
-                  : "Other",
-              rating: "4.8",
-              quality: "4K UHD",
-              thumbnail: film.poster_url ? getMediaUrl(film.poster_url) : "",
-              backdrop: film.poster_url ? getMediaUrl(film.poster_url) : "",
-              description: film.description || "",
-              trailerUrl: film.trailer_url
-                ? getMediaUrl(film.trailer_url)
-                : "",
-              productionHouse: film.production_house || "",
-              productionHouseLogo: film.production_house_logo
-                ? getMediaUrl(film.production_house_logo)
-                : "",
-            })
-          );
-        setFilms(mapped);
+        const backendFilms = Array.isArray(res.data) ? res.data : [];
+        const filmIds = backendFilms.map((f: any) => String(f.id));
+        const purchasedMap: Record<string, string> = {};
+        backendFilms.forEach((f: any) => {
+          if (f.purchased_at) {
+            purchasedMap[String(f.id)] = f.purchased_at;
+          }
+        });
+        useCoinStore.setState({ unlockedFilmIds: filmIds, purchasedFilms: purchasedMap });
+        setFilms(backendFilms.map(mapFilmToVideo));
       })
-      .catch((err) => {
-        console.error("Failed to load films", err);
-        setFilms([]);
+      .catch(() => {
+        // Fallback to local store filtering ONLY if backend API fails
+        if (unlockedFilmIds.length === 0) {
+          setFilms([]);
+          return;
+        }
+        api.get("/films?limit=100").then((res2) => {
+          const allFilms = res2.data?.data || [];
+          const mapped = allFilms
+            .filter((film: any) => unlockedFilmIds.includes(String(film.id)))
+            .map(mapFilmToVideo);
+          setFilms(mapped);
+        }).catch(() => setFilms([]));
       })
       .finally(() => {
         setLoading(false);
       });
-  }, [mounted, isAuthenticated, unlockedFilmIds]);
+  }, [mounted, isAuthenticated, user?.id]);
 
   if (!mounted || !isAuthenticated) {
     return (
@@ -133,7 +137,7 @@ export default function MyFilmsPage() {
                 <span className="text-emerald-500 font-black">
                   {films.length}
                 </span>{" "}
-                Film Dibeli
+                Film Aktif
               </div>
               <div className="w-1 h-1 rounded-full bg-muted" />
               <div className="flex items-center gap-1.5">
@@ -175,17 +179,34 @@ export default function MyFilmsPage() {
           </div>
         ) : films.length > 0 ? (
           <div className="grid grid-cols-3 md:grid-cols-5 xl:grid-cols-6 gap-x-3 md:gap-x-4 gap-y-10">
-            {films.map((film, index) => (
-              <div
-                key={film.id}
-                className={cn(
-                  "w-full animate-in fade-in slide-in-from-bottom-4 duration-500"
-                )}
-                style={{ animationDelay: `${(index % 6) * 100}ms` }}
-              >
-                <VideoCard video={film} />
-              </div>
-            ))}
+            {films.map((film, index) => {
+              const purchasedAt = getPurchasedAt(String(film.id));
+              const remaining = getFilmRemainingTime(purchasedAt);
+
+              return (
+                <div
+                  key={film.id}
+                  className={cn(
+                    "w-full animate-in fade-in slide-in-from-bottom-4 duration-500 relative group/filmcard"
+                  )}
+                  style={{ animationDelay: `${(index % 6) * 100}ms` }}
+                >
+                  <VideoCard video={film} />
+                  {/* Active Expiration Overlay Badge inside top-left of card */}
+                  <div
+                    className={cn(
+                      "absolute top-2.5 left-2.5 z-20 backdrop-blur-md px-2 py-0.5 rounded-lg text-[8px] md:text-[9px] font-black tracking-wide flex items-center gap-1 shadow-md border",
+                      remaining.isExpired
+                        ? "bg-neutral-950/85 border-red-500/40 text-red-400"
+                        : "bg-neutral-950/85 border-emerald-500/40 text-emerald-400"
+                    )}
+                  >
+                    <Icon name="clock" className="w-2.5 h-2.5" />
+                    <span>{remaining.text}</span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         ) : (
           <div className="py-32 text-center space-y-6">

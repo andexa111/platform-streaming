@@ -24,6 +24,38 @@ export class PaymentService {
     });
   }
 
+  async updateCoinPackage(id: number, data: { price?: number; coins_amount?: number; name?: string }) {
+    return this.prisma.coinPackage.update({
+      where: { id },
+      data,
+    });
+  }
+
+  async getAdminTransactions() {
+    const coinPayments = await this.prisma.coinPayment.findMany({
+      take: 100,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: { select: { id: true, name: true, email: true } },
+        package: { select: { id: true, name: true, coins_amount: true } },
+      },
+    });
+
+    const filmPurchases = await this.prisma.userFilmAccess.findMany({
+      take: 100,
+      orderBy: { purchased_at: 'desc' },
+      include: {
+        user: { select: { id: true, name: true, email: true } },
+        film: { select: { id: true, title: true } },
+      },
+    });
+
+    return {
+      coinPayments,
+      filmPurchases,
+    };
+  }
+
   async createCoinTransaction(userId: number, packageId: number) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('User tidak ditemukan');
@@ -66,6 +98,9 @@ export class PaymentService {
           name: `Top Up ${coinPkg.name}`,
         },
       ],
+      callbacks: {
+        finish: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/coins`,
+      },
     };
 
     try {

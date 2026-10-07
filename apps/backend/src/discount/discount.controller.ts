@@ -6,7 +6,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 
 @Controller('discounts')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('superadmin')
+@Roles('admin', 'superadmin')
 export class DiscountController {
   constructor(private service: DiscountService) {}
 

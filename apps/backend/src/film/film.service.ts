@@ -642,6 +642,32 @@ export class FilmService {
     };
   }
 
+  async getMyPurchasedFilms(userId: number) {
+    const now = new Date();
+    const accesses = await this.prisma.userFilmAccess.findMany({
+      where: {
+        userId,
+        expires_at: { gt: now },
+      },
+      include: {
+        film: {
+          include: {
+            genres: true,
+            directors: true,
+            actors: true,
+            production_houses: true,
+          },
+        },
+      },
+      orderBy: { purchased_at: 'desc' },
+    });
+
+    return accesses.map((acc) => ({
+      ...acc.film,
+      purchased_at: acc.purchased_at,
+    }));
+  }
+
   async buyFilm(filmId: number, userId: number) {
     const film = await this.findOne(filmId);
     const coinPrice = film.coin_price || 15;

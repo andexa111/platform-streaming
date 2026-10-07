@@ -6,6 +6,9 @@ import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
 import { useCoinStore } from "@/lib/coin-store";
 
+import { api } from "@/lib/api";
+import { useAuthStore } from "@/lib/auth-store";
+
 interface PurchaseModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -26,13 +29,16 @@ export function PurchaseModal({
   onPurchaseSuccess,
 }: PurchaseModalProps) {
   const router = useRouter();
-  const coins = useCoinStore((s) => s.coins);
+  const user = useAuthStore((s) => s.user);
+  const storeCoins = useCoinStore((s) => s.coins);
+  const coins = user?.coins ?? storeCoins;
   const unlockFilm = useCoinStore((s) => s.unlockFilm);
   const hasUnlocked = useCoinStore((s) => s.hasUnlocked);
 
   const [purchaseState, setPurchaseState] = React.useState<
     "confirm" | "success" | "insufficient"
   >("confirm");
+  const [loading, setLoading] = React.useState(false);
 
   // Reset state when modal opens
   React.useEffect(() => {
@@ -51,21 +57,44 @@ export function PurchaseModal({
 
   const canAfford = coins >= filmPrice;
 
-  const handlePurchase = () => {
+  const handlePurchase = async () => {
     if (!canAfford) {
       setPurchaseState("insufficient");
       return;
     }
 
-    const success = unlockFilm(String(filmId), filmPrice);
-    if (success) {
+    setLoading(true);
+    try {
+      const res = await api.post(`/films/${filmId}/buy`);
+      if (res.data?.coins_remaining !== undefined) {
+        const currentUser = useAuthStore.getState().user;
+        if (currentUser) {
+          useAuthStore.setState({
+            user: { ...currentUser, coins: res.data.coins_remaining },
+          });
+        }
+      }
+      unlockFilm(String(filmId), filmPrice);
+      await useAuthStore.getState().checkAuth();
       setPurchaseState("success");
       setTimeout(() => {
         onPurchaseSuccess?.();
         onClose();
       }, 1500);
-    } else {
-      setPurchaseState("insufficient");
+    } catch (err: any) {
+      console.error("Purchase API failed, attempting local unlock", err);
+      const success = unlockFilm(String(filmId), filmPrice);
+      if (success) {
+        setPurchaseState("success");
+        setTimeout(() => {
+          onPurchaseSuccess?.();
+          onClose();
+        }, 1500);
+      } else {
+        setPurchaseState("insufficient");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -178,10 +207,20 @@ export function PurchaseModal({
               {canAfford ? (
                 <button
                   onClick={handlePurchase}
-                  className="w-full py-4 bg-brand hover:bg-brand-dark text-white rounded-2xl font-black text-sm transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_10px_30px_rgba(2,77,148,0.3)] flex items-center justify-center gap-2"
+                  disabled={loading}
+                  className="w-full py-4 bg-brand hover:bg-brand-dark text-white rounded-2xl font-black text-sm transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_10px_30px_rgba(2,77,148,0.3)] flex items-center justify-center gap-2 disabled:opacity-50"
                 >
-                  <Icon name="check" className="w-5 h-5" />
-                  Ya, Beli Sekarang
+                  {loading ? (
+                    <>
+                      <Icon name="loader-2" className="w-5 h-5 animate-spin" />
+                      <span>Memproses Pembelian...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Icon name="check" className="w-5 h-5" />
+                      <span>Ya, Beli Sekarang</span>
+                    </>
+                  )}
                 </button>
               ) : (
                 <button

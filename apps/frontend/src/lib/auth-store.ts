@@ -23,6 +23,8 @@ interface AuthState {
   checkAuth: (fetchProfileFunc?: () => Promise<User | null>) => Promise<void>;
 }
 
+import { useCoinStore } from './coin-store';
+
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   isAuthenticated: !!Cookies.get('token'), // Initial state based on cookie presence
@@ -36,6 +38,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
     Cookies.set('token', token, cookieOptions);
     set({ user, isAuthenticated: true, isLoading: false });
+    if (typeof user.coins === 'number') {
+      useCoinStore.setState({ coins: user.coins });
+    }
   },
 
   logout: () => {
@@ -45,6 +50,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       cookieOptions.domain = '.sinea.id';
     }
     Cookies.remove('token', cookieOptions);
+    useCoinStore.setState({ coins: 0, unlockedFilmIds: [] });
     set({ user: null, isAuthenticated: false, isLoading: false });
   },
 
@@ -54,6 +60,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const user = res.data;
       if (user) {
         set({ user, isAuthenticated: true, isLoading: false });
+        if (typeof user.coins === 'number') {
+          useCoinStore.setState({ coins: user.coins });
+        }
       }
       return user;
     } catch (error) {

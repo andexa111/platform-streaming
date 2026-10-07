@@ -18,6 +18,7 @@ export default function AdminReportsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [prevReportCount, setPrevReportCount] = useState(reports.length);
   const [showToast, setShowToast] = useState(false);
+  const [selectedReport, setSelectedReport] = useState<any | null>(null);
 
   const toggleExpand = (id: string) => {
     setExpandedReports((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -72,6 +73,153 @@ export default function AdminReportsPage() {
 
   return (
     <div className="space-y-8 pb-20">
+      {/* Detail Modal Pop-up */}
+      {selectedReport && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6 animate-in fade-in duration-300">
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setSelectedReport(null)} />
+
+          {/* Modal Box */}
+          <div className="relative w-full max-w-2xl bg-card border border-border rounded-[2.5rem] p-6 md:p-8 shadow-2xl animate-in zoom-in-95 duration-300 flex flex-col space-y-6 max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-border pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-brand/10 border border-brand/20 flex items-center justify-center text-brand">
+                  <Icon name="flag" className="w-6 h-6" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-xl font-black text-foreground">Detail Laporan Bug</h3>
+                    <span
+                      className={cn(
+                        "px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border",
+                        selectedReport.status === "Pending"
+                          ? "bg-amber-500/10 text-amber-500 border-amber-500/30"
+                          : "bg-emerald-500/10 text-emerald-500 border-emerald-500/30"
+                      )}
+                    >
+                      {selectedReport.status === "Pending" ? "Pending" : "Selesai"}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground font-medium pt-0.5">
+                    Dikirim pada: {new Date(selectedReport.date).toLocaleDateString("id-ID", {
+                      weekday: "long",
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setSelectedReport(null)}
+                className="p-2.5 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              >
+                <Icon name="x" className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Body Content */}
+            <div className="space-y-5">
+              {/* User / Reporter Info Card */}
+              <div className="p-4 rounded-2xl bg-muted/40 border border-border/80 space-y-3">
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Informasi Pelapor</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-brand/10 text-brand flex items-center justify-center font-bold text-sm">
+                      <Icon name="user" className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-muted-foreground font-bold uppercase">Nama User</p>
+                      <p className="text-xs font-black text-foreground">{selectedReport.name}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center font-bold text-sm">
+                      <Icon name="mail" className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-muted-foreground font-bold uppercase">Email User</p>
+                      <p className="text-xs font-black text-foreground break-all">{selectedReport.email}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Film Target Info */}
+              <div className="p-4 rounded-2xl bg-brand/5 border border-brand/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-brand text-white flex items-center justify-center font-bold text-sm shadow-md shadow-brand/20">
+                    <Icon name="film" className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-brand font-black uppercase tracking-widest">Judul Film Yang Dilaporkan</p>
+                    <p className="text-sm font-black text-foreground">{selectedReport.movieTitle}</p>
+                  </div>
+                </div>
+
+                {selectedReport.movieId && (
+                  <Link
+                    href={`/movies/${selectedReport.movieId}`}
+                    target="_blank"
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-brand hover:bg-brand-dark text-white text-xs font-bold transition-all shadow-md self-start sm:self-auto cursor-pointer"
+                  >
+                    <span>Buka Halaman Film</span>
+                    <Icon name="external-link" className="w-3.5 h-3.5" />
+                  </Link>
+                )}
+              </div>
+
+              {/* Message / Complaint Details */}
+              <div className="p-5 rounded-2xl bg-muted/30 border border-border space-y-2">
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Isi Keluhan / Detail Kendala</p>
+                <div className="p-4 rounded-xl bg-background border border-border text-xs text-foreground leading-relaxed whitespace-pre-line font-medium max-h-60 overflow-y-auto">
+                  {selectedReport.message}
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="pt-2 border-t border-border flex flex-col sm:flex-row items-center justify-end gap-2">
+              {selectedReport.status === "Pending" && (
+                <button
+                  onClick={() => {
+                    markAsResolved(selectedReport.id);
+                    setSelectedReport({ ...selectedReport, status: "Resolved" });
+                  }}
+                  className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-3 rounded-2xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 border border-emerald-500/30 text-xs font-bold transition-all cursor-pointer"
+                >
+                  <Icon name="check" className="w-4 h-4" />
+                  <span>Tandai Selesai</span>
+                </button>
+              )}
+
+              <button
+                onClick={() => {
+                  deleteReport(selectedReport.id);
+                  setSelectedReport(null);
+                }}
+                className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-3 rounded-2xl bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/30 text-xs font-bold transition-all cursor-pointer"
+              >
+                <Icon name="trash-2" className="w-4 h-4" />
+                <span>Hapus</span>
+              </button>
+
+              <button
+                onClick={() => setSelectedReport(null)}
+                className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-muted hover:bg-muted/80 text-foreground text-xs font-bold transition-all cursor-pointer"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Real-time Toast Alert when new report arrives */}
       {showToast && (
         <div className="flex items-center justify-between p-4 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 animate-in slide-in-from-top-4 duration-300 shadow-lg">
@@ -140,7 +288,7 @@ export default function AdminReportsPage() {
                 key={tab}
                 onClick={() => setFilter(tab)}
                 className={cn(
-                  "px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap",
+                  "px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer",
                   filter === tab ? "bg-brand text-white shadow-md shadow-brand/20" : "bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted",
                 )}
               >
@@ -202,7 +350,7 @@ export default function AdminReportsPage() {
                   setStartDate("");
                   setEndDate("");
                 }}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 text-xs font-bold transition-colors"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 text-xs font-bold transition-colors cursor-pointer"
                 title="Reset Tanggal"
               >
                 <Icon name="x" className="w-3.5 h-3.5" />
@@ -230,8 +378,9 @@ export default function AdminReportsPage() {
             {paginatedReports.map((report) => (
               <div
                 key={report.id}
+                onClick={() => setSelectedReport(report)}
                 className={cn(
-                  "p-6 rounded-2xl bg-card border transition-all duration-300 flex flex-col md:flex-row md:items-start justify-between gap-6 shadow-sm hover:shadow-md",
+                  "p-6 rounded-2xl bg-card border transition-all duration-300 flex flex-col md:flex-row md:items-start justify-between gap-6 shadow-sm hover:shadow-lg cursor-pointer group hover:border-brand/50",
                   report.status === "Pending" ? "border-amber-500/30" : "border-border",
                 )}
               >
@@ -268,23 +417,26 @@ export default function AdminReportsPage() {
                   {/* Message Box */}
                   <div className="p-4 rounded-xl bg-muted/30 border border-border/60 text-xs text-foreground font-normal leading-relaxed">
                     <p className="font-bold text-[10px] uppercase text-muted-foreground mb-1">Detail Kendala:</p>
-                    <p className={cn("transition-all duration-300 whitespace-pre-line", !expandedReports[report.id] && report.message.length > 120 && "line-clamp-2")}>
+                    <p className="line-clamp-2 transition-all duration-300 whitespace-pre-line">
                       {report.message}
                     </p>
-                    {report.message.length > 120 && (
-                      <button
-                        onClick={() => toggleExpand(report.id)}
-                        className="mt-2 text-brand font-bold text-xs hover:underline flex items-center gap-1 focus:outline-none cursor-pointer"
-                      >
-                        <span>{expandedReports[report.id] ? "Sembunyikan" : "Baca Selengkapnya"}</span>
-                        <Icon name={expandedReports[report.id] ? "chevron-up" : "chevron-down"} className="w-3.5 h-3.5" />
-                      </button>
-                    )}
+                    <span className="mt-2 text-brand font-bold text-xs group-hover:underline flex items-center gap-1">
+                      <span>Lihat Detail Laporan</span>
+                      <Icon name="chevron-right" className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                    </span>
                   </div>
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex md:flex-col items-center gap-2 pt-2 md:pt-0 border-t md:border-t-0 border-border">
+                <div className="flex md:flex-col items-center gap-2 pt-2 md:pt-0 border-t md:border-t-0 border-border" onClick={(e) => e.stopPropagation()}>
+                  <button
+                    onClick={() => setSelectedReport(report)}
+                    className="flex-1 md:flex-none flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-brand text-white text-xs font-bold transition-all shadow-sm hover:bg-brand-dark cursor-pointer"
+                  >
+                    <Icon name="eye" className="w-3.5 h-3.5" />
+                    Lihat Detail
+                  </button>
+
                   {report.status === "Pending" && (
                     <button
                       onClick={() => markAsResolved(report.id)}

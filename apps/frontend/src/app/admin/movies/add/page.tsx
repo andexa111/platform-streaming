@@ -30,6 +30,7 @@ export default function AddMoviePage() {
     genreNames: [] as string[],
     categories: [] as string[],
     release_year: "",
+    coin_price: "15",
     video_id: "",
     trailer_url: "",
     poster_url: "",
@@ -188,6 +189,7 @@ export default function AddMoviePage() {
         genreNames: formData.genreNames.length > 0 ? formData.genreNames : undefined,
         categoryNames: formData.categories.length > 0 ? formData.categories : undefined,
         release_year: formData.release_year ? parseInt(formData.release_year) : undefined,
+        coin_price: formData.coin_price !== "" && formData.coin_price !== undefined ? parseInt(formData.coin_price) : 15,
         video_id: formData.video_id || undefined,
         trailer_url: formData.trailer_url || undefined,
         poster_url: formData.poster_url || undefined,
@@ -666,6 +668,23 @@ export default function AddMoviePage() {
                     value={formData.release_year}
                     onChange={(e) => updateField("release_year", e.target.value)}
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase text-foreground">Harga Film (Koin) *</label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min="0"
+                      placeholder="15"
+                      className="w-full px-5 py-3.5 bg-secondary border border-border rounded-2xl focus:outline-none focus:border-brand transition-all text-sm text-foreground placeholder:text-muted-foreground font-bold"
+                      value={formData.coin_price}
+                      onChange={(e) => updateField("coin_price", e.target.value)}
+                    />
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1.5 pointer-events-none text-xs font-bold text-amber-500">
+                      🪙 Koin
+                    </div>
+                  </div>
                 </div>
 
                 {/* Production Houses Section */}

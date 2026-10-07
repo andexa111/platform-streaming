@@ -6,6 +6,7 @@ import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { NAV_LINKS } from "@/config/navigation";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/lib/auth-store";
+import { useReportStore } from "@/lib/report-store";
 
 interface AdminHeaderProps {
   onMenuClick: () => void;
@@ -14,6 +15,7 @@ interface AdminHeaderProps {
 export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
   const pathname = usePathname();
   const user = useAuthStore((s) => s.user);
+  const unreadCount = useReportStore((s) => s.unreadCount);
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -51,6 +53,20 @@ export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
 
       {/* Right: User Profile & Actions */}
       <div className="flex items-center gap-4 sm:gap-6">
+        {/* Bug Reports Notification Icon with Red Badge */}
+        <Link
+          href="/admin/reports"
+          className="relative p-2.5 rounded-xl bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-all group"
+          title="Laporan Bug Masuk"
+        >
+          <Icon name="bell" className="w-5 h-5 text-brand group-hover:scale-110 transition-transform" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-[20px] px-1 bg-red-500 text-white rounded-full text-[10px] font-black flex items-center justify-center animate-bounce border-2 border-background shadow-md shadow-red-500/40">
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </span>
+          )}
+        </Link>
+
         <ThemeToggle />
         
         {/* Vertical Divider */}

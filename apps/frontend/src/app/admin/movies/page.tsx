@@ -18,6 +18,7 @@ interface Film {
   director?: string;
   duration?: number;
   release_year?: number;
+  coin_price?: number;
   poster_url?: string;
   trailer_url?: string;
   video_id?: string;
@@ -384,6 +385,7 @@ export default function AdminMoviesPage() {
                   </th>
                   <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest">Film</th>
                   <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-center">Genre</th>
+                  <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-center">Harga</th>
                   <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-center">Video</th>
                   <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-center">Status</th>
                   <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-right">Aksi</th>
@@ -440,6 +442,11 @@ export default function AdminMoviesPage() {
                             <span className="text-xs text-neutral-300">—</span>
                           )}
                         </div>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-black">
+                          🪙 {film.coin_price ?? 15} Koin
+                        </span>
                       </td>
                       <td className="px-6 py-4">
                         {film.video_id ? (

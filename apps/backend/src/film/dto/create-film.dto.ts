@@ -43,6 +43,12 @@ export class CreateFilmDto {
   release_year?: number;
 
   @IsOptional()
+  @IsInt({ message: 'Harga film (koin) harus berupa angka' })
+  @Min(0, { message: 'Harga film minimal 0 koin' })
+  @Type(() => Number)
+  coin_price?: number;
+
+  @IsOptional()
   @IsString()
   poster_url?: string;
 

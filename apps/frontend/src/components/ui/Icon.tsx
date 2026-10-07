@@ -67,7 +67,8 @@ import {
   Coins,
   Zap,
   Infinity as LucideInfinity,
-  ShieldCheck
+  ShieldCheck,
+  Loader2
 } from "lucide-react";
 
 const ICON_MAP = {
@@ -139,6 +140,7 @@ const ICON_MAP = {
   zap: Zap,
   infinity: LucideInfinity,
   "shield-check": ShieldCheck,
+  "loader-2": Loader2,
 };
 
 interface IconProps extends LucideProps {

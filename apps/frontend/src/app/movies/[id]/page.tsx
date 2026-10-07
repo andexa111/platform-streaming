@@ -13,8 +13,9 @@ import { api, getMediaUrl } from "@/lib/api";
 import { Player } from "@/components/video/Player";
 import { VideoRow } from "@/components/video/VideoRow";
 import { PurchaseModal } from "@/components/ui/PurchaseModal";
-import { useCoinStore } from "@/lib/coin-store";
+import { useCoinStore, getFilmRemainingTime } from "@/lib/coin-store";
 import { useReportStore } from "@/lib/report-store";
+import { CaptchaWidget } from "@/components/ui/CaptchaWidget";
 
 export default function MovieDetailPage() {
   const { id } = useParams();
@@ -44,6 +45,7 @@ export default function MovieDetailPage() {
 
   // States for Purchase Modal
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
+  const [hasBackendAccess, setHasBackendAccess] = useState(false);
   const hasUnlocked = useCoinStore((s) => s.hasUnlocked);
 
   useEffect(() => {
@@ -95,10 +97,20 @@ export default function MovieDetailPage() {
         });
 
     const relatedPromise = isMock ? Promise.resolve({ data: { data: [] } }) : api.get("/films?limit=10").catch(() => ({ data: { data: [] } }));
+    const accessPromise = (isAuthenticated && !isMock && !isNaN(movieId))
+      ? api.get(`/films/${movieId}/access`).catch(() => ({ data: { has_access: false } }))
+      : Promise.resolve({ data: { has_access: false } });
 
-    Promise.all([fetchPromise, relatedPromise])
-      .then(([movieRes, relatedRes]) => {
+    Promise.all([fetchPromise, relatedPromise, accessPromise])
+      .then(([movieRes, relatedRes, accessRes]) => {
         setMovie(movieRes.data);
+
+        if (accessRes.data?.has_access) {
+          setHasBackendAccess(true);
+          useCoinStore.setState((state) => ({
+            unlockedFilmIds: Array.from(new Set([...state.unlockedFilmIds, String(movieId)])),
+          }));
+        }
 
         const all = relatedRes.data?.data || [];
         const mapped = all
@@ -127,10 +139,10 @@ export default function MovieDetailPage() {
       .finally(() => {
         setLoading(false);
       });
-  }, [id, movieId]);
+  }, [id, movieId, isAuthenticated]);
 
   const filmPrice = movie?.coin_price || 15;
-  const filmUnlocked = hasUnlocked(String(movieId));
+  const filmUnlocked = hasBackendAccess || hasUnlocked(String(movieId));
 
   const handleWatchNow = () => {
     if (!isAuthenticated) {
@@ -336,17 +348,8 @@ export default function MovieDetailPage() {
                   />
                 </div>
 
-                {/* reCAPTCHA Widget */}
-                <div className="flex items-center justify-between p-3.5 rounded-xl bg-muted/30 border border-border select-none">
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input type="checkbox" checked={isCaptchaVerified} onChange={(e) => setIsCaptchaVerified(e.target.checked)} className="w-4 h-4 rounded border-neutral-400 text-brand focus:ring-brand accent-brand cursor-pointer" />
-                    <span className="text-xs font-semibold text-foreground">Saya bukan robot</span>
-                  </label>
-                  <div className="flex flex-col items-center justify-center text-[9px] text-muted-foreground/70">
-                    <Icon name="shield-check" className="w-4 h-4 text-emerald-500 mb-0.5" />
-                    <span>reCAPTCHA</span>
-                  </div>
-                </div>
+                {/* Anti-Spam CAPTCHA Widget */}
+                <CaptchaWidget onVerify={(isValid) => setIsCaptchaVerified(isValid)} />
 
                 <div className="flex items-center justify-end gap-3 pt-2">
                   <button type="button" onClick={() => setShowReportModal(false)} className="px-4 py-2.5 rounded-xl bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground font-bold text-xs transition-all">
@@ -567,12 +570,18 @@ export default function MovieDetailPage() {
                     <span>{isLiked ? "Menyukai" : "Suka"}</span>
                   </button>
 
-                  {/* Informasi Harga Film dalam Coin (Biru SNEA & Logo coin 1.png) */}
+                  {/* Informasi Masa Aktif Akses Film / Harga Film dalam Coin */}
                   {filmUnlocked ? (
-                    <div className="flex items-center gap-1.5 md:gap-2 px-2.5 md:px-4 py-2 md:py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 font-bold text-[10px] md:text-sm shadow-sm overflow-hidden whitespace-nowrap">
-                      <Icon name="check" className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                      <span className="font-extrabold">Sudah Dibeli</span>
-                    </div>
+                    (() => {
+                      const purchasedAt = useCoinStore.getState().getPurchasedAt(String(movieId));
+                      const remaining = getFilmRemainingTime(purchasedAt);
+                      return (
+                        <div className="flex items-center gap-1.5 md:gap-2 px-2.5 md:px-4 py-2 md:py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 font-bold text-[10px] md:text-sm shadow-sm overflow-hidden whitespace-nowrap">
+                          <Icon name="clock" className="w-3.5 h-3.5 md:w-4 md:h-4 text-emerald-500" />
+                          <span className="font-extrabold">{remaining.text}</span>
+                        </div>
+                      );
+                    })()
                   ) : (
                     <button
                       onClick={() => {
@@ -815,6 +824,10 @@ export default function MovieDetailPage() {
           filmPrice={filmPrice}
           filmPoster={mappedMovie.thumbnail}
           onPurchaseSuccess={() => {
+            setHasBackendAccess(true);
+            useCoinStore.setState((state) => ({
+              unlockedFilmIds: Array.from(new Set([...state.unlockedFilmIds, String(movieId)])),
+            }));
             router.push(`/watch/${movieId}`);
           }}
         />
