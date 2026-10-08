@@ -358,10 +358,12 @@ export default function WatchClient({ movieId }: { movieId: number }) {
         {isAuthenticated && (
           <Link
             href="/coins"
-            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-500 hover:bg-amber-500/20 text-xs font-bold transition-all"
+            className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand/10 border border-brand/30 text-brand hover:bg-brand/20 text-xs font-bold transition-all shadow-sm"
           >
-            <span>🪙</span>
-            <span>{user?.coins ?? 0} Koin</span>
+            <div className="relative w-5 h-5 flex-shrink-0 scale-125">
+              <Image src="/coin 1.png" alt="Koin" fill className="object-contain drop-shadow-md" sizes="20px" />
+            </div>
+            <span className="tabular-nums">{user?.coins ?? 0} Koin</span>
           </Link>
         )}
       </div>

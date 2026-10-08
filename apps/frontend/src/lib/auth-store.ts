@@ -38,9 +38,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
     Cookies.set('token', token, cookieOptions);
     set({ user, isAuthenticated: true, isLoading: false });
-    if (typeof user.coins === 'number') {
-      useCoinStore.setState({ coins: user.coins });
-    }
+    useCoinStore.setState({
+      coins: typeof user.coins === 'number' ? user.coins : 0,
+      unlockedFilmIds: [],
+      purchasedFilms: {},
+    });
   },
 
   logout: () => {
@@ -50,7 +52,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       cookieOptions.domain = '.sinea.id';
     }
     Cookies.remove('token', cookieOptions);
-    useCoinStore.setState({ coins: 0, unlockedFilmIds: [] });
+    useCoinStore.setState({ coins: 0, unlockedFilmIds: [], purchasedFilms: {} });
     set({ user: null, isAuthenticated: false, isLoading: false });
   },
 

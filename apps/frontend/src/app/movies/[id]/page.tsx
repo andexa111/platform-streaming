@@ -110,6 +110,8 @@ export default function MovieDetailPage() {
           useCoinStore.setState((state) => ({
             unlockedFilmIds: Array.from(new Set([...state.unlockedFilmIds, String(movieId)])),
           }));
+        } else {
+          setHasBackendAccess(false);
         }
 
         const all = relatedRes.data?.data || [];
@@ -141,8 +143,9 @@ export default function MovieDetailPage() {
       });
   }, [id, movieId, isAuthenticated]);
 
+  const isMock = typeof id === "string" && id.startsWith("mock");
   const filmPrice = movie?.coin_price || 15;
-  const filmUnlocked = hasBackendAccess || hasUnlocked(String(movieId));
+  const filmUnlocked = isMock ? hasUnlocked(String(movieId)) : (isAuthenticated ? hasBackendAccess : false);
 
   const handleWatchNow = () => {
     if (!isAuthenticated) {

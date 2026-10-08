@@ -43,15 +43,9 @@ export function PurchaseModal({
   // Reset state when modal opens
   React.useEffect(() => {
     if (isOpen) {
-      // Check if already unlocked
-      if (hasUnlocked(String(filmId))) {
-        onPurchaseSuccess?.();
-        onClose();
-        return;
-      }
       setPurchaseState("confirm");
     }
-  }, [isOpen, filmId, hasUnlocked, onPurchaseSuccess, onClose]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
