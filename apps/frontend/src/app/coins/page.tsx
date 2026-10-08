@@ -118,6 +118,43 @@ function TopUpPageContent() {
     }
   };
 
+  // Track initial referrer before payment redirects
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const ref = document.referrer;
+      if (ref) {
+        try {
+          const refUrl = new URL(ref);
+          if (
+            refUrl.origin === window.location.origin &&
+            !refUrl.pathname.startsWith("/topup") &&
+            !refUrl.pathname.startsWith("/coins")
+          ) {
+            sessionStorage.setItem("topup_return_url", refUrl.pathname + refUrl.search);
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+    }
+  }, []);
+
+  const handleBack = () => {
+    if (typeof window !== "undefined") {
+      const savedReturnUrl = sessionStorage.getItem("topup_return_url");
+      if (savedReturnUrl) {
+        sessionStorage.removeItem("topup_return_url");
+        router.push(savedReturnUrl);
+        return;
+      }
+    }
+    if (typeof window !== "undefined" && window.history.length > 2 && document.referrer && !document.referrer.includes("/topup") && !document.referrer.includes("midtrans")) {
+      router.back();
+    } else {
+      router.push("/movies");
+    }
+  };
+
   useEffect(() => {
     fetchPackages();
 
@@ -236,7 +273,7 @@ function TopUpPageContent() {
         {/* Breadcrumb / Back Navigation */}
         <div className="max-w-7xl mx-auto px-6 pt-8 flex items-center justify-between relative z-50">
           <div className="flex items-center gap-4">
-            <button onClick={() => router.back()} className="p-2 rounded-full bg-white dark:bg-white/5 hover:bg-neutral-100 dark:hover:bg-white/10 border border-neutral-200 dark:border-white/10 transition-all group backdrop-blur-sm cursor-pointer">
+            <button onClick={handleBack} className="p-2 rounded-full bg-white dark:bg-white/5 hover:bg-neutral-100 dark:hover:bg-white/10 border border-neutral-200 dark:border-white/10 transition-all group backdrop-blur-sm cursor-pointer">
               <Icon name="arrow-right" className="w-5 h-5 rotate-180 group-hover:-translate-x-1 transition-transform" />
             </button>
             <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-neutral-500">
