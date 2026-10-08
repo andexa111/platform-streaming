@@ -16,8 +16,14 @@ function CallbackContent() {
   const setAuth = useAuthStore((s) => s.setAuth);
 
   const [state, setState] = useState<"loading" | "pending" | "success" | "error">("loading");
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   useEffect(() => {
+    if (isAuthenticated && !token) {
+      window.location.replace("/home");
+      return;
+    }
+
     if (!token) {
       setState("error");
       return;
@@ -38,7 +44,9 @@ function CallbackContent() {
     };
 
     authenticate();
-  }, [token, status]);
+  }, [token, status, isAuthenticated, setAuth]);
+
+  if (isAuthenticated && !token) return null;
 
   return (
     <div className="w-full max-w-[440px] mx-auto p-10 bg-card border border-border rounded-2xl shadow-2xl text-center space-y-6">

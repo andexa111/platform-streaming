@@ -19,7 +19,15 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
 
   const router = useRouter();
-  const setAuth = useAuthStore((state) => state.setAuth);
+  const { isAuthenticated, setAuth } = useAuthStore();
+
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      router.replace("/home");
+    }
+  }, [isAuthenticated, router]);
+
+  if (isAuthenticated) return null;
 
   const {
     register,

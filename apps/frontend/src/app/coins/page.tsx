@@ -148,12 +148,7 @@ function TopUpPageContent() {
         return;
       }
     }
-
-    if (typeof window !== "undefined" && window.history.length > 2 && document.referrer && !document.referrer.includes("midtrans")) {
-      router.back();
-    } else {
-      router.push("/movies");
-    }
+    router.push("/movies");
   };
 
   useEffect(() => {

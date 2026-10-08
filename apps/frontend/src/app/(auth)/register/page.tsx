@@ -20,6 +20,15 @@ export default function RegisterPage() {
   const [success, setSuccess] = useState<string | null>(null);
 
   const router = useRouter();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      router.replace("/home");
+    }
+  }, [isAuthenticated, router]);
+
+  if (isAuthenticated) return null;
 
   const {
     register,
