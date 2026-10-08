@@ -31,9 +31,7 @@ function CallbackContent() {
         });
         setAuth(res.data, token);
         setState("success");
-        setTimeout(() => {
-          window.location.href = "/home";
-        }, 1500);
+        window.location.replace("/home");
       } catch {
         setState("error");
       }

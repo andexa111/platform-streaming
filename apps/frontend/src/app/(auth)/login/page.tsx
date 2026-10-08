@@ -37,8 +37,8 @@ export default function LoginPage() {
       // Save token to store and cookie
       setAuth(response.data.user, response.data.access_token);
 
-      // Redirect using window.location.href for guaranteed navigation and clean hydration
-      window.location.href = "/home";
+      // Redirect using window.location.replace for clean navigation without history entries
+      window.location.replace("/home");
 
     } catch (err: any) {
       setError(err.response?.data?.message || "Login gagal. Periksa kembali email dan password Anda.");
