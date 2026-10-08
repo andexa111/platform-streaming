@@ -89,6 +89,7 @@ function TopUpPageContent() {
   const storeCoins = useCoinStore((state) => state.coins);
   const currentCoins = user?.coins ?? storeCoins;
 
+  const [isNavigatingBack, setIsNavigatingBack] = useState(false);
   const [buying, setBuying] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -119,6 +120,8 @@ function TopUpPageContent() {
   };
 
   const handleBack = () => {
+    if (isNavigatingBack) return;
+    setIsNavigatingBack(true);
     if (typeof window !== "undefined" && window.history.length > 1) {
       router.back();
     } else {
@@ -234,6 +237,11 @@ function TopUpPageContent() {
         strategy="lazyOnload"
       />
 
+      {/* Top Micro-Loading Progress Indicator */}
+      {isNavigatingBack && (
+        <div className="fixed top-0 left-0 right-0 h-1 bg-brand animate-pulse z-[100] shadow-[0_0_10px_#024d94]" />
+      )}
+
       <div className="bg-neutral-50 dark:bg-neutral-950 min-h-screen text-neutral-900 dark:text-white pb-32 selection:bg-brand/30 font-sans transition-colors duration-300">
         {/* Background Decor */}
         <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
@@ -244,8 +252,17 @@ function TopUpPageContent() {
         {/* Breadcrumb / Back Navigation */}
         <div className="max-w-7xl mx-auto px-6 pt-8 flex items-center justify-between relative z-50">
           <div className="flex items-center gap-4">
-            <button onClick={handleBack} className="p-2 rounded-full bg-white dark:bg-white/5 hover:bg-neutral-100 dark:hover:bg-white/10 border border-neutral-200 dark:border-white/10 transition-all group backdrop-blur-sm cursor-pointer">
-              <Icon name="arrow-right" className="w-5 h-5 rotate-180 group-hover:-translate-x-1 transition-transform" />
+            <button
+              onClick={handleBack}
+              disabled={isNavigatingBack}
+              className="p-2 rounded-full bg-white dark:bg-white/5 hover:bg-neutral-100 dark:hover:bg-white/10 border border-neutral-200 dark:border-white/10 transition-all group backdrop-blur-sm cursor-pointer disabled:opacity-80"
+              title="Kembali"
+            >
+              {isNavigatingBack ? (
+                <Icon name="loader-2" className="w-5 h-5 text-brand animate-spin" />
+              ) : (
+                <Icon name="arrow-right" className="w-5 h-5 rotate-180 group-hover:-translate-x-1 transition-transform" />
+              )}
             </button>
             <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-neutral-500">
               <span className="hover:text-neutral-900 dark:hover:text-white cursor-pointer transition-colors" onClick={() => router.push("/")}>
