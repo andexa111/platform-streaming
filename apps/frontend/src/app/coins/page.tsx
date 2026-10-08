@@ -118,37 +118,8 @@ function TopUpPageContent() {
     }
   };
 
-  // Track initial referrer before payment redirects
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const ref = document.referrer;
-      if (ref) {
-        try {
-          const refUrl = new URL(ref);
-          if (
-            refUrl.origin === window.location.origin &&
-            !refUrl.pathname.startsWith("/topup") &&
-            !refUrl.pathname.startsWith("/coins")
-          ) {
-            sessionStorage.setItem("topup_return_url", refUrl.pathname + refUrl.search);
-          }
-        } catch (e) {
-          // ignore
-        }
-      }
-    }
-  }, []);
-
   const handleBack = () => {
-    if (typeof window !== "undefined") {
-      const savedReturnUrl = sessionStorage.getItem("topup_return_url");
-      if (savedReturnUrl) {
-        sessionStorage.removeItem("topup_return_url");
-        router.push(savedReturnUrl);
-        return;
-      }
-    }
-    if (typeof window !== "undefined" && window.history.length > 2 && document.referrer && !document.referrer.includes("/topup") && !document.referrer.includes("midtrans")) {
+    if (typeof window !== "undefined" && window.history.length > 1) {
       router.back();
     } else {
       router.push("/movies");

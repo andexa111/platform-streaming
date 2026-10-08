@@ -80,7 +80,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
 
     try {
-      set({ isLoading: true });
+      if (!get().user) {
+        set({ isLoading: true });
+      }
       const fetcher = fetchProfileFunc || get().fetchProfile;
       const user = await fetcher();
       if (user) {
